@@ -1,0 +1,27 @@
+{
+  "name": "lumae-site",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Lumae documentation, playground, palette and theme studio. Served at lumae.indranildev.in.",
+  "author": "Indranil Bhattacharya",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite --port 5180 --open",
+    "build": "vite build",
+    "preview": "vite preview --port 5180",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { LumaeProvider as CoreProvider, type LumaeProviderProps } from '@lumae/core';
+import { LumaeProvider as CoreProvider, type LumaeProviderProps } from '@lumae/react';
 import { createTheme, type PaletteConfig, type Theme } from '@lumae/core/palette';
 
 /** Docs wrapper: themes the whole document so the page chrome follows too. */

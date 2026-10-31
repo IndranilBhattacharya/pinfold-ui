@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { useAccordion } from '@lumae/accordion';
-import type { AccordionConfig, AccordionDimensions, AccordionItemConfig } from '@lumae/accordion';
+import { useAccordion } from '@lumae/react/accordion';
+import type { AccordionConfig, AccordionDimensions, AccordionItemConfig } from '@lumae/react/accordion';
 
 const START = `[
   {

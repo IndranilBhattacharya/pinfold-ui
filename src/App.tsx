@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { DEFAULT_PALETTE, LumaeProvider, useLiveTheme, type Palette } from './theme';
 import { PaletteStudio } from './PaletteStudio';
-import { useAccordion } from '@lumae/accordion';
+import { useAccordion } from '@lumae/react/accordion';
 import { resolveNode } from '@lumae/core';
-import type { AccordionConfig, AccordionVariant } from '@lumae/accordion';
+import type { AccordionConfig, AccordionVariant } from '@lumae/react/accordion';
 import { Playground } from './Playground';
 
 const FAQ = [
@@ -38,7 +38,7 @@ const FAQ = [
   {
     id: 'react',
     title: 'Which React versions work?',
-    content: 'React 16.8 and up. No new hooks, no automatic JSX runtime requirement, no react-dom import.',
+    content: 'React 18 and 19, with or without the React Compiler. TypeScript or plain JavaScript. No react-dom import, no runtime CSS.',
     disabled: false,
   },
 ];
@@ -149,8 +149,8 @@ const TAILWIND_WAYS: Array<[string, string]> = [
   ],
   [
     'one palette, both systems',
-    `// tailwind.config.js  (v4: @import "@lumae/tailwind/theme.css")
-module.exports = { presets: [require('@lumae/tailwind')] };
+    `// tailwind.config.js  (v4: @import "@lumae/css/tailwind.css")
+module.exports = { presets: [require('@lumae/css/tailwind')] };
 
 // bg-primary-600  text-content-muted  border-line  rounded-lg  shadow-md
 // all resolve to --lumae-* vars, so \`npx lumae theme\` moves both.
@@ -318,7 +318,7 @@ export function App() {
         </Section>
 
         <footer className="dx-footer">
-          MIT · built with Lumae source, live-reloaded from <code>packages/</code>
+          MIT · Created by Indranil Bhattacharya · built from Lumae source, live-reloaded from <code>../lumae/packages/</code>
         </footer>
       </main>
     </LumaeProvider>

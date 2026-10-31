@@ -23,8 +23,6 @@ npm run dev       # http://localhost:5180
 npm run build
 npm run typecheck
 ```
-Status: the code still imports the working names `@knotui/*`. Milestone A1 renames them to
-`@lumae/*` in both repos together.
 
 ## What lives here
 See [docs/SITE.md](docs/SITE.md). Agents and contributors: read [AGENTS.md](AGENTS.md) first.

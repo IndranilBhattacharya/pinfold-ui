@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 
-import '@knotui/core/reset.css';
-import '@knotui/core/styles.css';
-import '@knotui/accordion/styles.css';
+import '@lumae/core/reset.css';
+import '@lumae/core/styles.css';
+import '@lumae/accordion/styles.css';
 import './docs.css';
 
 import { App } from './App';

@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { KnotProvider as CoreProvider, type KnotProviderProps } from '@knotui/core';
-import { createTheme, type PaletteConfig, type Theme } from '@knotui/core/palette';
+import { LumaeProvider as CoreProvider, type LumaeProviderProps } from '@lumae/core';
+import { createTheme, type PaletteConfig, type Theme } from '@lumae/core/palette';
 
 /** Docs wrapper: themes the whole document so the page chrome follows too. */
-export function KnotProvider(props: KnotProviderProps) {
+export function LumaeProvider(props: LumaeProviderProps) {
   return <CoreProvider applyToDocument {...props} />;
 }
 
@@ -19,7 +19,7 @@ export const DEFAULT_PALETTE: Palette = {
 
 /**
  * Applies a palette to the live document using the very same `createTheme()`
- * the CLI runs. What the sliders show is exactly what `npx knotui theme`
+ * the CLI runs. What the sliders show is exactly what `npx lumae theme`
  * would write to disk — there is no separate preview implementation to drift.
  */
 export function useLiveTheme(palette: Palette, mode: 'light' | 'dark'): Theme {
@@ -28,7 +28,7 @@ export function useLiveTheme(palette: Palette, mode: 'light' | 'dark'): Theme {
   React.useLayoutEffect(() => {
     const root = document.documentElement;
     for (const [key, value] of Object.entries(theme.vars)) root.style.setProperty(key, value);
-    root.setAttribute('data-knot-theme', mode);
+    root.setAttribute('data-lumae-theme', mode);
     return () => {
       for (const key of Object.keys(theme.vars)) root.style.removeProperty(key);
     };

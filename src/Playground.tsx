@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { useAccordion } from '@knotui/accordion';
-import type { AccordionConfig, AccordionDimensions, AccordionItemConfig } from '@knotui/accordion';
+import { useAccordion } from '@lumae/accordion';
+import type { AccordionConfig, AccordionDimensions, AccordionItemConfig } from '@lumae/accordion';
 
 const START = `[
   {
@@ -14,7 +14,7 @@ const START = `[
     "id": "theme",
     "title": "Pick your palette",
     "badge": "Step 2",
-    "content": "npx knotui theme --preset emerald --radius lg"
+    "content": "npx lumae theme --preset emerald --radius lg"
   },
   {
     "id": "ship",

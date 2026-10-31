@@ -22,5 +22,5 @@ CLI command builder, and hosting for the registry and `llms.txt`. Spec: [docs/SI
 7. Never deploy, push, or change DNS unless the owner asks.
 
 ## Development
-Vite aliases resolve `@knotui/*` (renamed `@lumae/*` in A1) to `../lumae/packages/*/src`, so the
+Vite aliases resolve `@lumae/*` to `../lumae/packages/*/src`, so the
 site always runs on the library's current source. Both repos must sit side by side.

@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { DEFAULT_PALETTE, KnotProvider, useLiveTheme, type Palette } from './theme';
+import { DEFAULT_PALETTE, LumaeProvider, useLiveTheme, type Palette } from './theme';
 import { PaletteStudio } from './PaletteStudio';
-import { useAccordion } from '@knotui/accordion';
-import { resolveNode } from '@knotui/core';
-import type { AccordionConfig, AccordionVariant } from '@knotui/accordion';
+import { useAccordion } from '@lumae/accordion';
+import { resolveNode } from '@lumae/core';
+import type { AccordionConfig, AccordionVariant } from '@lumae/accordion';
 import { Playground } from './Playground';
 
 const FAQ = [
@@ -58,7 +58,7 @@ const JSX_WAY = `<Accordion type="single" collapsible>
   </AccordionItem>
 </Accordion>`;
 
-const KNOT_WAY = `const Faq = useAccordion({
+const LUMAE_WAY = `const Faq = useAccordion({
   items: [
     { title: 'Shipping', content: 'Ships in 2 days.' },
     { title: 'Returns', content: '30 days, no questions.' },
@@ -127,7 +127,7 @@ return (
 const TAILWIND_WAYS: Array<[string, string]> = [
   [
     'utilities just win — no plugin, no !important',
-    `// Knot CSS lives in the \`knot\` cascade layer. Unlayered utilities beat
+    `// Lumae CSS lives in the \`lumae\` cascade layer. Unlayered utilities beat
 // layered rules at any specificity, so nothing has to be fought.
 <Faq
   className="mt-8 max-w-2xl"
@@ -138,24 +138,24 @@ const TAILWIND_WAYS: Array<[string, string]> = [
     'or drop our CSS entirely',
     `const Faq = useAccordion({
   items,
-  unstyled: true,                 // no Knot classes, no stylesheet needed
+  unstyled: true,                 // no Lumae classes, no stylesheet needed
   classNames: {
     root: 'divide-y divide-line rounded-xl border border-line',
     trigger: 'flex w-full justify-between px-5 py-4 hover:bg-surface-hover open:text-primary-600',
-    panel: 'grid transition-all duration-300 ease-knot-out closed:grid-rows-[0fr] open:grid-rows-[1fr]',
+    panel: 'grid transition-all duration-300 ease-lumae-out closed:grid-rows-[0fr] open:grid-rows-[1fr]',
     content: 'overflow-hidden px-5 pb-4 text-content-muted',
   },
 });`,
   ],
   [
     'one palette, both systems',
-    `// tailwind.config.js  (v4: @import "@knotui/tailwind/theme.css")
-module.exports = { presets: [require('@knotui/tailwind')] };
+    `// tailwind.config.js  (v4: @import "@lumae/tailwind/theme.css")
+module.exports = { presets: [require('@lumae/tailwind')] };
 
 // bg-primary-600  text-content-muted  border-line  rounded-lg  shadow-md
-// all resolve to --knot-* vars, so \`npx knotui theme\` moves both.
-// State variants map to the data-* Knot already exposes:
-//   open:  closed:  selected:  disabled-row:  group-open:  knot-dark:`,
+// all resolve to --lumae-* vars, so \`npx lumae theme\` moves both.
+// State variants map to the data-* Lumae already exposes:
+//   open:  closed:  selected:  disabled-row:  group-open:  lumae-dark:`,
   ],
 ];
 
@@ -166,12 +166,12 @@ export function App() {
   const radius = (palette.radius ?? 'lg') as 'none' | 'sm' | 'md' | 'lg' | 'full';
 
   return (
-    <KnotProvider theme={mode} radius={radius}>
+    <LumaeProvider theme={mode} radius={radius}>
       <header className="dx-header">
         <div className="dx-wrap dx-header__inner">
           <a className="dx-logo" href="#top">
-            <KnotMark />
-            <span>Knot<b>UI</b></span>
+            <LumaeMark />
+            <span>Lumae<b>UI</b></span>
           </a>
           <nav className="dx-nav">
             <a href="#playground">Playground</a>
@@ -207,13 +207,13 @@ export function App() {
             Rich variants, per-component installs, and an escape hatch on every slot.
           </p>
           <div className="dx-cta">
-            <code className="dx-cmd">npx knotui init</code>
-            <code className="dx-cmd">npx knotui add accordion</code>
+            <code className="dx-cmd">npx lumae init</code>
+            <code className="dx-cmd">npx lumae add accordion</code>
           </div>
 
           <div className="dx-compare">
             <Code label="Everyone else" tone="muted" code={JSX_WAY} />
-            <Code label="Knot UI" tone="accent" code={KNOT_WAY} />
+            <Code label="Lumae" tone="accent" code={LUMAE_WAY} />
           </div>
         </section>
 
@@ -318,10 +318,10 @@ export function App() {
         </Section>
 
         <footer className="dx-footer">
-          MIT · built with Knot UI source, live-reloaded from <code>packages/</code>
+          MIT · built with Lumae source, live-reloaded from <code>packages/</code>
         </footer>
       </main>
-    </KnotProvider>
+    </LumaeProvider>
   );
 }
 
@@ -426,7 +426,7 @@ const API_ROWS: Array<[string, string, string]> = [
   ['value / defaultValue', 'string[]', 'controlled or uncontrolled open ids'],
   ['onValueChange', '(ids) => void', 'fires with the next open set'],
   ['variant', "'solid' | 'outline' | 'separated' | 'filled' | 'ghost'", 'surface treatment'],
-  ['size / tone / radius', 'token scales', 'inherits from KnotProvider when omitted'],
+  ['size / tone / radius', 'token scales', 'inherits from LumaeProvider when omitted'],
   ['indicator', "'chevron' | 'plus' | 'caret' | 'none' | ReactNode", 'trailing glyph'],
   ['headingLevel', '1–6', 'heading level around each trigger. Default 3'],
   ['unmountClosed', 'boolean', 'drop closed content from the DOM. Default false'],
@@ -469,7 +469,7 @@ function ApiTable() {
   );
 }
 
-function KnotMark() {
+function LumaeMark() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path

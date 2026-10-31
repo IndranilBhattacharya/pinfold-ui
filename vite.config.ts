@@ -11,6 +11,9 @@ const pkg = (p: string) => resolve(__dirname, '../lumae/packages', p);
 export default defineConfig({
   plugins: [react()],
   resolve: {
+    // The library source lives in ../lumae, which has its own node_modules.
+    // Force one copy of React, or hooks break ("Invalid hook call").
+    dedupe: ['react', 'react-dom'],
     alias: [
       { find: /^@lumae\/css\/([a-z-]+)\.css$/, replacement: pkg('css/src/$1.css') },
       { find: /^@lumae\/core\/palette$/, replacement: pkg('core/src/palette.ts') },

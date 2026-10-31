@@ -1,0 +1,53 @@
+name: Build and deploy site
+
+# The site builds against the library's source, so both repos are checked out
+# side by side exactly as on a developer machine (UiFramework/lumae, lumae-site).
+on:
+  push: { branches: [main] }
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { path: lumae-site }
+      - uses: actions/checkout@v4
+        with: { repository: '${{ github.repository_owner }}/lumae', path: lumae }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            lumae-site/package-lock.json
+            lumae/package-lock.json
+      - run: npm ci
+        working-directory: lumae
+      - run: npm ci
+        working-directory: lumae-site
+      - run: npm run typecheck && npm run build
+        working-directory: lumae-site
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: lumae-site/dist }
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

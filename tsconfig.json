@@ -13,9 +13,9 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@knotui/core": ["../lumae/packages/core/src/index.ts"],
-      "@knotui/core/palette": ["../lumae/packages/core/src/palette.ts"],
-      "@knotui/accordion": ["../lumae/packages/accordion/src/index.ts"]
+      "@lumae/core": ["../lumae/packages/core/src/index.ts"],
+      "@lumae/core/palette": ["../lumae/packages/core/src/palette.ts"],
+      "@lumae/accordion": ["../lumae/packages/accordion/src/index.ts"]
     }
   },
   "include": ["src", "vite.config.ts"]

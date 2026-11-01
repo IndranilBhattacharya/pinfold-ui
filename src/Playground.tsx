@@ -28,6 +28,8 @@ interface Env {
   rtl: boolean;
   reducedMotion: boolean;
   width: number;
+  /** Demo only: JSON cannot hold an icon, so the playground passes one accordion-wide. */
+  icons: boolean;
 }
 interface State {
   source: string;
@@ -38,8 +40,18 @@ interface State {
 const INITIAL: State = {
   source: JSON.stringify(START_ITEMS, null, 2),
   options: { ...DEFAULTS, variant: 'separated' },
-  env: { stylePack: 'default', theme: 'dark', rtl: false, reducedMotion: false, width: 100 },
+  env: { stylePack: 'default', theme: 'dark', rtl: false, reducedMotion: false, width: 100, icons: false },
 };
+
+/** A neutral demo glyph that changes with the row: a ring when closed, a filled dot when open. */
+function DemoIcon({ open }: { open: boolean }) {
+  return (
+    <svg viewBox="0 0 16 16" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+      <circle cx="8" cy="8" r="6" />
+      {open ? <circle cx="8" cy="8" r="2.75" fill="currentColor" stroke="none" /> : null}
+    </svg>
+  );
+}
 
 /* ------------------------------------------------------------- URL state */
 
@@ -83,6 +95,7 @@ function providerProps(env: Env) {
 
 function code(items: unknown, options: Record<string, unknown>, env: Env, lang: 'ts' | 'js') {
   const opts = changedOptions(options).map(([k, v]) => `    ${k}: ${literal(v)},`);
+  if (env.icons) opts.push('    icon: ({ open }) => <YourIcon filled={open} />, // or icon / endIcon on any row');
   const data = JSON.stringify(items, null, 2);
   const provider = providerProps(env);
   const lines = [
@@ -204,6 +217,7 @@ export function Playground() {
     ...(Object.fromEntries(changedOptions(options)) as Partial<AccordionConfig>),
     items: parsed.items ?? [],
     animate: env.reducedMotion ? false : (options.animate as boolean),
+    icon: env.icons ? (s) => <DemoIcon open={s.open} /> : undefined,
     // The hook reads context where it is called (here, outside the preview provider), so direction is passed in.
     dir: env.rtl ? 'rtl' : 'ltr',
     value,
@@ -259,7 +273,13 @@ export function Playground() {
               ) : (
                 <label key={key} className="dx-opt" title={meta.description}>
                   <span>{key}</span>
-                  <select className="dx-select" value={String(options[key])} onChange={(e) => setOption(key, e.target.value)}>
+                  <select
+                    className="dx-select"
+                    value={options[key] === undefined ? '' : String(options[key])}
+                    onChange={(e) => setOption(key, e.target.value === '' ? undefined : e.target.value)}
+                  >
+                    {/* No library default means "inherit the theme": offer that instead of a fixed value. */}
+                    {meta.default === undefined ? <option value="">auto</option> : null}
                     {meta.values!.map((v) => (
                       <option key={String(v)} value={String(v)}>
                         {String(v)}
@@ -297,6 +317,10 @@ export function Playground() {
             <label className="dx-opt dx-opt--check">
               <input type="checkbox" checked={env.reducedMotion} onChange={(e) => setEnv('reducedMotion', e.target.checked)} />
               <span>reduced motion</span>
+            </label>
+            <label className="dx-opt dx-opt--check" title="Icons are nodes, so JSON cannot carry them: this passes an accordion-wide icon.">
+              <input type="checkbox" checked={env.icons} onChange={(e) => setEnv('icons', e.target.checked)} />
+              <span>icons</span>
             </label>
             <label className="dx-opt dx-opt--wide">
               <span>

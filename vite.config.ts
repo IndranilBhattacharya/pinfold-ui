@@ -2,7 +2,10 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'node:path';
 
-const pkg = (p: string) => resolve(__dirname, '../lumae/packages', p);
+// Library location: the sibling checkout locally, or LUMAE_PATH (set by the
+// Vercel build, which clones the library into .lumae/ first).
+const LIB = process.env.LUMAE_PATH ?? resolve(__dirname, '../lumae');
+const pkg = (p: string) => resolve(LIB, 'packages', p);
 
 // Consumes the sibling library repo's *source* (../lumae) under the real public
 // specifiers, so every snippet on the page is copy-pasteable and demos never

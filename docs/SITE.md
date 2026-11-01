@@ -19,5 +19,8 @@ Items marked **Planned** arrive with the library milestones (see `../lumae/docs/
 - Footer: "Created by Indranil Bhattacharya" · MIT · GitHub links to both repos.
 
 ## Hosting
-A static build deployed to `lumae.indranildev.in`. No server is needed: registry and `llms.txt` are static files.
+**Vercel**, deploying `main` to `lumae.indranildev.in` (pull requests get preview URLs). A static
+build: no server is needed, because the registry and `llms.txt` are static files. Vercel clones only this
+repo, so `scripts/vercel-build.sh` first clones the library's `main` into `.lumae/` and builds
+against it (`LUMAE_PATH`). GitHub Actions (`ci.yml`) typechecks and builds every push.
 If the site is down, the shadcn registry falls back to jsDelivr (`cdn.jsdelivr.net/npm/@lumae/react/registry/<name>.json`).

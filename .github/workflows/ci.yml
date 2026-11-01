@@ -1,7 +1,7 @@
-name: Build and deploy site
+name: CI
 
-# The site builds against the library's source, so both repos are checked out
-# side by side exactly as on a developer machine (UiFramework/lumae, lumae-site).
+# Typecheck and build against the library's source, checked out side by side
+# exactly as on a developer machine. Deploys are Vercel's job (vercel.json).
 on:
   push: { branches: [main] }
   pull_request:
@@ -9,10 +9,6 @@ on:
 
 permissions:
   contents: read
-
-concurrency:
-  group: pages-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   build:
@@ -35,19 +31,3 @@ jobs:
         working-directory: lumae-site
       - run: npm run typecheck && npm run build
         working-directory: lumae-site
-      - uses: actions/upload-pages-artifact@v3
-        with: { path: lumae-site/dist }
-
-  deploy:
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4

@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { useAccordion } from '@lumae/react/accordion';
-import type { AccordionConfig, AccordionDimensions, AccordionItemConfig } from '@lumae/react/accordion';
+import { useAccordion } from '@pinfold/react/accordion';
+import type { AccordionConfig, AccordionDimensions, AccordionItemConfig } from '@pinfold/react/accordion';
 
 const START = `[
   {
@@ -14,7 +14,7 @@ const START = `[
     "id": "theme",
     "title": "Pick your palette",
     "badge": "Step 2",
-    "content": "npx lumae theme --preset emerald --radius lg"
+    "content": "npx pinfold theme --preset emerald --radius lg"
   },
   {
     "id": "ship",

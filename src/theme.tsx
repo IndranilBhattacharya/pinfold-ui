@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { LumaeProvider as CoreProvider, type LumaeProviderProps } from '@lumae/react';
-import { createTheme, type PaletteConfig, type Theme } from '@lumae/core/palette';
+import { PinfoldProvider as CoreProvider, type PinfoldProviderProps } from '@pinfold/react';
+import { createTheme, type PaletteConfig, type Theme } from '@pinfold/core/palette';
 
 /** Docs wrapper: themes the whole document so the page chrome follows too. */
-export function LumaeProvider(props: LumaeProviderProps) {
+export function PinfoldProvider(props: PinfoldProviderProps) {
   return <CoreProvider applyToDocument {...props} />;
 }
 
@@ -19,7 +19,7 @@ export const DEFAULT_PALETTE: Palette = {
 
 /**
  * Applies a palette to the live document using the very same `createTheme()`
- * the CLI runs. What the sliders show is exactly what `npx lumae theme`
+ * the CLI runs. What the sliders show is exactly what `npx pinfold theme`
  * would write to disk — there is no separate preview implementation to drift.
  */
 export function useLiveTheme(palette: Palette, mode: 'light' | 'dark'): Theme {
@@ -28,7 +28,7 @@ export function useLiveTheme(palette: Palette, mode: 'light' | 'dark'): Theme {
   React.useLayoutEffect(() => {
     const root = document.documentElement;
     for (const [key, value] of Object.entries(theme.vars)) root.style.setProperty(key, value);
-    root.setAttribute('data-lumae-theme', mode);
+    root.setAttribute('data-pinfold-theme', mode);
     return () => {
       for (const key of Object.keys(theme.vars)) root.style.removeProperty(key);
     };

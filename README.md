@@ -1,7 +1,7 @@
-# lumae-site
+# pinfold-ui
 
-The website for [Lumae](https://github.com/IndranilBhattacharya/lumae): documentation, the live playground, the palette and theme
-studio, and the CLI command builder. It will be served at **lumae.indranildev.in**.
+The website for [Pinfold](https://github.com/IndranilBhattacharya/pinfold): documentation, the live playground, the palette and theme
+studio, and the CLI command builder. It will be served at **pinfold.indranildev.in**.
 
 Created by Indranil Bhattacharya · MIT
 
@@ -9,15 +9,15 @@ Created by Indranil Bhattacharya · MIT
 Both repos must be siblings:
 ```
 UiFramework/
-  lumae/        the library (published to npm)
-  lumae-site/   this repo
+  pinfold/        the library (published to npm)
+  pinfold-ui/   this repo
 ```
-In development, `vite.config.ts` aliases the library's package names to `../lumae/packages/*/src`,
+In development, `vite.config.ts` aliases the library's package names to `../pinfold/packages/*/src`,
 so the site always runs on the library's current source.
 
 ## Deploy
 **Vercel** builds `main` (and a preview for every pull request) using `vercel.json`. Vercel clones only
-this repo, so `scripts/vercel-build.sh` first clones the library into `.lumae/`. Details: [docs/SITE.md](docs/SITE.md).
+this repo, so `scripts/vercel-build.sh` first clones the library into `.pinfold/`. Details: [docs/SITE.md](docs/SITE.md).
 
 ## Develop
 ```bash

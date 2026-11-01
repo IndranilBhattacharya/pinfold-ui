@@ -5,5 +5,5 @@ dist
 .DS_Store
 .env*
 coverage
-.lumae
+.pinfold
 .vercel

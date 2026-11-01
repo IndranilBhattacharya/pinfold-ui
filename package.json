@@ -1,9 +1,9 @@
 {
-  "name": "lumae-site",
+  "name": "pinfold-ui",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Lumae documentation, playground, palette and theme studio. Served at lumae.indranildev.in.",
+  "description": "Pinfold documentation, playground, palette and theme studio. Served at pinfold.indranildev.in.",
   "author": "Indranil Bhattacharya",
   "license": "MIT",
   "scripts": {

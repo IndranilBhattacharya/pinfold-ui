@@ -1,10 +1,10 @@
-# AGENTS.md: lumae-site
+# AGENTS.md: pinfold-ui
 
-Binding rules for AI agents and contributors working on the Lumae website.
-Product rules live in the library repo: read `../lumae/AGENTS.md` and `../lumae/docs/DECISIONS.md` first.
+Binding rules for AI agents and contributors working on the Pinfold website.
+Product rules live in the library repo: read `../pinfold/AGENTS.md` and `../pinfold/docs/DECISIONS.md` first.
 
 ## What this repo is
-The public site at `lumae.indranildev.in`: docs, playground, palette and theme studio,
+The public site at `pinfold.indranildev.in`: docs, playground, palette and theme studio,
 CLI command builder, and hosting for the registry and `llms.txt`. Spec: [docs/SITE.md](docs/SITE.md).
 
 ## Rules
@@ -22,5 +22,5 @@ CLI command builder, and hosting for the registry and `llms.txt`. Spec: [docs/SI
 7. Never deploy, push, or change DNS unless the owner asks.
 
 ## Development
-Vite aliases resolve `@lumae/*` to `../lumae/packages/*/src`, so the
+Vite aliases resolve `@pinfold/*` to `../pinfold/packages/*/src`, so the
 site always runs on the library's current source. Both repos must sit side by side.

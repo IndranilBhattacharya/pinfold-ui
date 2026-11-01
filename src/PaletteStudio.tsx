@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { HUES, type Theme } from '@lumae/core/palette';
+import { HUES, type Theme } from '@pinfold/core/palette';
 import type { Palette } from './theme';
 
 const ROLES = ['primary', 'accent', 'neutral', 'success', 'warning', 'danger', 'info'] as const;
@@ -102,8 +102,8 @@ export function PaletteStudio({
                   <i
                     key={step}
                     className="dx-ramp__step"
-                    title={`--lumae-${role}-${step}: ${theme.vars[`--lumae-${role}-${step}`]}`}
-                    style={{ background: theme.vars[`--lumae-${role}-${step}`] }}
+                    title={`--pinfold-${role}-${step}: ${theme.vars[`--pinfold-${role}-${step}`]}`}
+                    style={{ background: theme.vars[`--pinfold-${role}-${step}`] }}
                   />
                 ))}
               </div>
@@ -117,7 +117,7 @@ export function PaletteStudio({
   );
 }
 
-/** The same WCAG report `npx lumae theme --check` prints in the terminal. */
+/** The same WCAG report `npx pinfold theme --check` prints in the terminal. */
 function ContrastReport({ theme }: { theme: Theme }) {
   const rows = theme.contrast.filter((row) => row.role === 'primary' || row.role === 'danger');
 
@@ -163,7 +163,7 @@ const verdict = (ok: boolean) => (
 );
 
 function command(palette: Palette) {
-  const parts = [`npx lumae theme`];
+  const parts = [`npx pinfold theme`];
   for (const role of TUNABLE) {
     const value = palette[role];
     if (value != null) parts.push(`--${role} ${value}`);

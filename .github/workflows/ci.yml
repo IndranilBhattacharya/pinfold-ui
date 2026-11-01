@@ -15,19 +15,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-        with: { path: lumae-site }
+        with: { path: pinfold-ui }
       - uses: actions/checkout@v7
-        with: { repository: '${{ github.repository_owner }}/lumae', path: lumae }
+        with: { repository: '${{ github.repository_owner }}/pinfold', path: pinfold }
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: |
-            lumae-site/package-lock.json
-            lumae/package-lock.json
+            pinfold-ui/package-lock.json
+            pinfold/package-lock.json
       - run: npm ci
-        working-directory: lumae
+        working-directory: pinfold
       - run: npm ci
-        working-directory: lumae-site
+        working-directory: pinfold-ui
       - run: npm run typecheck && npm run build
-        working-directory: lumae-site
+        working-directory: pinfold-ui

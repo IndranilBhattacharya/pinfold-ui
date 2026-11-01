@@ -14,9 +14,17 @@ Items marked **Planned** arrive with the library milestones (see `../pinfold/doc
 | Registry and AI endpoints (Planned, A7) | `/r/<name>.json` (the shadcn registry), `/llms.txt`, `/llms-full.txt`, `/schema/<name>.json`. All are taken from the published npm package, never hand-written. |
 
 ## Rules
-- Every API table, default and code sample comes from the library's meta and schema.
-- The site meets the library's accessibility gate (keyboard, axe, reduced motion, forced colours).
-- Footer: "Created by Indranil Bhattacharya" · MIT · GitHub links to both repos.
+1. **The library is the source of truth.** Component APIs, meta, schema, registry JSON and
+   `llms.txt` come from the library (from source in development, from the npm package in
+   production). Never hand-copy an API table or default value into the site.
+2. **The playground is for a quick feel.** It shows shape, variants, style pack, animation,
+   behaviour, light/dark, RTL, reduced motion and container width. It **never** shows raw sizes
+   (`dimensions`, width, height, padding). Controls are generated from `<name>.meta.ts` (A8).
+3. **Every code sample has a TS tab and a JS tab.**
+4. **Vue and Angular** may be described as *coming in the future*. Never as available.
+5. **Credit.** The footer carries "Created by Indranil Bhattacharya" and links to the MIT license.
+6. The site follows the library's accessibility gate: it is keyboard-complete, passes axe, and
+   handles reduced motion and forced colours.
 
 ## Hosting
 **Vercel**, deploying `main` to `pinfold.indranildev.in` (pull requests get preview URLs). A static

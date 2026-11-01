@@ -28,4 +28,4 @@ npm run typecheck
 ```
 
 ## What lives here
-See [docs/SITE.md](docs/SITE.md). Agents and contributors: read [AGENTS.md](AGENTS.md) first.
+See [docs/SITE.md](docs/SITE.md). The library repo is the source of truth for every API.

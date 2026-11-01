@@ -20,7 +20,7 @@ const START_ITEMS: AccordionItemConfig[] = [
 
 const CONTROLS = Object.entries(accordionMeta.props).filter(([, p]) => p.control) as Array<[string, PropMeta]>;
 const DEFAULTS = Object.fromEntries(CONTROLS.map(([k, p]) => [k, p.default])) as Record<string, unknown>;
-const PACKS: PinfoldStylePack[] = ['default', 'glass', 'bauhaus', 'brutalist', 'noise', 'soft'];
+const PACKS: PinfoldStylePack[] = ['default', 'glass', 'material', 'noise', 'brutalist'];
 
 interface Env {
   stylePack: PinfoldStylePack;

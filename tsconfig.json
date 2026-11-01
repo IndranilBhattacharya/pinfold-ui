@@ -9,9 +9,9 @@
     "noEmit": true,
     "skipLibCheck": true,
     "isolatedModules": true,
+    "types": ["vite/client"],
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "baseUrl": ".",
     "paths": {
       "@pinfold/core": ["../pinfold/packages/core/src/index.ts"],
       "@pinfold/core/palette": ["../pinfold/packages/core/src/palette.ts"],

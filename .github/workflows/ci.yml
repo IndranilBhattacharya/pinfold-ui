@@ -29,5 +29,7 @@ jobs:
         working-directory: pinfold
       - run: npm ci
         working-directory: pinfold-ui
+      - run: npm audit --audit-level=low
+        working-directory: pinfold-ui
       - run: npm run typecheck && npm run build
         working-directory: pinfold-ui

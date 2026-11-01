@@ -21,7 +21,7 @@ reference (generated from meta) and the accessibility list (generated from meta)
    production). Never hand-copy an API table or default value into the site.
 2. **The playground is for a quick feel.** It shows shape, variants, style pack, animation,
    behaviour, light/dark, RTL, reduced motion and container width. It **never** shows raw sizes
-   (`dimensions`, width, height, padding). Controls are generated from `<name>.meta.ts` (A8).
+   (`dimensions`, width, height, padding). Controls are generated from `<name>.meta.ts`.
 3. **Every code sample has a TS tab and a JS tab.**
 4. **Vue and Angular** may be described as *coming in the future*. Never as available.
 5. **Credit.** The footer carries "Created by Indranil Bhattacharya" and links to the MIT license.

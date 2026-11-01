@@ -1,17 +1,19 @@
 # Site spec
 
-Status: the current app (`src/App.tsx`, `Playground.tsx`, `PaletteStudio.tsx`) is the pre-A8 version.
-Items marked **Planned** arrive with the library milestones (see `../pinfold/docs/ROADMAP.md`).
+Status: the playground is v2 (A8). Docs pages per component, guides and the CLI command builder are
+**Planned** (they follow the library milestones, see `../pinfold/docs/ROADMAP.md`). Today the site
+is one page: hero, playground, palette studio, the usage levels, variants, headless demo, the config
+reference (generated from meta) and the accessibility list (generated from meta).
 
 ## Pages
 | Page | Content |
 |---|---|
 | Home | The promise ("config in, accessible UI out"), a live `<Faq />` demo, install commands, a credit line. Roadmap note: **Vue and Angular support is coming in the future.** |
 | Docs | For each component: usage (TS and JS tabs; client hook and server `define*`), a config table generated from meta, keyboard map, ARIA notes, the escape-hatch ladder, the accessibility report. Guides: global config, theming, SSR/RSC, Tailwind, AI agents, compatibility. |
-| Playground (Planned, A8) | Pick a component, edit its data as JSON, and adjust **quick-look controls only**: variant, indicator, size, tone, radius, mode and behaviour toggles, animation, style pack, light/dark, RTL, reduced motion, and a container-width slider to show responsiveness. Raw sizes are never shown. State lives in the URL. Copy buttons for the code (TS or JS), the `npx pinfold` command and an AI prompt. Export to StackBlitz. |
+| Playground (A8, `src/Playground.tsx`) | Edit the data as JSON. Component controls are generated from `accordionMeta` (props marked `control: true`): mode, collapsible, disabled, variant, size, tone, radius, indicator, indicator position, animate, dividers. Environment: style pack, light/dark, RTL, reduced motion, container width (shows the container queries). Raw sizes are never shown. State lives in the URL (`?play=`). Copy buttons for the code (TS or JS tab, only non-default options), the `npx pinfold` command, an AI prompt and the link. Open in StackBlitz (a Vite + React project that installs Pinfold from npm, so it works once the packages are published). |
 | Palette and theme studio | Choose OKLCH hues per role, intensity, radius, style pack. See a live contrast report in light and dark mode. Export to CSS, Tailwind v4/v3 or DTCG tokens, or copy the matching `npx pinfold theme …` command. A share link (`npx pinfold theme --from <url>`). |
 | CLI command builder | Build `init`, `add` and `theme` commands with checkboxes and copy the result |
-| Registry and AI endpoints (Planned, A7) | `/r/<name>.json` (the shadcn registry), `/llms.txt`, `/llms-full.txt`, `/schema/<name>.json`. All are taken from the published npm package, never hand-written. |
+| Registry and AI endpoints | `/r/<name>.json` and `/r/registry.json` (the shadcn registry), `/llms.txt`, `/llms-full.txt`, `/schema/<name>.json`. Served in development and emitted at build by the `pinfold:artifacts` Vite plugin, from the library's build output (generated from meta), never hand-written. |
 
 ## Rules
 1. **The library is the source of truth.** Component APIs, meta, schema, registry JSON and

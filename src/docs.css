@@ -404,3 +404,30 @@ a { color: inherit; text-decoration: none; }
 }
 .dx-pass { color: var(--pinfold-success-500); font-size: 0.8125rem; }
 .dx-fail { color: var(--pinfold-danger-500); font-size: 0.8125rem; }
+
+/* ------------------------------------------------------------ playground v2 */
+.dx-fieldset { border: 0; padding: 0; margin: 1rem 0 0; min-width: 0; }
+.dx-stage--live {
+  display: flex;
+  justify-content: center;
+  /* Colour behind the component, so translucent packs (glass) have something to frost. */
+  background:
+    radial-gradient(40% 60% at 15% 20%, color-mix(in oklch, var(--pinfold-primary-500) 45%, transparent), transparent),
+    radial-gradient(35% 50% at 85% 80%, color-mix(in oklch, var(--pinfold-info-500) 40%, transparent), transparent),
+    var(--pinfold-color-bg);
+}
+.dx-stage__frame { min-width: 0; transition: width var(--pinfold-duration-md) var(--pinfold-ease); }
+.dx-tabs { display: flex; gap: 0.25rem; margin-bottom: 0.5rem; }
+.dx-tab {
+  padding: 0.35rem 0.7rem;
+  font: inherit;
+  font-size: 0.8125rem;
+  color: var(--pinfold-color-text-muted);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--pinfold-radius-md);
+  cursor: pointer;
+}
+.dx-tab[aria-selected='true'] { color: var(--pinfold-color-text); border-color: var(--pinfold-color-border); background: var(--pinfold-color-surface); }
+.dx-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.75rem; }
+.dx-footer a { color: inherit; }

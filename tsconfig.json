@@ -15,6 +15,7 @@
     "paths": {
       "@pinfold/core": ["../pinfold/packages/core/src/index.ts"],
       "@pinfold/core/palette": ["../pinfold/packages/core/src/palette.ts"],
+      "@pinfold/core/meta": ["../pinfold/packages/core/src/meta.ts"],
       "@pinfold/react": ["../pinfold/packages/react/src/index.ts"],
       "@pinfold/react/*": ["../pinfold/packages/react/src/*/index.ts"]
     }

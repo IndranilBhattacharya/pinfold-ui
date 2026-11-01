@@ -3,7 +3,7 @@ import { PinfoldProvider } from '@pinfold/react';
 import { useAccordion } from '@pinfold/react/accordion';
 import type { AccordionConfig, AccordionItemConfig } from '@pinfold/react/accordion';
 import { accordionMeta, type PropMeta } from '@pinfold/core/meta';
-import type { PinfoldStylePack } from '@pinfold/core';
+import { inactiveAccordionOptions, type AccordionAppearanceInput, type PinfoldStylePack } from '@pinfold/core';
 
 /**
  * Playground v2. The controls come from `accordionMeta` (props marked
@@ -78,9 +78,13 @@ function useUrlState(): [State, React.Dispatch<React.SetStateAction<State>>] {
 
 /* ---------------------------------------------------------------- output */
 
-/** Only what differs from the library defaults, the way a developer would write it. */
+/** Options the rest of the config makes invisible (the library's own rule), with the reason. */
+const inactiveFor = (options: Record<string, unknown>) => inactiveAccordionOptions(options as AccordionAppearanceInput);
+
+/** Only what differs from the library defaults and has a visible effect, the way a developer would write it. */
 function changedOptions(options: Record<string, unknown>) {
-  return Object.entries(options).filter(([k, v]) => v !== DEFAULTS[k]);
+  const inactive = inactiveFor(options);
+  return Object.entries(options).filter(([k, v]) => v !== DEFAULTS[k] && !(k in inactive));
 }
 
 const literal = (v: unknown) => (typeof v === 'string' ? `'${v}'` : String(v));
@@ -238,6 +242,7 @@ export function Playground() {
 
   const items = parsed.items ?? [];
   const snippet = code(items, options, env, tab);
+  const inactive = inactiveFor(options);
 
   return (
     <div className="dx-play">
@@ -266,15 +271,16 @@ export function Playground() {
           <div className="dx-opts">
             {CONTROLS.map(([key, meta]) =>
               meta.type === 'boolean' ? (
-                <label key={key} className="dx-opt dx-opt--check" title={meta.description}>
-                  <input type="checkbox" checked={!!options[key]} onChange={(e) => setOption(key, e.target.checked)} />
+                <label key={key} className="dx-opt dx-opt--check" title={inactive[key] ?? meta.description} aria-disabled={key in inactive}>
+                  <input type="checkbox" checked={!!options[key]} disabled={key in inactive} onChange={(e) => setOption(key, e.target.checked)} />
                   <span>{key}</span>
                 </label>
               ) : (
-                <label key={key} className="dx-opt" title={meta.description}>
+                <label key={key} className="dx-opt" title={inactive[key] ?? meta.description} aria-disabled={key in inactive}>
                   <span>{key}</span>
                   <select
                     className="dx-select"
+                    disabled={key in inactive}
                     value={options[key] === undefined ? '' : String(options[key])}
                     onChange={(e) => setOption(key, e.target.value === '' ? undefined : e.target.value)}
                   >
@@ -290,6 +296,15 @@ export function Playground() {
               ),
             )}
           </div>
+          {Object.keys(inactive).length ? (
+            <ul className="dx-hint dx-inactive">
+              {Object.entries(inactive).map(([k, why]) => (
+                <li key={k}>
+                  <b>{k}</b>: {why.replace(/`/g, '')}
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </fieldset>
 
         <fieldset className="dx-fieldset">

@@ -431,3 +431,7 @@ a { color: inherit; text-decoration: none; }
 .dx-tab[aria-selected='true'] { color: var(--pinfold-color-text); border-color: var(--pinfold-color-border); background: var(--pinfold-color-surface); }
 .dx-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.75rem; }
 .dx-footer a { color: inherit; }
+
+/* Playground: options the rest of the config makes invisible. */
+.dx-opt[aria-disabled='true'] { opacity: 0.45; }
+.dx-inactive { margin: 0.75rem 0 0; padding-inline-start: 1rem; font-size: 0.75rem; line-height: 1.5; }

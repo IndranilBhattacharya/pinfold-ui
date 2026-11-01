@@ -25,7 +25,7 @@ jobs:
           cache-dependency-path: |
             pinfold-ui/package-lock.json
             pinfold/package-lock.json
-      - run: npm ci
+      - run: npm ci && npm run build
         working-directory: pinfold
       - run: npm ci
         working-directory: pinfold-ui

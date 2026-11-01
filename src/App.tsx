@@ -5,6 +5,7 @@ import { useAccordion } from '@pinfold/react/accordion';
 import { resolveNode } from '@pinfold/core';
 import type { AccordionConfig, AccordionVariant } from '@pinfold/react/accordion';
 import { Playground } from './Playground';
+import { accordionMeta, type PropMeta } from '@pinfold/core/meta';
 
 const FAQ = [
   {
@@ -12,7 +13,7 @@ const FAQ = [
     title: 'What actually ships in the bundle?',
     description: 'Core is ~2 kB gzipped',
     content:
-      'The core package is tokens plus six primitives. Each component is its own package with its own CSS file, so importing the accordion never pulls in the data grid.',
+      'Each component is its own subpath (@pinfold/react/accordion) with its own CSS file, so importing the accordion never pulls in anything else. A production app rendering one accordion ships about 5.5 kB of gzipped JavaScript.',
     badge: 'Core',
   },
   {
@@ -203,13 +204,14 @@ export function App() {
             Build UI from <em>configuration</em>,<br /> not from markup.
           </h1>
           <p className="dx-lede">
-            An entire accessible accordion, data grid or calendar from one object — or one hook.
+            An entire accessible accordion from one object or one hook, and every component after it the same way.
             Rich variants, per-component installs, and an escape hatch on every slot.
           </p>
           <div className="dx-cta">
             <code className="dx-cmd">npx pinfold init</code>
             <code className="dx-cmd">npx pinfold add accordion</code>
           </div>
+          <p className="dx-hint">React today. Vue and Angular support is coming in the future.</p>
 
           <div className="dx-compare">
             <Code label="Everyone else" tone="muted" code={JSX_WAY} />
@@ -220,7 +222,7 @@ export function App() {
         <Section
           id="playground"
           title="Playground"
-          lede="Edit the config. The component is the config — nothing else to learn."
+          lede="Edit the data, flip the switches, and copy the result. Every control comes from the component's metadata; the link keeps your state."
         >
           <Playground />
         </Section>
@@ -302,23 +304,14 @@ export function App() {
           lede="Checked against the WAI-ARIA Authoring Practices accordion pattern."
         >
           <ul className="dx-checks">
-            {[
-              'Trigger is a real <button> inside a heading at a configurable level',
-              'aria-expanded, aria-controls and aria-labelledby wired both directions',
-              'Panels are role="region" labelled by their trigger',
-              'Arrow Up/Down, Home and End move between headers, with optional looping',
-              'Disabled rows use aria-disabled so they stay focusable and discoverable',
-              'Closed panels leave the accessibility tree and the tab order',
-              'prefers-reduced-motion and forced-colors both handled in CSS',
-              'RTL supported through logical properties and dir-aware key handling',
-            ].map((line) => (
+            {[...accordionMeta.aria, ...accordionMeta.keyboard.map((k) => `${k.keys}: ${k.action}`)].map((line) => (
               <li key={line}>{line}</li>
             ))}
           </ul>
         </Section>
 
         <footer className="dx-footer">
-          MIT · Created by Indranil Bhattacharya · built from Pinfold source, live-reloaded from <code>../pinfold/packages/</code>
+          MIT · Created by Indranil Bhattacharya · <a href="https://github.com/IndranilBhattacharya/pinfold">pinfold</a> · <a href="https://github.com/IndranilBhattacharya/pinfold-ui">pinfold-ui</a> · <a href="/llms.txt">llms.txt</a>
         </footer>
       </main>
     </PinfoldProvider>
@@ -419,48 +412,33 @@ function HeadlessDemo() {
   );
 }
 
-const API_ROWS: Array<[string, string, string]> = [
-  ['items', 'AccordionItemConfig[]', 'title, content, description, icon, badge, disabled, defaultOpen'],
-  ['mode', "'single' | 'multiple'", 'single closes siblings. Default single'],
-  ['collapsible', 'boolean', 'single mode: may the open row close. Default true'],
-  ['value / defaultValue', 'string[]', 'controlled or uncontrolled open ids'],
-  ['onValueChange', '(ids) => void', 'fires with the next open set'],
-  ['variant', "'solid' | 'outline' | 'separated' | 'filled' | 'ghost'", 'surface treatment'],
-  ['size / tone / radius', 'token scales', 'inherits from PinfoldProvider when omitted'],
-  ['indicator', "'chevron' | 'plus' | 'caret' | 'none' | ReactNode", 'trailing glyph'],
-  ['headingLevel', '1–6', 'heading level around each trigger. Default 3'],
-  ['unmountClosed', 'boolean', 'drop closed content from the DOM. Default false'],
-  [
-    'dimensions',
-    'AccordionDimensions',
-    'width, minWidth, maxWidth, height, maxHeight, gap, paddingX/Y, panelPaddingX/Y, panelMaxHeight, fontSize, titleSize, descriptionSize, iconSize, indicatorSize, borderWidth, radius, duration. Numbers are px, strings pass through',
-  ],
-  ['classNames', 'Partial<Record<Slot, string>>', 'add your own class to any of the 12 slots'],
-  ['styles', 'Partial<Record<Slot, CSSProperties>>', 'inline style per slot'],
-  ['slotProps / render', 'per slot', 'merge DOM props, or replace a slot entirely'],
-];
-
+/** Generated from `accordionMeta`: the site never hand-copies an API table. */
 function ApiTable() {
+  const type = (p: PropMeta) =>
+    p.type === 'enum' ? p.values!.map((v) => JSON.stringify(v)).join(' | ') + (p.orNode ? ' | node' : '') : p.type;
   return (
     <div className="dx-table-wrap">
       <table className="dx-table">
         <thead>
           <tr>
-            <th>Key</th>
+            <th>Option</th>
             <th>Type</th>
+            <th>Default</th>
             <th>Notes</th>
           </tr>
         </thead>
         <tbody>
-          {API_ROWS.map(([key, type, note]) => (
+          {Object.entries(accordionMeta.props).map(([key, p]) => (
             <tr key={key}>
               <td>
                 <code>{key}</code>
+                {p.required ? ' (required)' : ''}
               </td>
               <td>
-                <code className="dx-type">{type}</code>
+                <code className="dx-type">{type(p)}</code>
               </td>
-              <td>{note}</td>
+              <td>{p.default === undefined ? '' : <code>{JSON.stringify(p.default)}</code>}</td>
+              <td>{p.description}</td>
             </tr>
           ))}
         </tbody>

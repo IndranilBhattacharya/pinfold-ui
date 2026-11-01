@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path';
 
 // Library location: the sibling checkout locally, or PINFOLD_PATH (set by the
 // Vercel build, which clones the library into .pinfold/ first).
-const LIB = process.env.PINFOLD_PATH ?? resolve(__dirname, '../pinfold');
+const LIB = process.env.PINFOLD_PATH ?? resolve(import.meta.dirname, '../pinfold');
 const pkg = (p: string) => resolve(LIB, 'packages', p);
 
 /**

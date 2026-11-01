@@ -2,7 +2,7 @@ import * as React from 'react';
 import { DEFAULT_PALETTE, PinfoldProvider, useLiveTheme, type Palette } from './theme';
 import { PaletteStudio } from './PaletteStudio';
 import { useAccordion } from '@pinfold/react/accordion';
-import { resolveNode } from '@pinfold/core';
+import { resolveNode, version } from '@pinfold/core';
 import type { AccordionConfig, AccordionVariant } from '@pinfold/react/accordion';
 import { Playground } from './Playground';
 import { accordionMeta, type PropMeta } from '@pinfold/core/meta';
@@ -199,7 +199,7 @@ export function App() {
 
       <main className="dx-wrap" id="top">
         <section className="dx-hero">
-          <p className="dx-eyebrow">v0.1.0 · accordion shipped · 12 components planned</p>
+          <p className="dx-eyebrow">v{version} · accordion shipped · 12 components planned</p>
           <h1>
             Build UI from <em>configuration</em>,<br /> not from markup.
           </h1>

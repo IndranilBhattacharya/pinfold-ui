@@ -72,7 +72,7 @@ export function PaletteStudio({
             <span>radius</span>
             <select
               className="dx-select"
-              value={palette.radius ?? 'lg'}
+              value={palette.radius ?? 'md'}
               onChange={(e) => set('radius', e.target.value)}
             >
               {RADII.map((r) => (

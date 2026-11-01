@@ -14,7 +14,7 @@ export const DEFAULT_PALETTE: Palette = {
   accent: 274,
   neutral: 274,
   intensity: 1,
-  radius: 'lg',
+  radius: 'md',
 };
 
 /**

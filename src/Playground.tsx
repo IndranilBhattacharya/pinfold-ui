@@ -3,7 +3,13 @@ import { PinfoldProvider } from '@pinfold/react';
 import { useAccordion } from '@pinfold/react/accordion';
 import type { AccordionConfig, AccordionItemConfig } from '@pinfold/react/accordion';
 import { accordionMeta, type PropMeta } from '@pinfold/core/meta';
-import { inactiveAccordionOptions, type AccordionAppearanceInput, type PinfoldStylePack } from '@pinfold/core';
+import {
+  accordionRowsJoined,
+  inactiveAccordionOptions,
+  type AccordionAppearanceInput,
+  type AccordionVariantName,
+  type PinfoldStylePack,
+} from '@pinfold/core';
 
 /**
  * Playground v2. The controls come from `accordionMeta` (props marked
@@ -28,8 +34,11 @@ interface Env {
   rtl: boolean;
   reducedMotion: boolean;
   width: number;
-  /** Demo only: JSON cannot hold an icon, so the playground passes one accordion-wide. */
-  icons: boolean;
+  /**
+   * Demo icons. JSON can carry a string icon per row (an emoji, or an icon-font name with
+   * `classNames.icon`); React icons are nodes, so the playground supplies sample ones.
+   */
+  icons: 'none' | 'every row' | 'per row';
 }
 interface State {
   source: string;
@@ -39,19 +48,26 @@ interface State {
 
 const INITIAL: State = {
   source: JSON.stringify(START_ITEMS, null, 2),
-  options: { ...DEFAULTS, variant: 'separated' },
-  env: { stylePack: 'default', theme: 'dark', rtl: false, reducedMotion: false, width: 100, icons: false },
+  // The library defaults, untouched: what you see first is what `useAccordion({ items })` renders.
+  options: { ...DEFAULTS },
+  env: { stylePack: 'default', theme: 'dark', rtl: false, reducedMotion: false, width: 100, icons: 'none' },
 };
 
-/** A neutral demo glyph that changes with the row: a ring when closed, a filled dot when open. */
-function DemoIcon({ open }: { open: boolean }) {
+/** Sample line icons (plain inline SVG, like any icon set you would pass in). */
+const GLYPHS: Record<string, React.ReactNode> = {
+  sparkle: <path d="M8 2.5 9.4 6.6 13.5 8 9.4 9.4 8 13.5 6.6 9.4 2.5 8 6.6 6.6Z" />,
+  card: <><rect x="2" y="4" width="12" height="8.5" rx="1.5" /><path d="M2 7h12" /></>,
+  palette: <><path d="M8 2.5a5.5 5.5 0 1 0 0 11c.9 0 1.2-.6 1.2-1.2 0-.9-.6-1.1-.6-1.8 0-.6.5-1 1.1-1H11a2.5 2.5 0 0 0 2.5-2.5C13.5 4.6 11 2.5 8 2.5Z" /><circle cx="5.5" cy="7" r=".6" fill="currentColor" /><circle cx="8" cy="5.2" r=".6" fill="currentColor" /></>,
+  send: <path d="M13.5 2.5 2.5 7l4.5 2 2 4.5Zm0 0L7 9" />,
+};
+function Glyph({ name }: { name: keyof typeof GLYPHS }) {
   return (
-    <svg viewBox="0 0 16 16" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
-      <circle cx="8" cy="8" r="6" />
-      {open ? <circle cx="8" cy="8" r="2.75" fill="currentColor" stroke="none" /> : null}
+    <svg viewBox="0 0 16 16" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {GLYPHS[name]}
     </svg>
   );
 }
+const PER_ROW = ['card', 'palette', 'send'] as const;
 
 /* ------------------------------------------------------------- URL state */
 
@@ -60,7 +76,10 @@ function decode(raw: string | null): State | null {
   if (!raw) return null;
   try {
     const s = JSON.parse(decodeURIComponent(escape(atob(raw.replace(/-/g, '+').replace(/_/g, '/')))));
-    return { source: String(s.source), options: { ...DEFAULTS, ...s.options }, env: { ...INITIAL.env, ...s.env } };
+    const env = { ...INITIAL.env, ...s.env };
+    // Links from before the icons select stored a boolean.
+    if (!['none', 'every row', 'per row'].includes(env.icons)) env.icons = env.icons === true ? 'every row' : 'none';
+    return { source: String(s.source), options: { ...DEFAULTS, ...s.options }, env };
   } catch {
     return null;
   }
@@ -77,6 +96,12 @@ function useUrlState(): [State, React.Dispatch<React.SetStateAction<State>>] {
 }
 
 /* ---------------------------------------------------------------- output */
+
+/** The `auto` choice, with what it resolves to right now. */
+function autoLabel(key: string, meta: PropMeta, options: Record<string, unknown>) {
+  if (key === 'gap') return `auto (${accordionRowsJoined(options.variant as AccordionVariantName) ? 'none' : 'sm'})`;
+  return key === 'itemRadius' ? 'auto (= radius)' : key === 'radius' ? 'auto (theme)' : `auto${meta.auto ? ` (${meta.auto})` : ''}`;
+}
 
 /** Options the rest of the config makes invisible (the library's own rule), with the reason. */
 const inactiveFor = (options: Record<string, unknown>) => inactiveAccordionOptions(options as AccordionAppearanceInput);
@@ -99,7 +124,8 @@ function providerProps(env: Env) {
 
 function code(items: unknown, options: Record<string, unknown>, env: Env, lang: 'ts' | 'js') {
   const opts = changedOptions(options).map(([k, v]) => `    ${k}: ${literal(v)},`);
-  if (env.icons) opts.push('    icon: ({ open }) => <YourIcon filled={open} />, // or icon / endIcon on any row');
+  if (env.icons === 'every row') opts.push('    icon: <SparkleIcon />, // every row; a row\'s own icon wins');
+  if (env.icons === 'per row') opts.push('    // per row: items[i].icon = <CardIcon />, or a string such as "🚀" in JSON');
   const data = JSON.stringify(items, null, 2);
   const provider = providerProps(env);
   const lines = [
@@ -221,7 +247,12 @@ export function Playground() {
     ...(Object.fromEntries(changedOptions(options)) as Partial<AccordionConfig>),
     items: parsed.items ?? [],
     animate: env.reducedMotion ? false : (options.animate as boolean),
-    icon: env.icons ? (s) => <DemoIcon open={s.open} /> : undefined,
+    icon:
+      env.icons === 'every row'
+        ? <Glyph name="sparkle" />
+        : env.icons === 'per row'
+          ? (s) => <Glyph name={PER_ROW[s.index % PER_ROW.length]} /> // a row's own icon still wins
+          : undefined,
     // The hook reads context where it is called (here, outside the preview provider), so direction is passed in.
     dir: env.rtl ? 'rtl' : 'ltr',
     value,
@@ -285,7 +316,7 @@ export function Playground() {
                     onChange={(e) => setOption(key, e.target.value === '' ? undefined : e.target.value)}
                   >
                     {/* No library default means "inherit the theme": offer that instead of a fixed value. */}
-                    {meta.default === undefined ? <option value="">auto</option> : null}
+                    {meta.default === undefined ? <option value="">{autoLabel(key, meta, options)}</option> : null}
                     {meta.values!.map((v) => (
                       <option key={String(v)} value={String(v)}>
                         {String(v)}
@@ -333,9 +364,13 @@ export function Playground() {
               <input type="checkbox" checked={env.reducedMotion} onChange={(e) => setEnv('reducedMotion', e.target.checked)} />
               <span>reduced motion</span>
             </label>
-            <label className="dx-opt dx-opt--check" title="Icons are nodes, so JSON cannot carry them: this passes an accordion-wide icon.">
-              <input type="checkbox" checked={env.icons} onChange={(e) => setEnv('icons', e.target.checked)} />
+            <label className="dx-opt" title="A row's own icon (e.g. &quot;icon&quot;: &quot;🚀&quot; in the JSON) always wins.">
               <span>icons</span>
+              <select className="dx-select" value={env.icons} onChange={(e) => setEnv('icons', e.target.value as Env['icons'])}>
+                <option>none</option>
+                <option>every row</option>
+                <option>per row</option>
+              </select>
             </label>
             <label className="dx-opt dx-opt--wide">
               <span>

@@ -124,14 +124,24 @@ function providerProps(env: Env) {
 
 function code(items: unknown, options: Record<string, unknown>, env: Env, lang: 'ts' | 'js') {
   const opts = changedOptions(options).map(([k, v]) => `    ${k}: ${literal(v)},`);
-  if (env.icons === 'every row') opts.push('    icon: <SparkleIcon />, // every row; a row\'s own icon wins');
-  if (env.icons === 'per row') opts.push('    // per row: items[i].icon = <CardIcon />, or a string such as "🚀" in JSON');
-  const data = JSON.stringify(items, null, 2);
+  if (env.icons === 'every row') opts.push('    icon: <SparkleIcon />,');
+  // Per row, each row without its own icon gets the sample one, written as real JSX in the row.
+  const rows = (Array.isArray(items) ? items : []) as Array<Record<string, unknown>>;
+  const iconOf = (i: number) => `${PER_ROW[i % PER_ROW.length][0].toUpperCase()}${PER_ROW[i % PER_ROW.length].slice(1)}Icon`;
+  const withIcons = env.icons === 'per row' ? rows.map((row, i) => (row.icon == null ? { ...row, icon: `__ICON_${i}__` } : row)) : rows;
+  const data = JSON.stringify(withIcons, null, 2).replace(/"__ICON_(\d+)__"/g, (_, i) => `<${iconOf(Number(i))} />`);
+  const icons =
+    env.icons === 'every row'
+      ? ['SparkleIcon']
+      : env.icons === 'per row'
+        ? [...new Set(withIcons.flatMap((row, i) => (row.icon === `__ICON_${i}__` ? [iconOf(i)] : [])))]
+        : [];
   const provider = providerProps(env);
   const lines = [
     lang === 'ts'
       ? "import { useAccordion, type AccordionItemConfig } from '@/components/ui/accordion';"
       : "import { useAccordion } from '@/components/ui/accordion';",
+    ...(icons.length ? [`import { ${icons.join(', ')} } from './icons'; // any icon set: lucide, heroicons, your own SVGs`] : []),
     '',
     lang === 'ts'
       ? `const items: AccordionItemConfig[] = ${data};`

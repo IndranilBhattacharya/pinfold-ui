@@ -17,7 +17,7 @@ so the site always runs on the library's current source.
 
 ## Deploy
 **Vercel** builds `main` (and a preview for every pull request) using `vercel.json`. Vercel clones only
-this repo, so `scripts/vercel-build.sh` first clones the library into `.pinfold/`. Details: [docs/SITE.md](docs/SITE.md).
+this repo, so `scripts/vercel-build.sh` first clones the library into `.pinfold/`.
 
 ## Develop
 ```bash
@@ -28,4 +28,4 @@ npm run typecheck
 ```
 
 ## What lives here
-See [docs/SITE.md](docs/SITE.md). The library repo is the source of truth for every API.
+The library repo is the source of truth for every API: component pages, playground controls, the registry and `llms.txt` are generated from its metadata.

@@ -64,14 +64,19 @@ export function OptionControls({
   options,
   setOption,
   inactive = {},
+  inherit = [],
   autoLabel = (_key, meta) => `auto${meta.auto ? ` (${meta.auto})` : ''}`,
 }: {
   controls: Array<[string, PropMeta]>;
   options: Record<string, unknown>;
   setOption: (key: string, value: unknown) => void;
   inactive?: Record<string, string>;
+  /** Options that may stay unset so the global defaults and the provider decide (precedence). */
+  inherit?: string[];
   autoLabel?: (key: string, meta: PropMeta) => string;
 }) {
+  // Only explain controls shown here; the rest still reach the dev warning.
+  const shown = Object.entries(inactive).filter(([k]) => controls.some(([c]) => c === k));
   return (
     <fieldset className="dx-fieldset">
       <legend className="dx-label">Component</legend>
@@ -92,7 +97,7 @@ export function OptionControls({
                 onChange={(e) => setOption(key, e.target.value === '' ? undefined : e.target.value)}
               >
                 {/* No library default means "inherit": offer that instead of a fixed value. */}
-                {meta.default === undefined ? <option value="">{autoLabel(key, meta)}</option> : null}
+                {meta.default === undefined || inherit.includes(key) ? <option value="">{autoLabel(key, meta)}</option> : null}
                 {meta.values!.map((v) => (
                   <option key={String(v)} value={String(v)}>
                     {String(v)}
@@ -103,9 +108,9 @@ export function OptionControls({
           ),
         )}
       </div>
-      {Object.keys(inactive).length ? (
+      {shown.length ? (
         <ul className="dx-hint dx-inactive">
-          {Object.entries(inactive).map(([k, why]) => (
+          {shown.map(([k, why]) => (
             <li key={k}>
               <b>{k}</b>: {why.replace(/`/g, '')}
             </li>
@@ -266,6 +271,9 @@ export function CodePanel({ file, code, actions, note }: { file: string; code: (
     </>
   );
 }
+
+/** A value the way a developer writes it in a config object. */
+export const literal = (v: unknown) => (typeof v === 'string' ? `'${v.replace(/'/g, "\\'")}'` : JSON.stringify(v));
 
 /** A JSX attribute the way a developer writes it. */
 export function jsxAttr(key: string, value: unknown): string {

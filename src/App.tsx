@@ -136,15 +136,13 @@ function Page({ title, lede, children }: { title: string; lede: string; children
 /** Every component page: generated from meta, so the site never hand-copies an API. */
 function ComponentPage({ route }: { route: ComponentRoute }) {
   const { meta, Playground, extra: Extra } = route;
-  const atom = meta.kind === 'atom';
   return (
     <article key={meta.name}>
       <header className="dx-page-head">
         <h1>{meta.displayName}</h1>
         <p className="dx-lede">{meta.description}</p>
         <p className="dx-meta">
-          <code>import {`{ ${atom ? meta.displayName : `use${meta.displayName}`} }`} from '{meta.importPath}'</code>
-          <span className="dx-tag">{atom ? 'atom · tag · server-safe' : 'widget · hook + define'}</span>
+          <code>import {`{ use${meta.displayName}, define${meta.displayName} }`} from '{meta.importPath}'</code>
           <a href={meta.pattern}>WAI-ARIA pattern ↗</a>
         </p>
       </header>
@@ -163,7 +161,7 @@ function ComponentPage({ route }: { route: ComponentRoute }) {
         </div>
       </Section>
 
-      <Section id="api" title="API" lede={atom ? 'Every option is optional; any other attribute goes to the element.' : 'One flat object. Only the data is required.'}>
+      <Section id="api" title="API" lede="One flat object. Precedence for every option: this config, then defaults in defineConfig(), then the provider, then the library default.">
         <ApiTable meta={meta} />
       </Section>
 
@@ -227,12 +225,14 @@ return (
 // Faq.value · Faq.toggle(id) · Faq.isOpen(id) · Faq.focusItem(0)`,
   ],
   [
-    '3 — simple components are plain tags',
-    `// Atoms (Button, Spinner…) need no hook and work in
-// Server Components as they are.
-<Button tone="danger" variant="soft" loading={busy}>
-  Delete
-</Button>`,
+    '3 — every component, the same way',
+    `const Save = useButton({
+  label: 'Save',
+  tone: 'success',
+  onClick: async () => { await save(); }, // loading state for free
+});
+
+return <Save />;`,
   ],
   [
     '4 — parts, for layouts config cannot express',
@@ -277,7 +277,7 @@ function Overview() {
           Build UI from <em>configuration</em>,<br /> not from markup.
         </h1>
         <p className="dx-lede">
-          An entire accessible accordion from one object or one hook, plain tags for the simple parts, and an escape hatch on every slot.
+          Every component, from a button to an accordion, from one config object or one hook, with an escape hatch on every slot.
         </p>
         <div className="dx-cta">
           <code className="dx-cmd">npx pinfold init</code>
@@ -290,7 +290,7 @@ function Overview() {
         </div>
       </section>
 
-      <Section id="ways" title="Four levels" lede="Start with the tag. Reach further only when you need to; the config object never changes shape.">
+      <Section id="ways" title="Four levels" lede="Start with the config. Reach further only when you need to; the config object never changes shape.">
         <div className="dx-compare">
           {WAYS.map(([label, code]) => (
             <Code key={label} label={label} tone="muted" code={code} />

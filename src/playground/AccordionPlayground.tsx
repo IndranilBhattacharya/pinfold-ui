@@ -60,8 +60,8 @@ function providerProps(env: Env) {
 }
 
 function code(items: unknown, options: Record<string, unknown>, env: Env, icons: Icons, lang: 'ts' | 'js') {
-  const opts = changedOptions(options).map(([k, v]) => `    ${k}: ${literal(v)},`);
-  if (icons === 'every row') opts.push('    icon: <SparkleIcon />,');
+  const opts = changedOptions(options).map(([k, v]) => `  ${k}: ${literal(v)},`);
+  if (icons === 'every row') opts.push('  icon: <SparkleIcon />,');
   // Per row, each row without its own icon gets the sample one, written as real JSX in the row.
   const rows = (Array.isArray(items) ? items : []) as Array<Record<string, unknown>>;
   const iconOf = (i: number) => `${PER_ROW[i % PER_ROW.length][0].toUpperCase()}${PER_ROW[i % PER_ROW.length].slice(1)}Icon`;
@@ -72,19 +72,22 @@ function code(items: unknown, options: Record<string, unknown>, env: Env, icons:
   const provider = providerProps(env);
   const lines = [
     lang === 'ts'
-      ? "import { useAccordion, type AccordionItemConfig } from '@/components/ui/accordion';"
-      : "import { useAccordion } from '@/components/ui/accordion';",
+      ? "import { defineAccordion, type AccordionItemConfig } from '@/components/ui/accordion';"
+      : "import { defineAccordion } from '@/components/ui/accordion';",
     ...(names.length ? [`import { ${names.join(', ')} } from './icons'; // any icon set: lucide, heroicons, your own SVGs`] : []),
     '',
     lang === 'ts' ? `const items: AccordionItemConfig[] = ${data};` : `/** @type {import('@pinfold/react/accordion').AccordionItemConfig[]} */\nconst items = ${data};`,
     '',
-    'export function Faq() {',
-    '  const Faq = useAccordion({',
-    '    items,',
-    ...opts,
-    '  });',
-    '  return <Faq />;',
+    '// Define once, outside components: the look. Use it for every FAQ on the site.',
+    opts.length ? 'export const Faq = defineAccordion({' : 'export const Faq = defineAccordion({});',
+    ...(opts.length ? [...opts, '});'] : []),
+    '',
+    '// Use anywhere: <Faq items={items} />, or in a loop over categories.',
+    'export function Questions() {',
+    '  return <Faq items={items} />;',
     '}',
+    '',
+    '// Need the controller (Faq.openAll(), Faq.toggle(id))? useAccordion({ ...Faq.config, items }).',
   ];
   if (provider) lines.push('', `// Style pack / direction: wrap the app once, e.g. <PinfoldProvider ${provider}>`);
   return lines.join('\n');
@@ -237,7 +240,7 @@ export function AccordionPlayground() {
       <div className="dx-play__preview">
         <Stage env={env}>{parsed.items ? <Faq /> : <p className="dx-error">Fix the JSON to see the preview.</p>}</Stage>
         <CodePanel
-          file="components/faq"
+          file="components/questions"
           code={(lang) => code(items, options, env, icons, lang)}
           actions={[
             { label: 'Copy CLI command', copy: command(env) },

@@ -225,14 +225,14 @@ return (
 // Faq.value · Faq.toggle(id) · Faq.isOpen(id) · Faq.focusItem(0)`,
   ],
   [
-    '3 — every component, the same way',
-    `const Save = useButton({
-  label: 'Save',
-  tone: 'success',
-  onClick: async () => { await save(); }, // loading state for free
-});
+    '3 — presets: decide the look once',
+    `// ui/presets.ts, outside components
+export const Danger = defineButton({ variant: 'soft', tone: 'danger' });
+export const Faq = defineAccordion({ variant: 'separated' });
 
-return <Save />;`,
+// anywhere, loops included
+{rows.map((r) => <Danger key={r.id} label="Delete" onClick={() => remove(r.id)} />)}
+<Faq items={questions} />`,
   ],
   [
     '4 — parts, for layouts config cannot express',

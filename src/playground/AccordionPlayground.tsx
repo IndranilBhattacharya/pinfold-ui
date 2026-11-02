@@ -3,7 +3,7 @@ import { useAccordion } from '@pinfold/react/accordion';
 import type { AccordionConfig, AccordionItemConfig } from '@pinfold/react/accordion';
 import { accordionMeta, type PropMeta } from '@pinfold/core/meta';
 import { accordionRowsJoined, inactiveAccordionOptions, type AccordionAppearanceInput, type AccordionVariantName } from '@pinfold/core';
-import { changed, CodePanel, controlsOf, defaultsOf, ENV, EnvControls, Glyph, OptionControls, reviveEnv, Stage, useUrlState, type Env } from './shared';
+import { changed, CodePanel, controlsOf, defaultsOf, ENV, EnvControls, Glyph, OptionControls, reviveEnv, Stage, useUrlState, appSetup, type Env } from './shared';
 
 const START_ITEMS: AccordionItemConfig[] = [
   { id: 'plan', title: 'Choose a plan', description: 'Monthly or yearly, cancel anytime', badge: 'Step 1', content: 'Yearly saves two months. Both plans include every component.' },
@@ -54,11 +54,6 @@ const inactiveFor = (options: Record<string, unknown>) => inactiveAccordionOptio
 const changedOptions = (options: Record<string, unknown>) => changed(options, DEFAULTS, inactiveFor(options));
 const literal = (v: unknown) => (typeof v === 'string' ? `'${v}'` : String(v));
 
-function providerProps(env: Env) {
-  const props = [env.stylePack !== 'default' && `stylePack="${env.stylePack}"`, env.rtl && 'dir="rtl"'].filter(Boolean);
-  return props.length ? props.join(' ') : null;
-}
-
 function code(items: unknown, options: Record<string, unknown>, env: Env, icons: Icons, lang: 'ts' | 'js') {
   const opts = changedOptions(options).map(([k, v]) => `  ${k}: ${literal(v)},`);
   if (icons === 'every row') opts.push('  icon: <SparkleIcon />,');
@@ -69,7 +64,6 @@ function code(items: unknown, options: Record<string, unknown>, env: Env, icons:
   const data = JSON.stringify(withIcons, null, 2).replace(/"__ICON_(\d+)__"/g, (_, i) => `<${iconOf(Number(i))} />`);
   const names =
     icons === 'every row' ? ['SparkleIcon'] : icons === 'per row' ? [...new Set(withIcons.flatMap((row, i) => (row.icon === `__ICON_${i}__` ? [iconOf(i)] : [])))] : [];
-  const provider = providerProps(env);
   const lines = [
     lang === 'ts'
       ? "import { defineAccordion, type AccordionItemConfig } from '@/components/ui/accordion';"
@@ -89,7 +83,7 @@ function code(items: unknown, options: Record<string, unknown>, env: Env, icons:
     '',
     '// Need the controller (Faq.openAll(), Faq.toggle(id))? useAccordion({ ...Faq.config, items }).',
   ];
-  if (provider) lines.push('', `// Style pack / direction: wrap the app once, e.g. <PinfoldProvider ${provider}>`);
+  lines.push(...appSetup(env));
   return lines.join('\n');
 }
 

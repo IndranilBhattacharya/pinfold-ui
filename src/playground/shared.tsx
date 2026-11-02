@@ -310,3 +310,26 @@ export function Glyph({ name }: { name: GlyphName }) {
     </svg>
   );
 }
+
+/**
+ * The app-wide setup the preview assumes (provider size, tone, style pack, direction), as the
+ * code a developer adds once. Empty when the environment is at its defaults.
+ */
+export function appSetup(env: Env): string[] {
+  const props = [
+    env.size && `size="${env.size}"`,
+    env.tone && `tone="${env.tone}"`,
+    env.stylePack !== 'default' && `stylePack="${env.stylePack}"`,
+    env.rtl && 'dir="rtl"',
+  ].filter(Boolean) as string[];
+  if (!props.length) return [];
+  const config = props.map((p) => p.replace(/^(\w+)="(.*)"$/, "$1: '$2'")).join(', ');
+  return [
+    '',
+    '// ---- once for the whole app, e.g. app/layout.tsx ----------------------',
+    '// Unset size and tone in the presets above fall back to these.',
+    ...(env.stylePack !== 'default' ? ["import '@pinfold/css/packs.css'; // style packs"] : []),
+    `<PinfoldProvider ${props.join(' ')}>{children}</PinfoldProvider>`,
+    `// or in pinfold.config.ts: defineConfig({ ${config} }), passed as <PinfoldProvider config={config}>`,
+  ];
+}

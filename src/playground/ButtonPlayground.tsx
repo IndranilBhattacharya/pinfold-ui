@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { useButton, type ButtonConfig } from '@pinfold/react/button';
-import { useSpinner, type SpinnerConfig } from '@pinfold/react/spinner';
+import { Spinner, useSpinner, type SpinnerConfig } from '@pinfold/react/spinner';
 import { buttonMeta, spinnerMeta } from '@pinfold/core/meta';
 import { inactiveButtonOptions } from '@pinfold/core';
-import { changed, CodePanel, controlsOf, defaultsOf, ENV, EnvControls, Glyph, literal, OptionControls, reviveEnv, Stage, useUrlState, type Env } from './shared';
+import { changed, CodePanel, controlsOf, defaultsOf, ENV, EnvControls, Glyph, literal, OptionControls, reviveEnv, Stage, useUrlState, appSetup, type Env } from './shared';
 
 const TONES = ['primary', 'neutral', 'success', 'warning', 'danger', 'info'] as const;
 const VARIANTS = ['solid', 'soft', 'outline', 'ghost', 'link'] as const;
@@ -68,6 +68,7 @@ function buttonCode(s: ButtonState) {
     ...(s.asyncClick ? ['  // An onClick that returns a promise shows the loading state until it settles.'] : []),
     `  return <SaveButton ${use.join(' ')} />;`,
     '}',
+    ...appSetup(s.env),
   ].join('\n');
 }
 
@@ -218,7 +219,23 @@ function spinnerCode(s: SpinnerState) {
     'export function Results() {',
     '  return <Loading />;',
     '}',
+    ...appSetup(s.env),
   ].join('\n');
+}
+
+const SPINNER_VARIANTS = ['ring', 'arc', 'dots', 'bars', 'pulse', 'orbit'] as const;
+
+function SpinnerGallery({ options, onPick }: { options: Record<string, unknown>; onPick: (variant: string) => void }) {
+  return (
+    <div className="dx-gallery__row dx-spinner-gallery">
+      {SPINNER_VARIANTS.map((variant) => (
+        <button key={variant} type="button" className="dx-spinner-pick" aria-pressed={options.variant === variant} onClick={() => onPick(variant)}>
+          <Spinner variant={variant} size={options.size as never} tone={options.tone as never} label={`${variant} spinner`} />
+          <span>{variant}</span>
+        </button>
+      ))}
+    </div>
+  );
 }
 
 function SpinnerPreview({ state }: { state: SpinnerState }) {
@@ -270,6 +287,12 @@ export function SpinnerPlayground() {
           Resolved: size {source('size', options, env, spinnerMeta.props.size.default)} · tone {source('tone', options, env, spinnerMeta.props.tone.default)}.
         </p>
         <CodePanel file="components/loading" code={() => spinnerCode(state)} actions={[{ label: 'Copy CLI command', copy: 'npx pinfold add spinner' }]} />
+
+        <h3 className="dx-subhead">Every animation</h3>
+        <p className="dx-hint">In the size, tone and environment above. Click one to use it.</p>
+        <Stage env={env} align="start">
+          <SpinnerGallery options={options} onPick={(variant) => setOption('variant', variant)} />
+        </Stage>
       </div>
     </div>
   );

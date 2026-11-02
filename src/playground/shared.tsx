@@ -17,7 +17,7 @@ export interface Env {
   rtl: boolean;
   reducedMotion: boolean;
   width: number;
-  /** Provider size / tone around the preview: atoms inherit them when their own is unset (D-23). */
+  /** Provider size / tone around the preview: atoms inherit them when their own is unset. */
   size: PinfoldSize | '';
   tone: PinfoldTone | '';
 }

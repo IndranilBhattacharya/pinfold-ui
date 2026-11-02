@@ -18,11 +18,6 @@ function source(key: string, options: Record<string, unknown>, env: Env, library
   return `${libraryDefault} ← library default`;
 }
 
-/** The config object as a developer writes it: only what differs from the defaults. */
-function configLines(entries: Array<[string, string]>) {
-  return entries.map(([k, v]) => `    ${k}: ${v},`);
-}
-
 /* ---------------------------------------------------------------- button */
 
 const B_CONTROLS = controlsOf(buttonMeta);
@@ -52,22 +47,26 @@ const hasEnd = (s: ButtonState) => s.icons === 'end' || s.icons === 'both';
 
 function buttonCode(s: ButtonState) {
   const inactive = inactiveButtonOptions({ ...s.options, loadingText: s.loadingText || undefined });
-  const entries: Array<[string, string]> = [['label', literal(s.label)]];
-  for (const [k, v] of changed(s.options, B_DEFAULTS, inactive)) entries.push([k, literal(v)]);
-  if (hasStart(s)) entries.push(['icon', '<PlusIcon />']);
-  if (hasEnd(s) && !('endIcon' in inactive)) entries.push(['endIcon', '<ArrowIcon />']);
-  if (s.loadingText) entries.push(['loadingText', literal(s.loadingText)]);
-  entries.push(['onClick', s.asyncClick ? 'async () => {\n      await save(); // the button shows its loading state until this settles\n    }' : 'save']);
+  // The look goes in the preset (defined once); instance data goes where it is used.
+  const preset: Array<[string, string]> = changed(s.options, B_DEFAULTS, inactive).map(([k, v]) => [k, literal(v)]);
+  if (hasStart(s)) preset.push(['icon', '<PlusIcon />']);
+  if (hasEnd(s) && !('endIcon' in inactive)) preset.push(['endIcon', '<ArrowIcon />']);
+  const use = [`label=${JSON.stringify(s.label)}`];
+  if (s.loadingText) use.push(`loadingText=${JSON.stringify(s.loadingText)}`);
+  use.push(s.asyncClick ? 'onClick={async () => { await save(); }}' : 'onClick={save}');
   const icons = [hasStart(s) && 'PlusIcon', hasEnd(s) && !('endIcon' in inactive) && 'ArrowIcon'].filter(Boolean);
   return [
-    "import { useButton } from '@/components/ui/button';",
+    "import { defineButton } from '@/components/ui/button';",
     ...(icons.length ? [`import { ${icons.join(', ')} } from './icons'; // any icon set`] : []),
     '',
-    'export function SaveButton() {',
-    '  const Save = useButton({',
-    ...configLines(entries),
-    '  });',
-    '  return <Save />;',
+    '// Define once, outside components: the look.',
+    preset.length ? 'export const SaveButton = defineButton({' : 'export const SaveButton = defineButton({});',
+    ...(preset.length ? [...preset.map(([k, v]) => `  ${k}: ${v},`), '});'] : []),
+    '',
+    '// Use anywhere in one line: loops, conditions, Server Components (no functions there).',
+    'export function Actions() {',
+    ...(s.asyncClick ? ['  // An onClick that returns a promise shows the loading state until it settles.'] : []),
+    `  return <SaveButton ${use.join(' ')} />;`,
     '}',
   ].join('\n');
 }
@@ -206,14 +205,17 @@ const reviveSpinner = (s: any): SpinnerState => ({
 });
 
 function spinnerCode(s: SpinnerState) {
-  const entries: Array<[string, string]> = changed(s.options, S_DEFAULTS).map(([k, v]) => [k, literal(v)]);
-  if (s.label !== 'Loading') entries.unshift(['label', literal(s.label)]);
+  const preset: Array<[string, string]> = changed(s.options, S_DEFAULTS).map(([k, v]) => [k, literal(v)]);
+  if (s.label !== 'Loading') preset.unshift(['label', literal(s.label)]);
   return [
-    "import { useSpinner } from '@/components/ui/spinner';",
+    "import { defineSpinner } from '@/components/ui/spinner';",
     '',
-    'export function Loading() {',
-    entries.length ? '  const Loading = useSpinner({' : '  const Loading = useSpinner();',
-    ...(entries.length ? [...configLines(entries), '  });'] : []),
+    '// Define once, outside components.',
+    preset.length ? 'export const Loading = defineSpinner({' : 'export const Loading = defineSpinner();',
+    ...(preset.length ? [...preset.map(([k, v]) => `  ${k}: ${v},`), '});'] : []),
+    '',
+    '// Use anywhere.',
+    'export function Results() {',
     '  return <Loading />;',
     '}',
   ].join('\n');

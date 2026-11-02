@@ -55,9 +55,69 @@ a { color: inherit; text-decoration: none; }
 .dx-logo span { color: var(--pinfold-color-text); }
 .dx-logo b { color: var(--pinfold-color-accent); font-weight: 600; }
 
-.dx-nav { display: flex; gap: var(--pinfold-space-5); margin-inline-end: auto; font-size: 0.875rem; }
-.dx-nav a { color: var(--pinfold-color-text-muted); }
-.dx-nav a:hover { color: var(--pinfold-color-text); }
+.dx-version { margin-inline-end: auto; font-size: 0.75rem; }
+
+/* ------------------------------------------------------------- shell + nav */
+.dx-shell-width { width: min(1360px, 100% - 2.5rem); margin-inline: auto; }
+.dx-shell { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 2.5rem; }
+.dx-side {
+  position: sticky;
+  top: 60px;
+  align-self: start;
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
+  padding: 1.5rem 0;
+}
+.dx-side nav { display: flex; flex-direction: column; gap: 2px; }
+.dx-side__group {
+  margin: 1.25rem 0 0.4rem;
+  padding-inline: 0.6rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pinfold-color-text-subtle);
+}
+.dx-side__group:first-child { margin-top: 0; }
+.dx-side a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.875rem;
+  color: var(--pinfold-color-text-muted);
+  border-radius: var(--pinfold-radius-md);
+}
+.dx-side a:hover { color: var(--pinfold-color-text); background: var(--pinfold-color-surface-hover); }
+.dx-side a[aria-current='page'] { color: var(--pinfold-color-text); background: var(--pinfold-color-surface); box-shadow: inset 0 0 0 1px var(--pinfold-color-border); }
+.dx-tag {
+  padding: 0.1rem 0.4rem;
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--pinfold-color-accent);
+  background: var(--pinfold-color-accent-subtle);
+  border-radius: var(--pinfold-radius-full);
+}
+.dx-main { min-width: 0; padding-bottom: 3rem; }
+.dx-page-head { padding: 2.5rem 0 1rem; }
+.dx-page-head h1 { margin: 0 0 0.5rem; font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem); letter-spacing: -0.03em; }
+.dx-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; font-size: 0.8125rem; color: var(--pinfold-color-text-muted); }
+.dx-meta code { padding: 0.25rem 0.5rem; background: var(--pinfold-color-surface); border: 1px solid var(--pinfold-color-border); border-radius: var(--pinfold-radius-md); }
+.dx-meta a { text-decoration: underline; text-underline-offset: 0.2em; }
+.dx-subhead { margin: 2rem 0 0.25rem; font-size: 1rem; }
+.dx-stage--start { justify-content: flex-start; }
+.dx-demo-col { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+.dx-demo-text { display: flex; align-items: center; gap: 0.5rem; margin: 0; }
+.dx-gallery { display: flex; flex-direction: column; gap: 0.75rem; }
+.dx-gallery__row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+@media (max-width: 860px) {
+  .dx-shell { grid-template-columns: 1fr; gap: 0; }
+  .dx-side { position: static; max-height: none; padding-bottom: 0; }
+  .dx-side nav { flex-direction: row; flex-wrap: wrap; }
+  .dx-side__group { width: 100%; }
+}
 
 .dx-controls { display: flex; gap: var(--pinfold-space-3); align-items: center; }
 .dx-control { display: flex; gap: 0.5rem; align-items: center; font-size: 0.75rem; color: var(--pinfold-color-text-muted); }

@@ -4,6 +4,8 @@ import { createRoot } from 'react-dom/client';
 import '@pinfold/css/reset.css';
 import '@pinfold/css/tokens.css';
 import '@pinfold/css/accordion.css';
+import '@pinfold/css/button.css';
+import '@pinfold/css/spinner.css';
 import '@pinfold/css/packs.css';
 import './docs.css';
 

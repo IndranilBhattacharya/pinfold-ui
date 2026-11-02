@@ -156,7 +156,7 @@ export function ButtonPlayground() {
           setOption={setOption}
           inactive={inactive}
           inherit={INHERIT}
-          autoLabel={(key, meta) => `unset (${env[key as 'size' | 'tone'] || meta.default})`}
+          autoLabel={(key, meta) => (key === 'radius' ? 'theme radius (md by default)' : `unset (${env[key as 'size' | 'tone'] || meta.default})`)}
         />
         <EnvControls env={env} setEnv={setEnv} provider />
         <button type="button" className="dx-btn" onClick={() => setState(B_INITIAL)}>

@@ -513,3 +513,13 @@ a { color: inherit; text-decoration: none; }
   cursor: pointer;
 }
 .dx-spinner-pick[aria-pressed='true'] { color: var(--pinfold-color-text); border-color: var(--pinfold-color-border-accent); }
+
+/* Grid tracks default to min-content: let every column shrink, so nothing pushes the page wide. */
+.dx-play, .dx-studio, .dx-split { grid-template-columns: 380px minmax(0, 1fr); }
+.dx-studio { grid-template-columns: 360px minmax(0, 1fr); }
+.dx-split { grid-template-columns: minmax(0, 1fr) 320px; }
+@media (max-width: 960px) { .dx-play, .dx-studio, .dx-split { grid-template-columns: minmax(0, 1fr); } }
+.dx-play > *, .dx-studio > *, .dx-split > *, .dx-compare > * { min-width: 0; }
+.dx-input, .dx-textarea, .dx-select { max-width: 100%; }
+/* Long unbroken strings (URLs, identifiers) wrap instead of widening the page. */
+.dx-main { overflow-wrap: anywhere; }

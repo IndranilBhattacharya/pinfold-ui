@@ -46,7 +46,7 @@ const revive = (s: any): State => ({
 function autoLabel(options: Record<string, unknown>) {
   return (key: string, meta: PropMeta) => {
     if (key === 'gap') return `auto (${accordionRowsJoined(options.variant as AccordionVariantName) ? 'none' : 'sm'})`;
-    return key === 'itemRadius' ? 'auto (= radius)' : key === 'radius' ? 'auto (theme)' : `auto${meta.auto ? ` (${meta.auto})` : ''}`;
+    return key === 'itemRadius' ? 'auto (= radius)' : key === 'radius' ? 'theme radius (md by default)' : `auto${meta.auto ? ` (${meta.auto})` : ''}`;
   };
 }
 

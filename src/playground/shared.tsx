@@ -17,7 +17,7 @@ export interface Env {
   rtl: boolean;
   reducedMotion: boolean;
   width: number;
-  /** Provider size / tone around the preview: atoms inherit them when their own is unset. */
+  /** Provider size / tone around the preview: what a component uses when its config and the global defaults leave them unset. */
   size: PinfoldSize | '';
   tone: PinfoldTone | '';
 }
@@ -121,7 +121,7 @@ export function OptionControls({
   );
 }
 
-/** Style pack, colour mode, direction, motion, width, and (for atoms) the provider size and tone. */
+/** Style pack, colour mode, direction, motion, width, and optionally the provider size and tone. */
 export function EnvControls({
   env,
   setEnv,

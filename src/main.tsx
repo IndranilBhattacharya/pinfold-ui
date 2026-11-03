@@ -10,6 +10,10 @@ import '@pinfold/css/separator.css';
 import '@pinfold/css/kbd.css';
 import '@pinfold/css/skeleton.css';
 import '@pinfold/css/badge.css';
+import '@pinfold/css/alert.css';
+import '@pinfold/css/avatar.css';
+import '@pinfold/css/card.css';
+import '@pinfold/css/progress.css';
 import '@pinfold/css/packs.css';
 import './docs.css';
 

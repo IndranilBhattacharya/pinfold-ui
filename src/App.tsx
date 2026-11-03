@@ -4,10 +4,11 @@ import { PaletteStudio } from './PaletteStudio';
 import { useAccordion } from '@pinfold/react/accordion';
 import { resolveNode, version } from '@pinfold/core';
 import type { AccordionConfig, AccordionVariant } from '@pinfold/react/accordion';
-import { accordionMeta, badgeMeta, buttonMeta, kbdMeta, separatorMeta, skeletonMeta, spinnerMeta, type ComponentMeta, type PropMeta } from '@pinfold/core/meta';
+import { accordionMeta, alertMeta, avatarMeta, badgeMeta, buttonMeta, cardMeta, progressMeta, kbdMeta, separatorMeta, skeletonMeta, spinnerMeta, type ComponentMeta, type PropMeta } from '@pinfold/core/meta';
 import { AccordionPlayground } from './playground/AccordionPlayground';
 import { ButtonPlayground, SpinnerPlayground } from './playground/ButtonPlayground';
 import { BadgePlayground, KbdPlayground, SeparatorPlayground, SkeletonPlayground } from './playground/DisplayPlayground';
+import { AlertPlayground, AvatarPlayground, CardPlayground, ProgressPlayground } from './playground/SurfacePlayground';
 
 /**
  * The site shell: a side nav and one page per route (`#/button`). Bare minimum on
@@ -29,6 +30,10 @@ const COMPONENTS: ComponentRoute[] = [
   { meta: kbdMeta, status: 'new', Playground: KbdPlayground },
   { meta: skeletonMeta, status: 'new', Playground: SkeletonPlayground },
   { meta: badgeMeta, status: 'new', Playground: BadgePlayground },
+  { meta: alertMeta, status: 'new', Playground: AlertPlayground },
+  { meta: avatarMeta, status: 'new', Playground: AvatarPlayground },
+  { meta: cardMeta, status: 'new', Playground: CardPlayground },
+  { meta: progressMeta, status: 'new', Playground: ProgressPlayground },
 ];
 
 function useRoute(): string {

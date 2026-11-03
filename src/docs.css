@@ -523,3 +523,12 @@ a { color: inherit; text-decoration: none; }
 .dx-input, .dx-textarea, .dx-select { max-width: 100%; }
 /* Long unbroken strings (URLs, identifiers) wrap instead of widening the page. */
 .dx-main { overflow-wrap: anywhere; }
+
+/* Display component demos */
+.dx-demo-stack { display: flex; flex-direction: column; gap: 0.25rem; inline-size: 100%; }
+.dx-demo-stack p { margin: 0; color: var(--pinfold-color-text-muted); }
+.dx-demo-center { align-items: center; gap: 1rem; }
+.dx-demo-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; color: var(--pinfold-color-text-muted); }
+.dx-demo-card { display: flex; gap: 1rem; align-items: flex-start; inline-size: 100%; max-inline-size: 28rem; }
+.dx-demo-grow { flex: 1; min-inline-size: 0; }
+.dx-avatar { display: inline-grid; place-items: center; inline-size: 2.5rem; block-size: 2.5rem; border-radius: 50%; background: var(--pinfold-color-accent-subtle); color: var(--pinfold-color-accent); font-weight: 600; font-size: 0.875rem; }

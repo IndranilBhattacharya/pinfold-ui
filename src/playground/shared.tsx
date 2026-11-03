@@ -66,6 +66,7 @@ export function OptionControls({
   inactive = {},
   inherit = [],
   autoLabel = (_key, meta) => `auto${meta.auto ? ` (${meta.auto})` : ''}`,
+  valueLabel,
 }: {
   controls: Array<[string, PropMeta]>;
   options: Record<string, unknown>;
@@ -74,6 +75,8 @@ export function OptionControls({
   /** Options that may stay unset so the global defaults and the provider decide (precedence). */
   inherit?: string[];
   autoLabel?: (key: string, meta: PropMeta) => string;
+  /** A clearer label for a value, e.g. what `auto` resolves to right now. */
+  valueLabel?: (key: string, value: string | number) => string | undefined;
 }) {
   // Only explain controls shown here; the rest still reach the dev warning.
   const shown = Object.entries(inactive).filter(([k]) => controls.some(([c]) => c === k));
@@ -100,7 +103,7 @@ export function OptionControls({
                 {meta.default === undefined || inherit.includes(key) ? <option value="">{autoLabel(key, meta)}</option> : null}
                 {meta.values!.map((v) => (
                   <option key={String(v)} value={String(v)}>
-                    {String(v)}
+                    {valueLabel?.(key, v) ?? String(v)}
                   </option>
                 ))}
               </select>
@@ -125,14 +128,20 @@ export function OptionControls({
 export function EnvControls({
   env,
   setEnv,
-  provider = false,
+  provider: providerProp = false,
+  motion = true,
   children,
 }: {
   env: Env;
   setEnv: <K extends keyof Env>(key: K, value: Env[K]) => void;
-  provider?: boolean;
+  /** `false` for components with nothing that moves: the reduced-motion control would do nothing. */
+  motion?: boolean;
+  /** Which provider settings the component follows: `true` for size and tone. */
+  provider?: boolean | ReadonlyArray<'size' | 'tone'>;
   children?: React.ReactNode;
 }) {
+  const follows = providerProp === true ? ['size', 'tone'] : providerProp || [];
+  const provider = follows.length > 0;
   return (
     <fieldset className="dx-fieldset">
       <legend className="dx-label">Environment</legend>
@@ -154,15 +163,17 @@ export function EnvControls({
         </label>
         {provider ? (
           <>
-            <label className="dx-opt" title="PinfoldProvider size: what an unset size inherits">
-              <span>provider size</span>
-              <select className="dx-select" value={env.size} onChange={(e) => setEnv('size', e.target.value as Env['size'])}>
-                <option value="">md (default)</option>
-                <option>sm</option>
-                <option>lg</option>
-              </select>
-            </label>
-            <label className="dx-opt" title="PinfoldProvider tone: what an unset tone inherits">
+            {follows.includes('size') ? (
+              <label className="dx-opt" title="PinfoldProvider size: what an unset size inherits">
+                <span>provider size</span>
+                <select className="dx-select" value={env.size} onChange={(e) => setEnv('size', e.target.value as Env['size'])}>
+                  <option value="">md (default)</option>
+                  <option>sm</option>
+                  <option>lg</option>
+                </select>
+              </label>
+            ) : null}
+            {follows.includes('tone') ? <label className="dx-opt" title="PinfoldProvider tone: what an unset tone inherits">
               <span>provider tone</span>
               <select className="dx-select" value={env.tone} onChange={(e) => setEnv('tone', e.target.value as Env['tone'])}>
                 <option value="">primary (default)</option>
@@ -170,17 +181,19 @@ export function EnvControls({
                   <option key={t}>{t}</option>
                 ))}
               </select>
-            </label>
+            </label> : null}
           </>
         ) : null}
         <label className="dx-opt dx-opt--check">
           <input type="checkbox" checked={env.rtl} onChange={(e) => setEnv('rtl', e.target.checked)} />
           <span>right-to-left</span>
         </label>
-        <label className="dx-opt dx-opt--check">
-          <input type="checkbox" checked={env.reducedMotion} onChange={(e) => setEnv('reducedMotion', e.target.checked)} />
-          <span>reduced motion</span>
-        </label>
+        {motion ? (
+          <label className="dx-opt dx-opt--check">
+            <input type="checkbox" checked={env.reducedMotion} onChange={(e) => setEnv('reducedMotion', e.target.checked)} />
+            <span>reduced motion</span>
+          </label>
+        ) : null}
         {children}
         <label className="dx-opt dx-opt--wide">
           <span>

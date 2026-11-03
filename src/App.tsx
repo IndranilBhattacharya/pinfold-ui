@@ -4,10 +4,10 @@ import { PaletteStudio } from './PaletteStudio';
 import { useAccordion } from '@pinfold/react/accordion';
 import { resolveNode, version } from '@pinfold/core';
 import type { AccordionConfig, AccordionVariant } from '@pinfold/react/accordion';
-import { accordionMeta, buttonMeta, kbdMeta, separatorMeta, skeletonMeta, spinnerMeta, type ComponentMeta, type PropMeta } from '@pinfold/core/meta';
+import { accordionMeta, badgeMeta, buttonMeta, kbdMeta, separatorMeta, skeletonMeta, spinnerMeta, type ComponentMeta, type PropMeta } from '@pinfold/core/meta';
 import { AccordionPlayground } from './playground/AccordionPlayground';
 import { ButtonPlayground, SpinnerPlayground } from './playground/ButtonPlayground';
-import { KbdPlayground, SeparatorPlayground, SkeletonPlayground } from './playground/DisplayPlayground';
+import { BadgePlayground, KbdPlayground, SeparatorPlayground, SkeletonPlayground } from './playground/DisplayPlayground';
 
 /**
  * The site shell: a side nav and one page per route (`#/button`). Bare minimum on
@@ -28,6 +28,7 @@ const COMPONENTS: ComponentRoute[] = [
   { meta: separatorMeta, status: 'new', Playground: SeparatorPlayground },
   { meta: kbdMeta, status: 'new', Playground: KbdPlayground },
   { meta: skeletonMeta, status: 'new', Playground: SkeletonPlayground },
+  { meta: badgeMeta, status: 'new', Playground: BadgePlayground },
 ];
 
 function useRoute(): string {

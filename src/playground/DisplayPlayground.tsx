@@ -2,12 +2,13 @@ import * as React from 'react';
 import { useSeparator, type SeparatorConfig } from '@pinfold/react/separator';
 import { useKbd, type KbdConfig } from '@pinfold/react/kbd';
 import { useSkeleton, type SkeletonConfig } from '@pinfold/react/skeleton';
-import { kbdMeta, separatorMeta, skeletonMeta, type ComponentMeta } from '@pinfold/core/meta';
-import { inactiveSeparatorOptions, inactiveSkeletonOptions } from '@pinfold/core';
+import { Badge, useBadge, type BadgeConfig } from '@pinfold/react/badge';
+import { badgeMeta, kbdMeta, separatorMeta, skeletonMeta, type ComponentMeta } from '@pinfold/core/meta';
+import { inactiveBadgeOptions, inactiveSeparatorOptions, inactiveSkeletonOptions } from '@pinfold/core';
 import { appSetup, changed, CodePanel, controlsOf, defaultsOf, ENV, EnvControls, literal, OptionControls, reviveEnv, Stage, useUrlState, type Env } from './shared';
 
 /**
- * Playgrounds for Separator, Kbd and Skeleton. Same recipe as every page: meta-driven controls,
+ * Playgrounds for Separator, Kbd, Skeleton and Badge. Same recipe as every page: meta-driven controls,
  * a preview rendered inside the stage's provider, and generated code that defines a preset once
  * and uses it in one line.
  */
@@ -201,6 +202,82 @@ export function SkeletonPlayground() {
           file="components/profile"
           code={() => presetCode(skeletonMeta, 'Bio', preset, ['loading={!user}', 'content={<p>{user?.bio}</p>}'], state.env)}
           actions={[{ label: 'Copy CLI command', copy: 'npx pinfold add skeleton' }]}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ----------------------------------------------------------------- badge */
+
+const TONES = ['primary', 'neutral', 'success', 'warning', 'danger', 'info'] as const;
+const ANCHOR = ["    <span style={{ position: 'relative', display: 'inline-flex' }}>", '      <Avatar />'];
+
+function BadgePreview({ config }: { config: BadgeConfig }) {
+  const Main = useBadge(config);
+  const placed = config.placement != null && config.placement !== 'inline';
+  return (
+    <div className="dx-demo-stack dx-demo-center">
+      {placed ? (
+        <span className="dx-avatar dx-anchor">
+          IB
+          <Main />
+        </span>
+      ) : (
+        <p className="dx-demo-text">
+          Release notes <Main />
+        </p>
+      )}
+      <div className="dx-gallery__row">
+        {TONES.map((tone) => (
+          <Badge key={tone} {...config} placement="inline" tone={tone} label={config.dot || config.count != null ? `${tone} status` : tone} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function BadgePlayground() {
+  const page = usePage(badgeMeta, 'New', ['size', 'tone']);
+  const { state, setState, controls, defaults } = page;
+  const { count: countText = '', ...options } = state.options as Record<string, unknown> & { count?: string };
+  const count = countText === '' ? undefined : Number(countText);
+  const label = state.text || undefined;
+  const inactive = inactiveBadgeOptions({ ...options, count });
+  const set = changed(options, defaults, inactive);
+  const config = { ...(Object.fromEntries(set) as BadgeConfig), label, count };
+  const kind = options.dot ? 'dot' : count != null ? 'count' : 'label';
+  // A label badge takes its text at the use site; a count or a dot keeps its meaning in the preset.
+  const preset = [...(kind !== 'label' && label ? [['label', label] as [string, unknown]] : []), ...set];
+  const use = kind === 'count' ? ['count={unread}'] : kind === 'label' && label ? [`label=${JSON.stringify(label)}`] : [];
+  const placed = options.placement != null && options.placement !== 'inline';
+  return (
+    <div className="dx-play">
+      <div className="dx-play__editor">
+        <label className="dx-label" htmlFor="badge-label">
+          label <span className="dx-hint">{kind === 'label' ? 'the text' : 'read after the number or dot, not shown'}</span>
+        </label>
+        <input id="badge-label" className="dx-input" value={state.text} onChange={(e) => setState((s) => ({ ...s, text: e.target.value }))} />
+        <label className="dx-label" htmlFor="badge-count">
+          count <span className="dx-hint">empty: a label badge</span>
+        </label>
+        <input id="badge-count" className="dx-input" type="number" min={0} value={countText} disabled={!!options.dot} onChange={(e) => page.setOption('count', e.target.value)} />
+        <OptionControls controls={controls} options={options} setOption={page.setOption} inactive={inactive} inherit={['size', 'tone']} autoLabel={autoFromEnv(state.env)} />
+        <EnvControls env={state.env} setEnv={page.setEnv} provider motion={false} />
+        <button type="button" className="dx-btn" onClick={page.reset}>
+          Reset
+        </button>
+      </div>
+      <div className="dx-play__preview">
+        <Stage env={state.env}>
+          <BadgePreview config={config} />
+        </Stage>
+        <CodePanel
+          file="components/status"
+          code={() =>
+            presetCode(badgeMeta, kind === 'count' ? 'Unread' : kind === 'dot' ? 'Online' : 'Status', preset, use, state.env, placed ? (line) => ['  return (', ...ANCHOR, `      ${line}`, '    </span>', '  );'] : undefined)
+          }
+          actions={[{ label: 'Copy CLI command', copy: 'npx pinfold add badge' }]}
         />
       </div>
     </div>

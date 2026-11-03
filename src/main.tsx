@@ -9,6 +9,7 @@ import '@pinfold/css/spinner.css';
 import '@pinfold/css/separator.css';
 import '@pinfold/css/kbd.css';
 import '@pinfold/css/skeleton.css';
+import '@pinfold/css/badge.css';
 import '@pinfold/css/packs.css';
 import './docs.css';
 

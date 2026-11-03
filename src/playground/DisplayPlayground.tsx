@@ -20,7 +20,7 @@ interface State {
 }
 
 /** The code a developer writes: a preset of what differs from the defaults, then a one-line use. */
-function presetCode(meta: ComponentMeta, presetName: string, preset: Array<[string, unknown]>, use: string[], env: Env, wrap?: (line: string) => string[]) {
+export function presetCode(meta: ComponentMeta, presetName: string, preset: Array<[string, unknown]>, use: string[], env: Env, wrap?: (line: string) => string[]) {
   const P = meta.displayName;
   const body = preset.length ? [`export const ${presetName} = define${P}({`, ...preset.map(([k, v]) => `  ${k}: ${literal(v)},`), '});'] : [`export const ${presetName} = define${P}();`];
   const line = `<${presetName}${use.length ? ' ' + use.join(' ') : ''} />`;
@@ -38,7 +38,7 @@ function presetCode(meta: ComponentMeta, presetName: string, preset: Array<[stri
   ].join('\n');
 }
 
-function usePage(meta: ComponentMeta, text: string, inherit: string[] = []) {
+export function usePage(meta: ComponentMeta, text: string, inherit: string[] = []) {
   const controls = controlsOf(meta);
   const defaults = { ...defaultsOf(controls), ...Object.fromEntries(inherit.map((k) => [k, undefined])) };
   const initial: State = { text, options: { ...defaults }, env: ENV };
@@ -48,7 +48,7 @@ function usePage(meta: ComponentMeta, text: string, inherit: string[] = []) {
   return { controls, defaults, state, setState, setOption, setEnv, reset: () => setState(initial) };
 }
 
-const autoFromEnv = (env: Env) => (key: string, meta: { default?: unknown }) => `unset (${env[key as 'size'] || meta.default})`;
+export const autoFromEnv = (env: Env) => (key: string, meta: { default?: unknown }) => `unset (${env[key as 'size'] || meta.default})`;
 
 /* ------------------------------------------------------------- separator */
 

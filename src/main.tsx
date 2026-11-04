@@ -14,6 +14,11 @@ import '@pinfold/css/alert.css';
 import '@pinfold/css/avatar.css';
 import '@pinfold/css/card.css';
 import '@pinfold/css/progress.css';
+import '@pinfold/css/tooltip.css';
+import '@pinfold/css/popover.css';
+import '@pinfold/css/dialog.css';
+import '@pinfold/css/menu.css';
+import '@pinfold/css/toast.css';
 import '@pinfold/css/packs.css';
 import './docs.css';
 

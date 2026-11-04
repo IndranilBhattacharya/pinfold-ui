@@ -4,12 +4,13 @@ import { PaletteStudio } from './PaletteStudio';
 import { useAccordion } from '@pinfold/react/accordion';
 import { resolveNode, version } from '@pinfold/core';
 import type { AccordionConfig, AccordionVariant } from '@pinfold/react/accordion';
-import { accordionMeta, alertMeta, avatarMeta, badgeMeta, buttonMeta, cardMeta, dialogMeta, menuMeta, popoverMeta, progressMeta, toastMeta, tooltipMeta, kbdMeta, separatorMeta, skeletonMeta, spinnerMeta, type ComponentMeta, type PropMeta } from '@pinfold/core/meta';
+import { accordionMeta, alertMeta, avatarMeta, badgeMeta, buttonMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, menuMeta, radioMeta, switchMeta, popoverMeta, progressMeta, toastMeta, tooltipMeta, kbdMeta, separatorMeta, skeletonMeta, spinnerMeta, type ComponentMeta, type PropMeta } from '@pinfold/core/meta';
 import { AccordionPlayground } from './playground/AccordionPlayground';
 import { ButtonPlayground, SpinnerPlayground } from './playground/ButtonPlayground';
 import { BadgePlayground, KbdPlayground, SeparatorPlayground, SkeletonPlayground } from './playground/DisplayPlayground';
 import { AlertPlayground, AvatarPlayground, CardPlayground, ProgressPlayground } from './playground/SurfacePlayground';
 import { DialogPlayground, MenuPlayground, PopoverPlayground, ToastPlayground, TooltipPlayground } from './playground/OverlayPlayground';
+import { CheckboxPlayground, InputPlayground, RadioPlayground, SwitchPlayground } from './playground/FormPlayground';
 
 /**
  * The site shell: a side nav and one page per route (`#/button`). Bare minimum on
@@ -40,6 +41,10 @@ const COMPONENTS: ComponentRoute[] = [
   { meta: dialogMeta, status: 'new', Playground: DialogPlayground },
   { meta: menuMeta, status: 'new', Playground: MenuPlayground },
   { meta: toastMeta, status: 'new', Playground: ToastPlayground },
+  { meta: inputMeta, status: 'new', Playground: InputPlayground },
+  { meta: checkboxMeta, status: 'new', Playground: CheckboxPlayground },
+  { meta: radioMeta, status: 'new', Playground: RadioPlayground },
+  { meta: switchMeta, status: 'new', Playground: SwitchPlayground },
 ];
 
 function useRoute(): string {

@@ -19,6 +19,11 @@ import '@pinfold/css/popover.css';
 import '@pinfold/css/dialog.css';
 import '@pinfold/css/menu.css';
 import '@pinfold/css/toast.css';
+import '@pinfold/css/input.css';
+import '@pinfold/css/checkbox.css';
+import '@pinfold/css/radio.css';
+import '@pinfold/css/switch.css';
+import '@pinfold/css/field.css';
 import '@pinfold/css/packs.css';
 import './docs.css';
 

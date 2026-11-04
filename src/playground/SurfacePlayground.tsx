@@ -15,7 +15,7 @@ import { autoFromEnv, presetCode, usePage } from './DisplayPlayground';
  */
 
 const demo = (options: Record<string, unknown>) => Object.fromEntries(Object.entries(options).filter(([k]) => !k.startsWith('_')));
-const Check = ({ id, label, checked, onChange, disabled }: { id: string; label: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) => (
+export const Check = ({ id, label, checked, onChange, disabled }: { id: string; label: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) => (
   <label className="dx-opt dx-opt--check" htmlFor={id}>
     <input id={id} type="checkbox" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} />
     <span>{label}</span>

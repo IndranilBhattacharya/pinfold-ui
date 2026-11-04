@@ -21,7 +21,7 @@ const Check = ({ id, label, checked, onChange, disabled }: { id: string; label: 
     <span>{label}</span>
   </label>
 );
-const TextField = ({ id, label, hint, value, onChange }: { id: string; label: string; hint: string; value: string; onChange: (v: string) => void }) => (
+export const TextField = ({ id, label, hint, value, onChange }: { id: string; label: string; hint: string; value: string; onChange: (v: string) => void }) => (
   <>
     <label className="dx-label" htmlFor={id}>
       {label} <span className="dx-hint">{hint}</span>

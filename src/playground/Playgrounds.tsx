@@ -1,7 +1,7 @@
 import * as React from 'react';
 import type { ComponentMeta } from '@pinfold/core/meta';
-import { alertMeta, avatarMeta, badgeMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, kbdMeta, menuMeta, popoverMeta, progressMeta, radioMeta, separatorMeta, skeletonMeta, switchMeta, toastMeta, tooltipMeta } from '@pinfold/core/meta';
-import { inactiveAlertOptions, inactiveAvatarOptions, inactiveBadgeOptions, inactiveCardOptions, inactiveCheckboxOptions, inactiveDialogOptions, inactiveInputOptions, inactiveMenuOptions, inactivePopoverOptions, inactiveProgressOptions, inactiveSeparatorOptions, inactiveSkeletonOptions } from '@pinfold/core';
+import { alertMeta, avatarMeta, badgeMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, kbdMeta, menuMeta, popoverMeta, progressMeta, radioMeta, separatorMeta, skeletonMeta, switchMeta, toastMeta, tooltipMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta } from '@pinfold/core/meta';
+import { inactiveAlertOptions, inactiveAvatarOptions, inactiveBadgeOptions, inactiveCardOptions, inactiveCheckboxOptions, inactiveDialogOptions, inactiveInputOptions, inactiveMenuOptions, inactivePopoverOptions, inactiveProgressOptions, inactiveSeparatorOptions, inactiveSkeletonOptions, inactiveToggleOptions, inactiveSliderOptions, inactiveNumberOptions, inactiveOtpOptions } from '@pinfold/core';
 import { defineSeparator } from '@pinfold/react/separator';
 import { defineKbd, Kbd } from '@pinfold/react/kbd';
 import { defineSkeleton } from '@pinfold/react/skeleton';
@@ -19,6 +19,11 @@ import { defineInput } from '@pinfold/react/input';
 import { defineCheckbox } from '@pinfold/react/checkbox';
 import { defineRadio } from '@pinfold/react/radio';
 import { defineSwitch } from '@pinfold/react/switch';
+import { defineToggle } from '@pinfold/react/toggle';
+import { defineToolbar } from '@pinfold/react/toolbar';
+import { defineSlider } from '@pinfold/react/slider';
+import { defineNumberField } from '@pinfold/react/number';
+import { defineOtp } from '@pinfold/react/otp';
 import { Button, useButton } from '@pinfold/react/button';
 import { changed, CodePanel, controlsOf, defaultsOf, ENV, EnvControls, OptionControls, reviveEnv, Stage, useUrlState, type Env } from './shared';
 import { exampleCode, Live, src, type ExampleNode, type ExampleSpec } from './example';
@@ -805,6 +810,200 @@ export function SwitchPlayground() {
             <Toggle page={page} name="_checked" label="on" />
             <Toggle page={page} name="_all" label="every variant" />
             {all ? null : <InForm page={page} />}
+          </div>
+        </>
+      }
+    />
+  );
+}
+
+/* ---------------------------------------------------------------- toggle */
+
+const svg = (d: string) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d={d} />
+  </svg>
+);
+const LIST_ICON = svg('M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01');
+const BOARD_ICON = svg('M3 4h7v16H3zM14 4h7v10h-7z');
+const CAL_ICON = svg('M4 5h16v16H4zM4 10h16M9 3v4M15 3v4');
+const PIN_ICON = svg('M12 17v5M9 3h6l-1 6 3 3H7l3-3z');
+const UNDO_ICON = svg('M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3');
+const REDO_ICON = svg('m15 14 5-5-5-5M20 9H9a5 5 0 0 0 0 10h3');
+const BOLD_ICON = svg('M7 4h6a4 4 0 0 1 0 8H7zM7 12h7a4 4 0 0 1 0 8H7z');
+const ITALIC_ICON = svg('M19 4h-9M14 20H5M15 4 9 20');
+
+export function TogglePlayground() {
+  const page = usePage(toggleMeta, ['size', 'tone'], { _kind: 'group', _icons: false });
+  const group = page.inputs._kind === 'group';
+  const icons = !!page.inputs._icons;
+  const views = [
+    { value: 'list', label: 'List', icon: icons ? src(LIST_ICON, '<ListIcon />') : undefined },
+    { value: 'board', label: 'Board', icon: icons ? src(BOARD_ICON, '<BoardIcon />') : undefined },
+    { value: 'calendar', label: 'Calendar', icon: icons ? src(CAL_ICON, '<CalendarIcon />') : undefined },
+  ];
+  const inactive = inactiveToggleOptions({ items: group ? views : undefined, selection: page.options.selection as string });
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const spec: ExampleSpec = group
+    ? { name: 'View', preset: set, tree: [{ use: { label: 'View', items: views, defaultValue: ['list'], onChange: src(() => {}, 'setView') } }] }
+    : { name: 'Pin', preset: set, tree: [{ use: { label: 'Pin', icon: icons ? src(PIN_ICON, '<PinIcon />') : undefined, defaultPressed: true, onChange: src(() => {}, 'setPinned') } }] };
+  return (
+    <Page
+      meta={toggleMeta}
+      page={page}
+      define={defineToggle}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size', 'tone']}
+      provider
+      file={group ? 'components/view' : 'components/pin'}
+      note={group ? 'Arrow keys move along the group; in a single selection they select as they go.' : undefined}
+      demo={
+        <div className="dx-opts">
+          <Choice page={page} name="_kind" label="show" options={[['group', 'a group (items)'], ['one', 'one toggle']]} />
+          <Toggle page={page} name="_icons" label="icons" />
+        </div>
+      }
+    />
+  );
+}
+
+/* --------------------------------------------------------------- toolbar */
+
+export function ToolbarPlayground() {
+  const page = usePage(toolbarMeta, ['size'], { _icons: false });
+  const icons = !!page.inputs._icons;
+  const set = Object.fromEntries(changed(page.options, page.defaults));
+  const items = icons
+    ? [
+        { label: 'Undo', icon: src(UNDO_ICON, '<UndoIcon />'), iconOnly: true, onClick: src(() => {}, 'undo') },
+        { label: 'Redo', icon: src(REDO_ICON, '<RedoIcon />'), iconOnly: true, onClick: src(() => {}, 'redo') },
+        { label: 'Bold', icon: src(BOLD_ICON, '<BoldIcon />'), iconOnly: true, onClick: src(() => {}, 'bold') },
+        { label: 'Italic', icon: src(ITALIC_ICON, '<ItalicIcon />'), iconOnly: true, onClick: src(() => {}, 'italic') },
+      ]
+    : [
+        { label: 'Previous', onClick: src(() => {}, 'previous') },
+        { label: 'Today', onClick: src(() => {}, 'today') },
+        { label: 'Next', onClick: src(() => {}, 'next') },
+      ];
+  const spec: ExampleSpec = { name: icons ? 'Editor' : 'Pager', preset: set, tree: [{ use: { label: icons ? 'Text formatting' : 'Pages', items } }] };
+  return (
+    <Page
+      meta={toolbarMeta}
+      page={page}
+      define={defineToolbar}
+      spec={spec}
+      inherit={['size']}
+      provider={['size']}
+      file={icons ? 'components/editor' : 'components/pager'}
+      note="One tab stop: arrow keys, Home and End move between the buttons."
+      demo={
+        <div className="dx-opts">
+          <Toggle page={page} name="_icons" label="icon buttons" />
+        </div>
+      }
+    />
+  );
+}
+
+/* ---------------------------------------------------------------- slider */
+
+export function SliderPlayground() {
+  const page = usePage(sliderMeta, ['size', 'tone'], { _range: false, _marks: false });
+  const range = !!page.inputs._range;
+  const inactive = inactiveSliderOptions({ defaultValue: range ? [20, 80] : [40], showValue: page.options.showValue as string });
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const marks = page.inputs._marks ? (range ? [0, 250, 500] : [0, 25, 50, 75, 100]).map((value) => ({ value, label: range ? `$${value}` : `${value}` })) : undefined;
+  const spec: ExampleSpec = range
+    ? { name: 'Price', preset: { ...set, max: 500, step: 10, minGap: 20, formatValue: 'formatValue' in inactive ? undefined : src((v: number) => `$${v}`, '(v) => `$${v}`') }, tree: [{ use: { label: 'Price', name: 'price', defaultValue: [100, 350], marks } }] }
+    : { name: 'Volume', preset: set, tree: [{ use: { label: 'Volume', defaultValue: [40], marks, onChangeEnd: src(() => {}, 'save') } }] };
+  return (
+    <Page
+      meta={sliderMeta}
+      page={page}
+      define={defineSlider}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size', 'tone']}
+      provider
+      align="start"
+      file={range ? 'components/price' : 'components/volume'}
+      frame={(live) => <div className="dx-demo-fields">{live}</div>}
+      demo={
+        <div className="dx-opts">
+          <Toggle page={page} name="_range" label="a range (two thumbs)" />
+          <Toggle page={page} name="_marks" label="marks" />
+        </div>
+      }
+    />
+  );
+}
+
+/* ---------------------------------------------------------- number field */
+
+export function NumberPlayground() {
+  const page = usePage(numberMeta, ['size'], { _unit: false, _form: false });
+  const inactive = inactiveNumberOptions(page.options);
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const spec: ExampleSpec = {
+    name: 'Quantity',
+    preset: { ...set, min: 0, max: 20 },
+    ...formTree(page, { label: 'Quantity', name: 'qty', defaultValue: 2, endContent: page.inputs._unit ? src('kg', "'kg'") : undefined, description: 'Up to 20.' }),
+  };
+  return (
+    <Page
+      meta={numberMeta}
+      page={page}
+      define={defineNumberField}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size']}
+      provider={['size']}
+      align="start"
+      file="components/quantity"
+      note={page.inputs._form ? FORM_NOTE : 'Hold − or + to repeat; arrow keys step from the keyboard.'}
+      frame={(live) => <div className="dx-demo-fields">{live}</div>}
+      demo={
+        <div className="dx-opts">
+          <Toggle page={page} name="_unit" label="a unit (endContent)" />
+          <InForm page={page} />
+        </div>
+      }
+    />
+  );
+}
+
+/* --------------------------------------------------------- one-time code */
+
+export function OtpPlayground() {
+  const page = usePage(otpMeta, ['size'], { _groups: true, _value: '12', _form: false });
+  const groups = page.inputs._groups ? [3, 3] : undefined;
+  const inactive = inactiveOtpOptions({ groups });
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const spec: ExampleSpec = {
+    name: 'Code',
+    preset: { ...set, groups },
+    ...formTree(page, { label: 'Verification code', name: 'code', defaultValue: String(page.inputs._value ?? '') || undefined, description: 'We sent it to your phone.', onComplete: src(() => {}, 'verify') }),
+  };
+  return (
+    <Page
+      meta={otpMeta}
+      page={page}
+      define={defineOtp}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size']}
+      provider={['size']}
+      align="start"
+      file="components/code"
+      note={page.inputs._form ? FORM_NOTE : 'Type, paste a code, or let the phone fill it from an SMS: it is one native field.'}
+      frame={(live) => <div className="dx-demo-fields">{live}</div>}
+      demo={
+        <>
+          <Text page={page} name="_value" label="defaultValue" hint="digits" />
+          <div className="dx-opts">
+            <Toggle page={page} name="_groups" label="two groups of 3" />
+            <InForm page={page} />
           </div>
         </>
       }

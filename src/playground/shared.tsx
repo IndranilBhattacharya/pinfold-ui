@@ -356,7 +356,8 @@ export function Glyph({ name }: { name: GlyphName }) {
  * The app-wide setup the preview assumes (provider size, tone, style pack, direction), as the
  * code a developer adds once. Empty when the environment is at its defaults.
  */
-export function appSetup(env: Env, component?: string): string[] {
+/** `requires`: the components it renders inside itself, whose stylesheets it needs too (meta.requires). */
+export function appSetup(env: Env, component?: string, requires: readonly string[] = []): string[] {
   const props = [
     env.theme && `theme="${env.theme}"`,
     env.size && `size="${env.size}"`,
@@ -364,7 +365,7 @@ export function appSetup(env: Env, component?: string): string[] {
     env.stylePack !== 'default' && `stylePack="${env.stylePack}"`,
     env.rtl && 'dir="rtl"',
   ].filter(Boolean) as string[];
-  const styles = component ? ['', '// ---- once for the whole app ----', "import '@pinfold/css/core.css';", `import '@pinfold/css/${component}.css';`] : [];
+  const styles = component ? ['', '// ---- once for the whole app ----', "import '@pinfold/css/core.css';", ...requires.map((r) => `import '@pinfold/css/${r}.css';`), `import '@pinfold/css/${component}.css';`] : [];
   if (!props.length) return styles;
   const config = props.map((p) => p.replace(/^(\w+)="(.*)"$/, "$1: '$2'")).join(', ');
   return [

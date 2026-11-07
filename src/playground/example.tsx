@@ -73,7 +73,7 @@ function printTree(nodes: ExampleNode[], name: string, indent: string): string[]
 
 /** The whole file a developer would write. */
 export function exampleCode(meta: ComponentMeta, spec: ExampleSpec, env: Env): string {
-  const define = `define${meta.displayName.split(' ')[0]}`;
+  const define = `define${meta.pascal ?? meta.displayName.split(' ')[0]}`;
   const preset = clean(spec.preset);
   const body = printTree(spec.tree, spec.name, '    ');
   return [
@@ -90,7 +90,7 @@ export function exampleCode(meta: ComponentMeta, spec: ExampleSpec, env: Env): s
     '  );',
     '}',
     ...(spec.after?.length ? ['', ...spec.after] : []),
-    ...appSetup(env, meta.name),
+    ...appSetup(env, meta.name, meta.requires),
   ].join('\n');
 }
 

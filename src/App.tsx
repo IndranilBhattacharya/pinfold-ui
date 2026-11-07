@@ -4,10 +4,10 @@ import { PaletteStudio } from './PaletteStudio';
 import { useAccordion } from '@pinfold/react/accordion';
 import { resolveNode, version } from '@pinfold/core';
 import type { AccordionConfig, AccordionVariant } from '@pinfold/react/accordion';
-import { accordionMeta, alertMeta, avatarMeta, badgeMeta, buttonMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, menuMeta, radioMeta, switchMeta, popoverMeta, progressMeta, toastMeta, tooltipMeta, kbdMeta, separatorMeta, skeletonMeta, spinnerMeta, type ComponentMeta, type PropMeta } from '@pinfold/core/meta';
+import { accordionMeta, alertMeta, avatarMeta, badgeMeta, buttonMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, menuMeta, radioMeta, switchMeta, popoverMeta, progressMeta, toastMeta, tooltipMeta, kbdMeta, separatorMeta, skeletonMeta, spinnerMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, type ComponentMeta, type PropMeta } from '@pinfold/core/meta';
 import { AccordionPlayground } from './playground/AccordionPlayground';
 import { ButtonPlayground, SpinnerPlayground } from './playground/ButtonPlayground';
-import { AlertPlayground, AvatarPlayground, BadgePlayground, CardPlayground, CheckboxPlayground, DialogPlayground, InputPlayground, KbdPlayground, MenuPlayground, PopoverPlayground, ProgressPlayground, RadioPlayground, SeparatorPlayground, SkeletonPlayground, SwitchPlayground, ToastPlayground, TooltipPlayground } from './playground/Playgrounds';
+import { AlertPlayground, AvatarPlayground, BadgePlayground, CardPlayground, CheckboxPlayground, DialogPlayground, InputPlayground, KbdPlayground, MenuPlayground, PopoverPlayground, ProgressPlayground, RadioPlayground, SeparatorPlayground, SkeletonPlayground, SwitchPlayground, ToastPlayground, TooltipPlayground, TogglePlayground, ToolbarPlayground, SliderPlayground, NumberPlayground, OtpPlayground } from './playground/Playgrounds';
 import { SiteMode } from './playground/shared';
 import { reflow } from './playground/example';
 
@@ -44,6 +44,11 @@ const COMPONENTS: ComponentRoute[] = [
   { meta: checkboxMeta, status: 'new', Playground: CheckboxPlayground },
   { meta: radioMeta, status: 'new', Playground: RadioPlayground },
   { meta: switchMeta, status: 'new', Playground: SwitchPlayground },
+  { meta: toggleMeta, status: 'new', Playground: TogglePlayground },
+  { meta: toolbarMeta, status: 'new', Playground: ToolbarPlayground },
+  { meta: sliderMeta, status: 'new', Playground: SliderPlayground },
+  { meta: numberMeta, status: 'new', Playground: NumberPlayground },
+  { meta: otpMeta, status: 'new', Playground: OtpPlayground },
 ];
 
 function useRoute(): string {

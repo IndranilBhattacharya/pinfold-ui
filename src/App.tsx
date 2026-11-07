@@ -7,10 +7,9 @@ import type { AccordionConfig, AccordionVariant } from '@pinfold/react/accordion
 import { accordionMeta, alertMeta, avatarMeta, badgeMeta, buttonMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, menuMeta, radioMeta, switchMeta, popoverMeta, progressMeta, toastMeta, tooltipMeta, kbdMeta, separatorMeta, skeletonMeta, spinnerMeta, type ComponentMeta, type PropMeta } from '@pinfold/core/meta';
 import { AccordionPlayground } from './playground/AccordionPlayground';
 import { ButtonPlayground, SpinnerPlayground } from './playground/ButtonPlayground';
-import { BadgePlayground, KbdPlayground, SeparatorPlayground, SkeletonPlayground } from './playground/DisplayPlayground';
-import { AlertPlayground, AvatarPlayground, CardPlayground, ProgressPlayground } from './playground/SurfacePlayground';
-import { DialogPlayground, MenuPlayground, PopoverPlayground, ToastPlayground, TooltipPlayground } from './playground/OverlayPlayground';
-import { CheckboxPlayground, InputPlayground, RadioPlayground, SwitchPlayground } from './playground/FormPlayground';
+import { AlertPlayground, AvatarPlayground, BadgePlayground, CardPlayground, CheckboxPlayground, DialogPlayground, InputPlayground, KbdPlayground, MenuPlayground, PopoverPlayground, ProgressPlayground, RadioPlayground, SeparatorPlayground, SkeletonPlayground, SwitchPlayground, ToastPlayground, TooltipPlayground } from './playground/Playgrounds';
+import { SiteMode } from './playground/shared';
+import { reflow } from './playground/example';
 
 /**
  * The site shell: a side nav and one page per route (`#/button`). Bare minimum on
@@ -76,6 +75,7 @@ export function App() {
   );
 
   return (
+    <SiteMode.Provider value={mode}>
     <PinfoldProvider theme={mode} radius={radius}>
       <header className="dx-header">
         <div className="dx-header__inner dx-shell-width">
@@ -139,6 +139,7 @@ export function App() {
         </main>
       </div>
     </PinfoldProvider>
+    </SiteMode.Provider>
   );
 }
 
@@ -420,7 +421,7 @@ function Code({ label, code, tone }: { label: string; code: string; tone: 'muted
     <div className={`dx-code dx-code--${tone}`}>
       <span className="dx-code__label">{label}</span>
       <pre>
-        <code>{code}</code>
+        <code>{reflow(code)}</code>
       </pre>
     </div>
   );

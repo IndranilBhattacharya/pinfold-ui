@@ -3,7 +3,7 @@ import type { ComponentMeta } from '@pinfold/core/meta';
 import { alertMeta, avatarMeta, badgeMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, kbdMeta, menuMeta, popoverMeta, progressMeta, radioMeta, separatorMeta, skeletonMeta, switchMeta, toastMeta, tooltipMeta } from '@pinfold/core/meta';
 import { inactiveAlertOptions, inactiveAvatarOptions, inactiveBadgeOptions, inactiveCardOptions, inactiveCheckboxOptions, inactiveDialogOptions, inactiveInputOptions, inactiveMenuOptions, inactivePopoverOptions, inactiveProgressOptions, inactiveSeparatorOptions, inactiveSkeletonOptions } from '@pinfold/core';
 import { defineSeparator } from '@pinfold/react/separator';
-import { defineKbd } from '@pinfold/react/kbd';
+import { defineKbd, Kbd } from '@pinfold/react/kbd';
 import { defineSkeleton } from '@pinfold/react/skeleton';
 import { defineBadge } from '@pinfold/react/badge';
 import { defineAlert } from '@pinfold/react/alert';
@@ -359,7 +359,7 @@ export function AvatarPlayground() {
       inherit={['size']}
       provider={['size']}
       file="components/people"
-      note={group ? 'Hover or tab to a face: its tooltip has the name. "+N" lists who is hidden.' : 'Turn off the photo to see the initials: a person keeps one colour everywhere.'}
+      note={group ? 'Hover or tab to a face: its tooltip has the name. "+N" lists who is hidden. Photos: Unsplash.' : 'Turn off the photo to see the initials: a person keeps one colour everywhere. Photos: Unsplash.'}
       autoLabel={(key, meta) => (key === 'status' ? 'none' : key === 'tooltip' ? 'auto' : autoFromEnv(page.env)(key, meta))}
       demo={
         <>
@@ -528,30 +528,47 @@ export function MenuPlayground() {
 }
 
 const Toasts = defineToast();
-const SAMPLE = { id: 'sample', title: 'Saved', description: 'Your changes are live.', tone: 'success' as const, duration: 0 };
+/** Three that stay, so the pile and its options show. The code panel prints the same calls. */
+const SAMPLES = [
+  { id: 'invite', title: 'Invitation sent', description: 'Amara will get an email.', tone: 'info' as const, duration: 0 },
+  { id: 'upload', title: 'Upload complete', description: 'report.pdf is ready to share.', tone: 'neutral' as const, duration: 0 },
+  { id: 'saved', title: 'Saved', description: 'Your changes are live.', tone: 'success' as const, duration: 0 },
+];
+const sampleCode = SAMPLES.map((t) => `Toasts.show({ id: '${t.id}', title: '${t.title}', description: '${t.description}', tone: '${t.tone}', duration: 0 });`);
 
-function ToastRegion({ placement }: { placement?: ToastPlacement }) {
+function ToastRegion(props: { placement?: ToastPlacement; stack?: boolean; visible?: number }) {
   React.useEffect(() => {
-    Toasts.show(SAMPLE);
+    for (const t of SAMPLES) Toasts.show(t);
     return () => Toasts.clear();
   }, []);
-  return <Toasts placement={placement} />;
+  return <Toasts {...props} />;
 }
 
+let burst = 0;
+
 export function ToastPlayground() {
-  const page = usePage(toastMeta);
-  const set = Object.fromEntries(changed(page.options, page.defaults));
+  const page = usePage(toastMeta, [], { _visible: '3' });
+  const visible = Number(page.inputs._visible) || 3;
+  const set = { ...Object.fromEntries(changed(page.options, page.defaults)), visible: visible === 3 ? undefined : visible };
+  const Many = useButton({
+    label: 'Show four more',
+    variant: 'outline',
+    onClick: () => {
+      for (let i = 1; i <= 4; i++) void Toasts.show({ title: `Report ${++burst} exported`, description: 'Saved to Downloads.', tone: 'neutral' });
+    },
+  });
   const Error_ = useButton({ label: 'Show an error', variant: 'soft', tone: 'danger', onClick: () => void Toasts.show({ title: 'Upload failed', description: 'The file is too large.', tone: 'danger', action: { label: 'Retry' } }) });
   const Saved = useButton({ label: 'Show a toast', variant: 'soft', tone: 'success', onClick: () => void Toasts.show({ title: 'Saved', tone: 'success' }) });
   const spec: ExampleSpec = {
     name: 'Toasts',
     preset: set,
     tree: [{ use: {} }],
-    after: ['// Anywhere, also outside React.', `Toasts.show({ id: 'sample', title: 'Saved', description: 'Your changes are live.', tone: 'success', duration: 0 });`],
+    after: ['// Anywhere, also outside React.', ...sampleCode],
   };
   return (
     <div className="dx-play">
       <div className="dx-play__editor">
+        <Text page={page} name="_visible" label="visible" hint="shown when fanned out; more scroll" />
         <OptionControls controls={page.controls} options={page.options} setOption={page.setOption} />
         <EnvControls env={page.env} setEnv={page.setEnv} />
         <button type="button" className="dx-btn" onClick={page.reset}>
@@ -560,13 +577,14 @@ export function ToastPlayground() {
       </div>
       <div className="dx-play__preview">
         <Stage env={page.env}>
-          <p className="dx-demo-text">Toasts appear in the corner set by placement. The sample stays so its options show.</p>
-          <ToastRegion placement={page.options.placement as ToastPlacement} />
+          <p className="dx-demo-text">Toasts appear in the corner set by placement. Hover or tab into the pile to fan it out. The three samples stay so the options show.</p>
+          <ToastRegion placement={page.options.placement as ToastPlacement} stack={page.options.stack as boolean} visible={visible} />
         </Stage>
         <div className="dx-gallery__row dx-resolved">
           <Saved />
           <Error_ />
-          <span className="dx-hint">Hover a toast to pause it. Errors and toasts with an action stay until dismissed.</span>
+          <Many />
+          <span className="dx-hint">Hovering pauses every timer. Errors and toasts with an action stay until dismissed.</span>
         </div>
         <CodePanel file="components/toasts" code={() => exampleCode(toastMeta, spec, page.env)} actions={[{ label: 'Copy CLI command', copy: 'npx pinfold add toast' }]} />
       </div>
@@ -593,7 +611,7 @@ const FORM_NOTE = 'Submit it empty: the browser\'s own message shows in the erro
 const InForm = ({ page }: { page: PageApi }) => <Toggle page={page} name="_form" label="in a form" />;
 
 export function InputPlayground() {
-  const page = usePage(inputMeta, ['size'], { _label: 'Full name', _description: 'As it appears on your ID.', _error: '', _value: 'Ada Lovelace', _icon: false, _form: false });
+  const page = usePage(inputMeta, ['size'], { _label: 'Full name', _description: 'As it appears on your ID.', _error: '', _value: 'Emma Larsen', _start: 'none', _end: 'none', _icons: false, _form: false });
   const inactive = inactiveInputOptions(page.options);
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
   const spec: ExampleSpec = {
@@ -605,9 +623,13 @@ export function InputPlayground() {
       description: page.inputs._description,
       error: page.inputs._error,
       defaultValue: page.inputs._value,
-      startContent: page.inputs._icon ? src(ICON, '<SearchIcon />') : undefined,
+      startContent: SIDE[String(page.inputs._start)],
+      endContent: SIDE[String(page.inputs._end)],
+      clearIcon: page.inputs._icons && !('clearIcon' in inactive) ? src(CLEAR_ICON, '<CircleXIcon />') : undefined,
+      resizeIcon: page.inputs._icons && !('resizeIcon' in inactive) ? src(GRIP_ICON, '<GripIcon />') : undefined,
     }),
   };
+  if (page.inputs._start === 'kbd' || page.inputs._end === 'kbd') spec.imports = [...(spec.imports ?? []), "import { Kbd } from '@pinfold/react/kbd';"];
   return (
     <Page
       meta={inputMeta}
@@ -628,7 +650,9 @@ export function InputPlayground() {
           <Text page={page} name="_error" label="error" hint="marks it invalid" />
           <Text page={page} name="_value" label="defaultValue" />
           <div className="dx-opts">
-            <Toggle page={page} name="_icon" label="start icon" />
+            <Choice page={page} name="_start" label="startContent" options={SIDE_OPTIONS} />
+            <Choice page={page} name="_end" label="endContent" options={SIDE_OPTIONS} />
+            <Toggle page={page} name="_icons" label="own clear and resize icons" />
             <InForm page={page} />
           </div>
         </>
@@ -636,6 +660,34 @@ export function InputPlayground() {
     />
   );
 }
+
+const AT = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="4" />
+    <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8" />
+  </svg>
+);
+const CLEAR_ICON = (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm3.7 12.3a1 1 0 0 1-1.4 1.4L12 13.4l-2.3 2.3a1 1 0 0 1-1.4-1.4l2.3-2.3-2.3-2.3a1 1 0 0 1 1.4-1.4l2.3 2.3 2.3-2.3a1 1 0 0 1 1.4 1.4L13.4 12z" />
+  </svg>
+);
+const GRIP_ICON = (
+  <svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
+    <circle cx="9.5" cy="9.5" r="1.1" />
+    <circle cx="5.5" cy="9.5" r="1.1" />
+    <circle cx="9.5" cy="5.5" r="1.1" />
+  </svg>
+);
+const SIDE: Record<string, unknown> = {
+  none: undefined,
+  icon: src(ICON, '<SearchIcon />'),
+  at: src(AT, '<AtSignIcon />'),
+  url: src('https://', "'https://'"),
+  unit: src('kg', "'kg'"),
+  kbd: src(<Kbd keys={['mod', 'k']} size="sm" />, "<Kbd keys={['mod', 'k']} size=\"sm\" />"),
+};
+const SIDE_OPTIONS: Array<[string, string]> = [['none', 'none'], ['icon', 'an icon'], ['at', 'another icon'], ['url', "text: 'https://'"], ['unit', "a unit: 'kg'"], ['kbd', 'a shortcut']];
 
 const CHOICES = [
   { value: 'free', label: 'Free', description: 'For trying it out' },
@@ -721,19 +773,24 @@ export function RadioPlayground() {
 }
 
 export function SwitchPlayground() {
-  const page = usePage(switchMeta, ['size', 'tone'], { _label: 'Email alerts', _description: 'At most one a day.', _checked: true, _form: false });
-  const set = Object.fromEntries(changed(page.options, page.defaults));
-  const spec: ExampleSpec = {
-    name: 'Alerts',
-    preset: set,
-    ...formTree(page, { label: page.inputs._label, name: 'alerts', description: page.inputs._description, defaultChecked: page.inputs._checked ? true : undefined, onChange: src(() => {}, 'save') }),
-  };
+  const page = usePage(switchMeta, ['size', 'tone'], { _label: 'Email alerts', _description: 'At most one a day.', _checked: true, _all: false, _form: false });
+  const all = !!page.inputs._all;
+  const set = Object.fromEntries(changed(page.options, page.defaults, all ? { variant: 'each switch sets its own' } : {}));
+  const one = { label: page.inputs._label, name: 'alerts', description: page.inputs._description, defaultChecked: page.inputs._checked ? true : undefined, onChange: src(() => {}, 'save') };
+  const spec: ExampleSpec = all
+    ? {
+        name: 'Alerts',
+        preset: set,
+        tree: [{ tag: 'div', props: flex('column', 14), children: (switchMeta.props.variant.values as string[]).map((variant) => ({ use: { ...one, label: `${variant[0].toUpperCase()}${variant.slice(1)}`, name: variant, description: undefined, variant } })) }],
+      }
+    : { name: 'Alerts', preset: set, ...formTree(page, one) };
   return (
     <Page
       meta={switchMeta}
       page={page}
       define={defineSwitch}
       spec={spec}
+      inactive={all ? { variant: 'every variant is shown; each switch sets its own.' } : undefined}
       inherit={['size', 'tone']}
       provider
       align="start"
@@ -746,7 +803,8 @@ export function SwitchPlayground() {
           <Text page={page} name="_description" label="description" />
           <div className="dx-opts">
             <Toggle page={page} name="_checked" label="on" />
-            <InForm page={page} />
+            <Toggle page={page} name="_all" label="every variant" />
+            {all ? null : <InForm page={page} />}
           </div>
         </>
       }

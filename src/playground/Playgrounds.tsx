@@ -1,0 +1,755 @@
+import * as React from 'react';
+import type { ComponentMeta } from '@pinfold/core/meta';
+import { alertMeta, avatarMeta, badgeMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, kbdMeta, menuMeta, popoverMeta, progressMeta, radioMeta, separatorMeta, skeletonMeta, switchMeta, toastMeta, tooltipMeta } from '@pinfold/core/meta';
+import { inactiveAlertOptions, inactiveAvatarOptions, inactiveBadgeOptions, inactiveCardOptions, inactiveCheckboxOptions, inactiveDialogOptions, inactiveInputOptions, inactiveMenuOptions, inactivePopoverOptions, inactiveProgressOptions, inactiveSeparatorOptions, inactiveSkeletonOptions } from '@pinfold/core';
+import { defineSeparator } from '@pinfold/react/separator';
+import { defineKbd } from '@pinfold/react/kbd';
+import { defineSkeleton } from '@pinfold/react/skeleton';
+import { defineBadge } from '@pinfold/react/badge';
+import { defineAlert } from '@pinfold/react/alert';
+import { Avatar, defineAvatar } from '@pinfold/react/avatar';
+import { defineCard } from '@pinfold/react/card';
+import { defineProgress } from '@pinfold/react/progress';
+import { defineTooltip } from '@pinfold/react/tooltip';
+import { definePopover } from '@pinfold/react/popover';
+import { defineDialog } from '@pinfold/react/dialog';
+import { defineMenu, type MenuItem } from '@pinfold/react/menu';
+import { defineToast, type ToastPlacement } from '@pinfold/react/toast';
+import { defineInput } from '@pinfold/react/input';
+import { defineCheckbox } from '@pinfold/react/checkbox';
+import { defineRadio } from '@pinfold/react/radio';
+import { defineSwitch } from '@pinfold/react/switch';
+import { Button, useButton } from '@pinfold/react/button';
+import { changed, CodePanel, controlsOf, defaultsOf, ENV, EnvControls, OptionControls, reviveEnv, Stage, useUrlState, type Env } from './shared';
+import { exampleCode, Live, src, type ExampleNode, type ExampleSpec } from './example';
+import { LANDSCAPE, PEOPLE } from './people';
+
+/**
+ * Every component page, on one recipe. Controls come from the component's metadata; a spec says what
+ * the page shows, and both the preview and the code panel are produced from that spec (see
+ * example.tsx). Demo inputs (a title, an icon toggle) live under `_` keys and never become options.
+ */
+
+/* ---------------------------------------------------------------- the page */
+
+interface State {
+  options: Record<string, unknown>;
+  env: Env;
+}
+
+function usePage(meta: ComponentMeta, inherit: string[] = [], demo: Record<string, unknown> = {}) {
+  const controls = controlsOf(meta);
+  const defaults = { ...defaultsOf(controls), ...Object.fromEntries(inherit.map((k) => [k, undefined])) };
+  const initial: State = { options: { ...defaults, ...demo }, env: ENV };
+  const [state, setState] = useUrlState(meta.name, initial, (s: any): State => ({ options: { ...initial.options, ...s.options }, env: reviveEnv(s.env) }));
+  const setOption = (key: string, v: unknown) => setState((s) => ({ ...s, options: { ...s.options, [key]: v } }));
+  const setEnv = <K extends keyof Env>(key: K, v: Env[K]) => setState((s) => ({ ...s, env: { ...s.env, [key]: v } }));
+  const options = Object.fromEntries(Object.entries(state.options).filter(([k]) => !k.startsWith('_')));
+  const inputs = state.options;
+  return { controls, defaults, options, inputs, env: state.env, setOption, setEnv, reset: () => setState(initial) };
+}
+type PageApi = ReturnType<typeof usePage>;
+
+const autoFromEnv = (env: Env) => (key: string, meta: { default?: unknown }) => `unset (${env[key as 'size'] || meta.default})`;
+
+function Text({ page, name, label, hint, multiline }: { page: PageApi; name: string; label: string; hint?: string; multiline?: boolean }) {
+  const id = `demo-${name}`;
+  const value = String(page.inputs[name] ?? '');
+  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => page.setOption(name, e.target.value);
+  return (
+    <div className="dx-field">
+      <label className="dx-label" htmlFor={id}>
+        {label} {hint ? <span className="dx-hint">{hint}</span> : null}
+      </label>
+      {multiline ? <textarea id={id} className="dx-input" rows={3} value={value} onChange={onChange} /> : <input id={id} className="dx-input" value={value} onChange={onChange} />}
+    </div>
+  );
+}
+
+function Toggle({ page, name, label, disabled }: { page: PageApi; name: string; label: string; disabled?: boolean }) {
+  return (
+    <label className="dx-opt dx-opt--check">
+      <input type="checkbox" checked={!!page.inputs[name]} disabled={disabled} onChange={(e) => page.setOption(name, e.target.checked)} />
+      <span>{label}</span>
+    </label>
+  );
+}
+
+function Choice({ page, name, label, options }: { page: PageApi; name: string; label: string; options: Array<[string, string]> }) {
+  return (
+    <label className="dx-opt">
+      <span>{label}</span>
+      <select className="dx-select" value={String(page.inputs[name] ?? '')} onChange={(e) => page.setOption(name, e.target.value)}>
+        {options.map(([value, text]) => (
+          <option key={value} value={value}>
+            {text}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+interface PageProps {
+  meta: ComponentMeta;
+  page: PageApi;
+  define: (preset: any) => React.ElementType;
+  spec: ExampleSpec;
+  inactive?: Record<string, string>;
+  inherit?: string[];
+  provider?: boolean | ReadonlyArray<'size' | 'tone'>;
+  motion?: boolean;
+  align?: 'center' | 'start';
+  /** The page's own inputs: what a developer passes as data. */
+  demo?: React.ReactNode;
+  /** Under the preview: what the preview cannot show. */
+  note?: React.ReactNode;
+  file: string;
+  /** Wrap the live preview in site chrome that is not part of the example. */
+  frame?: (preview: React.ReactNode) => React.ReactNode;
+  autoLabel?: (key: string, meta: { default?: unknown; auto?: string }) => string;
+  valueLabel?: (key: string, value: string | number) => string | undefined;
+}
+
+function Page({ meta, page, define, spec, inactive, inherit = [], provider = false, motion = false, align = 'center', demo, note, file, frame, autoLabel, valueLabel }: PageProps) {
+  const live = <Live define={define} spec={spec} meta={meta} />;
+  return (
+    <div className="dx-play">
+      <div className="dx-play__editor">
+        {demo}
+        <OptionControls controls={page.controls} options={page.options} setOption={page.setOption} inactive={inactive} inherit={inherit} autoLabel={autoLabel ?? autoFromEnv(page.env)} valueLabel={valueLabel} />
+        <EnvControls env={page.env} setEnv={page.setEnv} provider={provider} motion={motion} />
+        <button type="button" className="dx-btn" onClick={page.reset}>
+          Reset
+        </button>
+      </div>
+      <div className="dx-play__preview">
+        <Stage env={page.env} align={align}>
+          {frame ? frame(live) : align === 'center' ? <div className="dx-center">{live}</div> : live}
+        </Stage>
+        {note ? <div className="dx-hint dx-resolved">{note}</div> : null}
+        <CodePanel file={file} code={() => exampleCode(meta, spec, page.env)} actions={[{ label: 'Copy CLI command', copy: `npx pinfold add ${meta.name}` }]} />
+      </div>
+    </div>
+  );
+}
+
+const flex = (direction: 'row' | 'column', gap = 12, extra: React.CSSProperties = {}): Record<string, unknown> => ({ style: src({ display: 'flex', flexDirection: direction, gap, alignItems: direction === 'row' ? 'center' : undefined, flexWrap: direction === 'row' ? 'wrap' : undefined, inlineSize: '100%', ...extra }, `{ display: 'flex', flexDirection: '${direction}', gap: ${gap}${direction === 'row' ? ", alignItems: 'center', flexWrap: 'wrap'" : ''} }`) });
+const ICON = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="11" cy="11" r="7" />
+    <path d="M16.5 16.5 21 21" />
+  </svg>
+);
+const BELL = (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M6 9a6 6 0 1 1 12 0c0 6 2 7 2 8H4c0-1 2-2 2-8zM10 21a2 2 0 0 0 4 0" />
+  </svg>
+);
+
+/* ------------------------------------------------------------- separator */
+
+export function SeparatorPlayground() {
+  const page = usePage(separatorMeta, [], { _label: 'or' });
+  const label = String(page.inputs._label ?? '') || undefined;
+  const inactive = inactiveSeparatorOptions({ ...page.options, label });
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const vertical = page.options.orientation === 'vertical';
+  const spec: ExampleSpec = {
+    name: 'Divider',
+    preset: { ...set, label: 'label' in inactive ? undefined : label },
+    tree: vertical
+      ? [{ tag: 'div', props: flex('row', 8, { blockSize: 32 }), children: ['Edit', { use: {} }, 'Share', { use: {} }, 'Delete'] }]
+      : [{ tag: 'div', props: flex('column', 8), children: ['Sign in with your email and password.', { use: {} }, 'Continue with a passkey.'] }],
+  };
+  return <Page meta={separatorMeta} page={page} define={defineSeparator} spec={spec} inactive={inactive} file="components/divider" demo={<Text page={page} name="_label" label="label" hint="empty: a plain line" />} />;
+}
+
+/* ------------------------------------------------------------------- kbd */
+
+const APPLE = typeof navigator !== 'undefined' && /mac|iphone|ipad/i.test(navigator.platform);
+
+export function KbdPlayground() {
+  const page = usePage(kbdMeta, ['size'], { _keys: 'mod, k' });
+  const keys = String(page.inputs._keys ?? '').split(/[\s,+]+/).filter(Boolean);
+  const spec: ExampleSpec = { name: 'Shortcut', preset: Object.fromEntries(changed(page.options, page.defaults)), tree: [{ tag: 'div', props: flex('row', 8), children: ['Press', { use: { keys } }, 'to open the command menu.'] }] };
+  return (
+    <Page
+      meta={kbdMeta}
+      page={page}
+      define={defineKbd}
+      spec={spec}
+      inherit={['size']}
+      provider={['size']}
+      file="components/shortcut"
+      valueLabel={(key, value) => (key === 'display' && value === 'auto' ? `auto (${APPLE ? 'symbols' : 'text'} on this device)` : undefined)}
+      note={`Shown for this device (${APPLE ? 'Apple: symbols' : 'not Apple: words'}). Set display to compare.`}
+      demo={<Text page={page} name="_keys" label="keys" hint="comma separated; mod = ⌘ on Apple, Ctrl elsewhere" />}
+    />
+  );
+}
+
+/* -------------------------------------------------------------- skeleton */
+
+export function SkeletonPlayground() {
+  const page = usePage(skeletonMeta, ['size'], { _lines: '3', _layout: 'shape' });
+  const layout = String(page.inputs._layout);
+  const composed = layout !== 'shape';
+  const items = layout === 'profile' ? [{ variant: 'circle' }, { lines: 2 }] : layout === 'card' ? [{ variant: 'rect', dimensions: { height: 120 } }, { lines: 2 }, { direction: 'row', items: [{ variant: 'circle', size: 'sm' }, { lines: 1 }] }] : undefined;
+  const inactive = inactiveSkeletonOptions({ ...page.options, items });
+  const lines = Math.max(1, Math.min(8, Number(page.inputs._lines) || 1));
+  const set = Object.fromEntries(changed({ ...page.options, loading: undefined }, page.defaults, inactive));
+  const done = page.options.loading === false;
+  const content = src(<p className="dx-demo-text">Ada Lovelace wrote the first program.</p>, '<p>{user.bio}</p>');
+  const spec: ExampleSpec = {
+    name: composed ? 'ProfileSkeleton' : 'Placeholder',
+    preset: {
+      ...set,
+      lines: 'lines' in inactive || lines === 1 ? undefined : lines,
+      items,
+      direction: layout === 'profile' ? 'row' : set.direction,
+    },
+    tree: [{ use: done ? { loading: false, content } : {} }],
+  };
+  return (
+    <Page
+      meta={skeletonMeta}
+      page={page}
+      define={defineSkeleton}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size']}
+      provider={['size']}
+      motion
+      align="start"
+      file="components/placeholder"
+      note="A layout is one config: nest shapes in `items`, and one band of light crosses all of them."
+      demo={
+        <>
+          <div className="dx-opts">
+            <Choice page={page} name="_layout" label="layout" options={[['shape', 'one shape'], ['profile', 'profile row (items)'], ['card', 'card (nested items)']]} />
+          </div>
+          {'lines' in inactive ? null : <Text page={page} name="_lines" label="lines" hint="text shapes" />}
+        </>
+      }
+    />
+  );
+}
+
+/* ----------------------------------------------------------------- badge */
+
+const TONES = ['primary', 'neutral', 'success', 'warning', 'danger', 'info'];
+
+export function BadgePlayground() {
+  const page = usePage(badgeMeta, ['size', 'tone'], { _label: 'New', _count: '', _srLabel: '', _anchor: 'none', _tones: false });
+  const label = String(page.inputs._label ?? '') || undefined;
+  const count = page.inputs._count === '' || page.inputs._count == null ? undefined : Number(page.inputs._count);
+  const srLabel = String(page.inputs._srLabel ?? '') || undefined;
+  const which = String(page.inputs._anchor);
+  const anchor = which === 'avatar' ? src(<Avatar name={PEOPLE[0].name} src={PEOPLE[0].photo} size="lg" />, `<Avatar name="${PEOPLE[0].name}" src="${PEOPLE[0].file}" size="lg" />`) : which === 'button' ? src(<Button label="Notifications" icon={BELL} iconOnly variant="outline" />, '<Button label="Notifications" icon={<BellIcon />} iconOnly variant="outline" />') : undefined;
+  const inactive = inactiveBadgeOptions({ ...page.options, label, count, anchor });
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const use = { label, count, srLabel, anchor };
+  const spec: ExampleSpec = {
+    name: 'Status',
+    preset: set,
+    tree: page.inputs._tones ? [{ tag: 'div', props: flex('row', 8), children: TONES.map((tone) => ({ use: { ...use, label: label && tone[0].toUpperCase() + tone.slice(1), tone } })) }] : [{ use }],
+    imports: [...(which === 'avatar' ? ["import { Avatar } from '@pinfold/react/avatar';"] : []), ...(which === 'button' ? ["import { Button } from '@pinfold/react/button';"] : [])],
+  };
+  return (
+    <Page
+      meta={badgeMeta}
+      page={page}
+      define={defineBadge}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size', 'tone']}
+      provider
+      file="components/status"
+      demo={
+        <>
+          <Text page={page} name="_label" label="label" hint="always shown" />
+          <Text page={page} name="_count" label="count" hint="a number; shown after the label" />
+          <Text page={page} name="_srLabel" label="srLabel" hint="read, not shown: unread messages" />
+          <div className="dx-opts">
+            <Choice page={page} name="_anchor" label="anchor" options={[['none', 'none (in the text flow)'], ['avatar', 'an avatar'], ['button', 'a button']]} />
+            <Toggle page={page} name="_tones" label="every tone" />
+          </div>
+        </>
+      }
+    />
+  );
+}
+
+/* ----------------------------------------------------------------- alert */
+
+const SPOKEN: Record<string, string> = {
+  off: 'Screen readers read it when they reach it, like any text. Right for a message on the page from the start.',
+  polite: 'role="status": when it appears, a screen reader announces it at the next pause.',
+  assertive: 'role="alert": when it appears, a screen reader interrupts to announce it.',
+};
+
+export function AlertPlayground() {
+  const page = usePage(alertMeta, [], { _title: 'Payment failed', _description: 'Your card was declined. Try another card or contact your bank.', _actions: true, _shown: 0 });
+  const inactive = inactiveAlertOptions(page.options);
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const spec: ExampleSpec = {
+    name: 'Notice',
+    preset: set,
+    tree: [{ use: { title: page.inputs._title, description: page.inputs._description, actions: page.inputs._actions ? [{ label: 'Retry', onClick: src(() => {}, 'retry') }, { label: 'Use another card', onClick: src(() => {}, 'change') }] : undefined } }],
+  };
+  return (
+    <Page
+      meta={alertMeta}
+      page={page}
+      define={defineAlert}
+      spec={spec}
+      inactive={inactive}
+      align="start"
+      file="components/notice"
+      note={
+        <>
+          {SPOKEN[String(page.options.live)]}
+          {page.options.dismissible ? (
+            <>
+              {' '}
+              <button type="button" className="dx-btn" onClick={() => page.setOption('_shown', Number(page.inputs._shown) + 1)}>
+                Show it again
+              </button>
+            </>
+          ) : null}
+        </>
+      }
+      frame={(live) => <React.Fragment key={String(page.inputs._shown)}>{live}</React.Fragment>}
+      demo={
+        <>
+          <Text page={page} name="_title" label="title" />
+          <Text page={page} name="_description" label="description" multiline />
+          <div className="dx-opts">
+            <Toggle page={page} name="_actions" label="actions" />
+          </div>
+        </>
+      }
+    />
+  );
+}
+
+/* ---------------------------------------------------------------- avatar */
+
+export function AvatarPlayground() {
+  const page = usePage(avatarMeta, ['size'], { _kind: 'one', _photo: true, _name: PEOPLE[0].name, _max: '4' });
+  const group = page.inputs._kind === 'group';
+  const photo = !!page.inputs._photo;
+  const inactive = inactiveAvatarOptions({ items: group ? [] : undefined, src: photo || undefined });
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const name = String(page.inputs._name ?? '') || undefined;
+  const person = PEOPLE.find((p) => p.name === name);
+  const picture = photo ? src(person?.photo ?? PEOPLE[0].photo, `'${person?.file ?? PEOPLE[0].file}'`) : undefined;
+  const items = PEOPLE.map((p, i) => ({ name: p.name, src: photo ? src(p.photo, `'${p.file}'`) : undefined, status: i === 0 ? set.status ?? 'online' : undefined }));
+  const spec: ExampleSpec = group
+    ? { name: 'Team', preset: { ...set, max: Number(page.inputs._max) || 4, label: 'Project members' }, tree: [{ use: { items } }] }
+    : { name: 'Person', preset: set, tree: [{ use: { name, src: picture, status: set.status } }] };
+  return (
+    <Page
+      meta={avatarMeta}
+      page={page}
+      define={defineAvatar}
+      spec={{ ...spec, preset: Object.fromEntries(Object.entries(spec.preset).filter(([k]) => k !== 'status')) }}
+      inactive={inactive}
+      inherit={['size']}
+      provider={['size']}
+      file="components/people"
+      note={group ? 'Hover or tab to a face: its tooltip has the name. "+N" lists who is hidden.' : 'Turn off the photo to see the initials: a person keeps one colour everywhere.'}
+      autoLabel={(key, meta) => (key === 'status' ? 'none' : key === 'tooltip' ? 'auto' : autoFromEnv(page.env)(key, meta))}
+      demo={
+        <>
+          <div className="dx-opts">
+            <Choice page={page} name="_kind" label="show" options={[['one', 'one person'], ['group', 'a group (items)']]} />
+            <Toggle page={page} name="_photo" label="photo" />
+          </div>
+          {group ? <Text page={page} name="_max" label="max" hint="faces before +N" /> : <Text page={page} name="_name" label="name" hint="initials, colour and the accessible name" />}
+        </>
+      }
+    />
+  );
+}
+
+/* ------------------------------------------------------------------ card */
+
+export function CardPlayground() {
+  const page = usePage(cardMeta, [], { _title: 'Pro plan', _description: 'Everything in Free, plus shared workspaces and priority support.', _image: true, _link: false });
+  const image = !!page.inputs._image;
+  const link = !!page.inputs._link;
+  const options = { ...page.options, headingLevel: page.options.headingLevel === undefined ? undefined : Number(page.options.headingLevel) };
+  const inactive = inactiveCardOptions({ ...options, image: image || undefined, href: link ? '#/card' : undefined, title: page.inputs._title });
+  const set = Object.fromEntries(changed(options, page.defaults, inactive));
+  const spec: ExampleSpec = {
+    name: 'Plan',
+    preset: set,
+    tree: [
+      {
+        use: {
+          title: page.inputs._title,
+          description: page.inputs._description,
+          content: src(<b>$29 per month</b>, '<b>$29 per month</b>'),
+          image: image ? { src: src(LANDSCAPE, "'/pro.png'"), alt: '' } : undefined,
+          href: link ? '#/card' : undefined,
+          actions: link ? undefined : [{ label: 'Upgrade', onClick: src(() => {}, 'upgrade') }, { label: 'Compare plans', onClick: src(() => {}, 'compare') }],
+        },
+      },
+    ],
+  };
+  return (
+    <Page
+      meta={cardMeta}
+      page={page}
+      define={defineCard}
+      spec={spec}
+      inactive={inactive}
+      align="start"
+      file="components/plan"
+      demo={
+        <>
+          <Text page={page} name="_title" label="title" hint="a real heading; with a link, the link text" />
+          <Text page={page} name="_description" label="description" multiline />
+          <div className="dx-opts">
+            <Toggle page={page} name="_image" label="image" />
+            <Toggle page={page} name="_link" label="whole card is a link" />
+          </div>
+        </>
+      }
+    />
+  );
+}
+
+/* -------------------------------------------------------------- progress */
+
+export function ProgressPlayground() {
+  const page = usePage(progressMeta, ['size', 'tone'], { _label: 'Uploading report.pdf', _value: 64, _busy: false });
+  const busy = !!page.inputs._busy && page.options.kind !== 'meter';
+  const value = busy ? undefined : Number(page.inputs._value ?? 64);
+  const inactive = inactiveProgressOptions({ ...page.options, value });
+  const spec: ExampleSpec = { name: 'Upload', preset: Object.fromEntries(changed(page.options, page.defaults, inactive)), tree: [{ use: { label: page.inputs._label, value } }] };
+  return (
+    <Page
+      meta={progressMeta}
+      page={page}
+      define={defineProgress}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size', 'tone']}
+      provider
+      motion={busy}
+      file="components/upload"
+      demo={
+        <>
+          <Text page={page} name="_label" label="label" hint="the accessible name" />
+          <div className="dx-field">
+            <label className="dx-label" htmlFor="demo-value">
+              value <span className="dx-hint">{busy ? 'indeterminate' : `${value} of 100`}</span>
+            </label>
+            <input id="demo-value" type="range" min={0} max={100} value={value ?? 0} disabled={busy} onChange={(e) => page.setOption('_value', Number(e.target.value))} />
+          </div>
+          <div className="dx-opts">
+            <Toggle page={page} name="_busy" label="indeterminate (no value)" disabled={page.options.kind === 'meter'} />
+          </div>
+        </>
+      }
+    />
+  );
+}
+
+/* -------------------------------------------------------------- overlays */
+
+const KEEP_NOTE = 'Kept open here so its options show (not in the code). Turn off "keep open" to use it for real.';
+const Keep = ({ page }: { page: PageApi }) => (
+  <div className="dx-opts">
+    <Toggle page={page} name="_keep" label="keep open in this preview" />
+  </div>
+);
+
+export function TooltipPlayground() {
+  const page = usePage(tooltipMeta, [], { _content: 'Copies the link to this page', _keep: true });
+  const spec: ExampleSpec = {
+    name: 'Hint',
+    preset: Object.fromEntries(changed(page.options, page.defaults)),
+    tree: [{ use: { content: page.inputs._content, trigger: { label: 'Share', variant: 'outline' } } }],
+    previewOnly: page.inputs._keep ? { open: true } : undefined,
+  };
+  return <Page meta={tooltipMeta} page={page} define={defineTooltip} spec={spec} motion file="components/hint" frame={(live) => <div className="dx-overlay-demo">{live}</div>} note={page.inputs._keep ? KEEP_NOTE : 'Hover or tab to it. Escape closes it; the pointer can move onto it without it closing.'} demo={<><Text page={page} name="_content" label="content" hint="the hint" /><Keep page={page} /></>} />;
+}
+
+export function PopoverPlayground() {
+  const page = usePage(popoverMeta, [], { _title: 'Share this page', _keep: true });
+  const inactive = inactivePopoverOptions(page.options);
+  const spec: ExampleSpec = {
+    name: 'Share',
+    preset: Object.fromEntries(changed(page.options, page.defaults, inactive)),
+    tree: [{ use: { title: page.inputs._title, description: 'Anyone with the link can view it.', actions: [{ label: 'Copy link', onClick: src(() => {}, 'copy') }, { label: 'Close' }], trigger: { label: 'Share', variant: 'outline' } } }],
+    previewOnly: page.inputs._keep ? { open: true } : undefined,
+  };
+  return <Page meta={popoverMeta} page={page} define={definePopover} spec={spec} inactive={inactive} motion file="components/share" frame={(live) => <div className="dx-overlay-demo">{live}</div>} note={page.inputs._keep ? KEEP_NOTE : undefined} demo={<><Text page={page} name="_title" label="title" hint="the panel's accessible name" /><Keep page={page} /></>} />;
+}
+
+export function DialogPlayground() {
+  const page = usePage(dialogMeta, [], { _title: 'Delete this project?', _keep: true });
+  const inactive = inactiveDialogOptions(page.options);
+  const keep = !!page.inputs._keep;
+  const spec: ExampleSpec = {
+    name: 'Confirm',
+    preset: Object.fromEntries(changed(page.options, page.defaults, inactive)),
+    tree: [{ use: { title: page.inputs._title, description: 'It will be removed for everyone. This cannot be undone.', trigger: { label: 'Delete project', tone: 'danger', variant: 'soft' }, actions: [{ label: 'Cancel' }, { label: 'Delete', tone: 'danger', onClick: src(() => {}, 'remove') }] } }],
+    previewOnly: keep ? { open: true, modal: false, className: 'dx-dialog-inline' } : undefined,
+  };
+  return <Page meta={dialogMeta} page={page} define={defineDialog} spec={spec} inactive={inactive} motion align="start" file="components/confirm" frame={(live) => (keep ? <div className="dx-dialog-box">{live}</div> : live)} note={keep ? 'Drawn in place here so its options show (not in the code). Turn off "keep open" to open the real modal: focus stays inside, Escape closes it.' : undefined} demo={<><Text page={page} name="_title" label="title" hint="a real heading, and the accessible name" /><Keep page={page} /></>} />;
+}
+
+export function MenuPlayground() {
+  const page = usePage(menuMeta, ['size'], { _keep: true, _wrap: true, _sort: 'name' });
+  const inactive = inactiveMenuOptions(page.options);
+  const context = page.options.mode === 'context';
+  const items: MenuItem[] = [
+    { label: 'Edit', shortcut: 'E', onSelect: src(() => {}, 'edit') as never },
+    { label: 'Duplicate', shortcut: 'D', onSelect: src(() => {}, 'duplicate') as never },
+    { label: 'Archive', disabled: true },
+    { type: 'separator' },
+    { type: 'checkbox', label: 'Wrap lines', checked: !!page.inputs._wrap, onSelect: src(() => page.setOption('_wrap', !page.inputs._wrap), 'toggleWrap') as never },
+    { type: 'group', label: 'Sort by', items: [{ type: 'radio', label: 'Name', checked: page.inputs._sort === 'name', onSelect: src(() => page.setOption('_sort', 'name'), 'sortByName') as never }, { type: 'radio', label: 'Date', checked: page.inputs._sort === 'date', onSelect: src(() => page.setOption('_sort', 'date'), 'sortByDate') as never }] },
+    { type: 'separator' },
+    { label: 'Delete', tone: 'danger', onSelect: src(() => {}, 'remove') as never },
+  ];
+  const spec: ExampleSpec = {
+    name: 'RowActions',
+    preset: Object.fromEntries(changed(page.options, page.defaults, inactive)),
+    tree: [{ use: { label: context ? 'Row actions' : undefined, items, trigger: context ? src(<div className="dx-menu-area" tabIndex={0}>Right-click here</div>, '<div tabIndex={0}>Right-click here</div>') : { label: 'Actions' } } }],
+    previewOnly: page.inputs._keep ? { open: true } : undefined,
+  };
+  return <Page meta={menuMeta} page={page} define={defineMenu} spec={spec} inactive={inactive} inherit={['size']} provider={['size']} motion align="start" file="components/row-actions" frame={(live) => <div className="dx-overlay-demo dx-overlay-demo--tall">{live}</div>} note={page.inputs._keep ? KEEP_NOTE : 'Try the arrow keys, Home and End, and typing a letter.'} demo={<Keep page={page} />} />;
+}
+
+const Toasts = defineToast();
+const SAMPLE = { id: 'sample', title: 'Saved', description: 'Your changes are live.', tone: 'success' as const, duration: 0 };
+
+function ToastRegion({ placement }: { placement?: ToastPlacement }) {
+  React.useEffect(() => {
+    Toasts.show(SAMPLE);
+    return () => Toasts.clear();
+  }, []);
+  return <Toasts placement={placement} />;
+}
+
+export function ToastPlayground() {
+  const page = usePage(toastMeta);
+  const set = Object.fromEntries(changed(page.options, page.defaults));
+  const Error_ = useButton({ label: 'Show an error', variant: 'soft', tone: 'danger', onClick: () => void Toasts.show({ title: 'Upload failed', description: 'The file is too large.', tone: 'danger', action: { label: 'Retry' } }) });
+  const Saved = useButton({ label: 'Show a toast', variant: 'soft', tone: 'success', onClick: () => void Toasts.show({ title: 'Saved', tone: 'success' }) });
+  const spec: ExampleSpec = {
+    name: 'Toasts',
+    preset: set,
+    tree: [{ use: {} }],
+    after: ['// Anywhere, also outside React.', `Toasts.show({ id: 'sample', title: 'Saved', description: 'Your changes are live.', tone: 'success', duration: 0 });`],
+  };
+  return (
+    <div className="dx-play">
+      <div className="dx-play__editor">
+        <OptionControls controls={page.controls} options={page.options} setOption={page.setOption} />
+        <EnvControls env={page.env} setEnv={page.setEnv} />
+        <button type="button" className="dx-btn" onClick={page.reset}>
+          Reset
+        </button>
+      </div>
+      <div className="dx-play__preview">
+        <Stage env={page.env}>
+          <p className="dx-demo-text">Toasts appear in the corner set by placement. The sample stays so its options show.</p>
+          <ToastRegion placement={page.options.placement as ToastPlacement} />
+        </Stage>
+        <div className="dx-gallery__row dx-resolved">
+          <Saved />
+          <Error_ />
+          <span className="dx-hint">Hover a toast to pause it. Errors and toasts with an action stay until dismissed.</span>
+        </div>
+        <CodePanel file="components/toasts" code={() => exampleCode(toastMeta, spec, page.env)} actions={[{ label: 'Copy CLI command', copy: 'npx pinfold add toast' }]} />
+      </div>
+    </div>
+  );
+}
+
+/* ----------------------------------------------------------------- forms */
+
+const SUBMIT: ExampleNode = { element: <Button label="Submit" type="submit" size="sm" />, code: '<Button label="Submit" type="submit" size="sm" />' };
+const RESET: ExampleNode = { element: <Button label="Reset" type="reset" size="sm" variant="ghost" />, code: '<Button label="Reset" type="reset" size="sm" variant="ghost" />' };
+const BUTTON_IMPORT = "import { Button } from '@pinfold/react/button';";
+
+/** The control alone, or in a real form: native validation and reset, with no state of ours. */
+function formTree(page: PageApi, use: Record<string, unknown>): Pick<ExampleSpec, 'tree' | 'imports'> {
+  if (!page.inputs._form) return { tree: [{ use }] };
+  const onSubmit = src((event: React.FormEvent) => event.preventDefault(), 'save');
+  return {
+    tree: [{ tag: 'form', props: { onSubmit, ...flex('column', 16) }, children: [{ use }, { tag: 'div', props: flex('row', 8), children: [SUBMIT, RESET] }] }],
+    imports: [BUTTON_IMPORT],
+  };
+}
+const FORM_NOTE = 'Submit it empty: the browser\'s own message shows in the error slot, and the first invalid field takes focus.';
+const InForm = ({ page }: { page: PageApi }) => <Toggle page={page} name="_form" label="in a form" />;
+
+export function InputPlayground() {
+  const page = usePage(inputMeta, ['size'], { _label: 'Full name', _description: 'As it appears on your ID.', _error: '', _value: 'Ada Lovelace', _icon: false, _form: false });
+  const inactive = inactiveInputOptions(page.options);
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const spec: ExampleSpec = {
+    name: 'NameField',
+    preset: set,
+    ...formTree(page, {
+      label: page.inputs._label,
+      name: 'name',
+      description: page.inputs._description,
+      error: page.inputs._error,
+      defaultValue: page.inputs._value,
+      startContent: page.inputs._icon ? src(ICON, '<SearchIcon />') : undefined,
+    }),
+  };
+  return (
+    <Page
+      meta={inputMeta}
+      page={page}
+      define={defineInput}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size']}
+      provider={['size']}
+      align="start"
+      file="components/name-field"
+      note={page.inputs._form ? FORM_NOTE : undefined}
+      frame={(live) => <div className="dx-demo-fields">{live}</div>}
+      demo={
+        <>
+          <Text page={page} name="_label" label="label" hint="the name" />
+          <Text page={page} name="_description" label="description" hint="help text" />
+          <Text page={page} name="_error" label="error" hint="marks it invalid" />
+          <Text page={page} name="_value" label="defaultValue" />
+          <div className="dx-opts">
+            <Toggle page={page} name="_icon" label="start icon" />
+            <InForm page={page} />
+          </div>
+        </>
+      }
+    />
+  );
+}
+
+const CHOICES = [
+  { value: 'free', label: 'Free', description: 'For trying it out' },
+  { value: 'pro', label: 'Pro', description: 'For growing teams' },
+  { value: 'scale', label: 'Scale', description: 'For large companies', disabled: true },
+];
+
+export function CheckboxPlayground() {
+  const page = usePage(checkboxMeta, ['size', 'tone'], { _label: 'Send me product news', _description: 'You can change this later.', _checked: true, _group: false, _form: false });
+  const group = !!page.inputs._group;
+  const inactive = inactiveCheckboxOptions({ items: group ? CHOICES : undefined });
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const spec: ExampleSpec = {
+    name: 'News',
+    preset: set,
+    ...formTree(page, {
+      label: page.inputs._label,
+      name: 'news',
+      description: page.inputs._description,
+      ...(group ? { items: CHOICES, defaultValue: page.inputs._checked ? ['pro'] : undefined } : { defaultChecked: page.inputs._checked ? true : undefined }),
+    }),
+  };
+  return (
+    <Page
+      meta={checkboxMeta}
+      page={page}
+      define={defineCheckbox}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size', 'tone']}
+      provider
+      align="start"
+      file="components/news"
+      note={page.inputs._form ? FORM_NOTE : undefined}
+      frame={(live) => <div className="dx-demo-fields">{live}</div>}
+      demo={
+        <>
+          <Text page={page} name="_label" label="label" hint={group ? 'names the group' : 'the name'} />
+          <Text page={page} name="_description" label="description" />
+          <div className="dx-opts">
+            <Toggle page={page} name="_checked" label={group ? 'one row checked' : 'checked'} />
+            <Toggle page={page} name="_group" label="a group (items)" />
+            <InForm page={page} />
+          </div>
+        </>
+      }
+    />
+  );
+}
+
+export function RadioPlayground() {
+  const page = usePage(radioMeta, ['size', 'tone'], { _label: 'Plan', _description: 'Arrow keys move between them.', _form: false, _selected: true });
+  const set = Object.fromEntries(changed(page.options, page.defaults));
+  const spec: ExampleSpec = {
+    name: 'Plan',
+    preset: set,
+    ...formTree(page, { label: page.inputs._label, name: 'plan', description: page.inputs._description, items: CHOICES, defaultValue: page.inputs._selected ? 'pro' : undefined }),
+  };
+  return (
+    <Page
+      meta={radioMeta}
+      page={page}
+      define={defineRadio}
+      spec={spec}
+      inherit={['size', 'tone']}
+      provider
+      align="start"
+      file="components/plan"
+      note={page.inputs._form ? FORM_NOTE : undefined}
+      frame={(live) => <div className="dx-demo-fields">{live}</div>}
+      demo={
+        <>
+          <Text page={page} name="_label" label="label" hint="names the group" />
+          <Text page={page} name="_description" label="description" />
+          <div className="dx-opts">
+            <Toggle page={page} name="_selected" label="one selected" />
+            <InForm page={page} />
+          </div>
+        </>
+      }
+    />
+  );
+}
+
+export function SwitchPlayground() {
+  const page = usePage(switchMeta, ['size', 'tone'], { _label: 'Email alerts', _description: 'At most one a day.', _checked: true, _form: false });
+  const set = Object.fromEntries(changed(page.options, page.defaults));
+  const spec: ExampleSpec = {
+    name: 'Alerts',
+    preset: set,
+    ...formTree(page, { label: page.inputs._label, name: 'alerts', description: page.inputs._description, defaultChecked: page.inputs._checked ? true : undefined, onChange: src(() => {}, 'save') }),
+  };
+  return (
+    <Page
+      meta={switchMeta}
+      page={page}
+      define={defineSwitch}
+      spec={spec}
+      inherit={['size', 'tone']}
+      provider
+      align="start"
+      file="components/alerts"
+      note={page.inputs._form ? FORM_NOTE : undefined}
+      frame={(live) => <div className="dx-demo-fields">{live}</div>}
+      demo={
+        <>
+          <Text page={page} name="_label" label="label" hint="the name" />
+          <Text page={page} name="_description" label="description" />
+          <div className="dx-opts">
+            <Toggle page={page} name="_checked" label="on" />
+            <InForm page={page} />
+          </div>
+        </>
+      }
+    />
+  );
+}

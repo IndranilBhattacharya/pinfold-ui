@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { reflow } from './example';
 import { PinfoldProvider } from '@pinfold/react';
 import type { ComponentMeta, PropMeta } from '@pinfold/core/meta';
 import type { PinfoldSize, PinfoldStylePack, PinfoldTone } from '@pinfold/core';
@@ -13,7 +14,8 @@ export const PACKS: PinfoldStylePack[] = ['default', 'glass', 'material', 'noise
 
 export interface Env {
   stylePack: PinfoldStylePack;
-  theme: 'light' | 'dark';
+  /** Empty: follow the site's light/dark toggle. */
+  theme: '' | 'light' | 'dark';
   rtl: boolean;
   reducedMotion: boolean;
   width: number;
@@ -22,7 +24,10 @@ export interface Env {
   tone: PinfoldTone | '';
 }
 
-export const ENV: Env = { stylePack: 'default', theme: 'dark', rtl: false, reducedMotion: false, width: 100, size: '', tone: '' };
+/** The site's own colour mode, set by the toggle in the header. */
+export const SiteMode = React.createContext<'light' | 'dark'>('dark');
+
+export const ENV: Env = { stylePack: 'default', theme: '', rtl: false, reducedMotion: false, width: 100, size: '', tone: '' };
 
 export const controlsOf = (meta: ComponentMeta) => Object.entries(meta.props).filter(([, p]) => p.control) as Array<[string, PropMeta]>;
 export const defaultsOf = (controls: Array<[string, PropMeta]>) => Object.fromEntries(controls.map(([k, p]) => [k, p.default])) as Record<string, unknown>;
@@ -57,6 +62,7 @@ export function useUrlState<S>(key: string, initial: S, revive: (stored: any) =>
 }
 
 export const reviveEnv = (env: unknown): Env => ({ ...ENV, ...(env as object) });
+const SILENT_HINT = 'No visual change: these set what assistive tech or the keyboard does.';
 
 /** The meta-driven option controls, with the inactive ones disabled and explained. */
 export function OptionControls({
@@ -80,11 +86,13 @@ export function OptionControls({
 }) {
   // Only explain controls shown here; the rest still reach the dev warning.
   const shown = Object.entries(inactive).filter(([k]) => controls.some(([c]) => c === k));
+  const visual = controls.filter(([, meta]) => !meta.silent);
+  const silent = controls.filter(([, meta]) => meta.silent);
   return (
     <fieldset className="dx-fieldset">
       <legend className="dx-label">Component</legend>
       <div className="dx-opts">
-        {controls.map(([key, meta]) =>
+        {visual.map(([key, meta]) =>
           meta.type === 'boolean' ? (
             <label key={key} className="dx-opt dx-opt--check" title={inactive[key] ?? meta.description} aria-disabled={key in inactive}>
               <input type="checkbox" checked={!!options[key]} disabled={key in inactive} onChange={(e) => setOption(key, e.target.checked)} />
@@ -111,6 +119,23 @@ export function OptionControls({
           ),
         )}
       </div>
+      {silent.length ? (
+        <div className="dx-opts dx-silent" title={SILENT_HINT}>
+          {silent.map(([key, meta]) => (
+            <label key={key} className="dx-opt" title={meta.description}>
+              <span>{key}</span>
+              <select className="dx-select" value={String(options[key] ?? '')} onChange={(e) => setOption(key, e.target.value)}>
+                {meta.values!.map((v) => (
+                  <option key={String(v)} value={String(v)}>
+                    {String(v)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ))}
+          <span className="dx-hint">{SILENT_HINT}</span>
+        </div>
+      ) : null}
       {shown.length ? (
         <ul className="dx-hint dx-inactive">
           {shown.map(([k, why]) => (
@@ -140,6 +165,7 @@ export function EnvControls({
   provider?: boolean | ReadonlyArray<'size' | 'tone'>;
   children?: React.ReactNode;
 }) {
+  const site = React.useContext(SiteMode);
   const follows = providerProp === true ? ['size', 'tone'] : providerProp || [];
   const provider = follows.length > 0;
   return (
@@ -157,6 +183,7 @@ export function EnvControls({
         <label className="dx-opt">
           <span>colour mode</span>
           <select className="dx-select" value={env.theme} onChange={(e) => setEnv('theme', e.target.value as Env['theme'])}>
+            <option value="">{`follow the site (${site})`}</option>
             <option>light</option>
             <option>dark</option>
           </select>
@@ -208,9 +235,10 @@ export function EnvControls({
 
 /** The live preview, inside its own provider so the environment applies. */
 export function Stage({ env, children, align = 'center' }: { env: Env; children: React.ReactNode; align?: 'center' | 'start' }) {
+  const site = React.useContext(SiteMode);
   return (
     <PinfoldProvider
-      theme={env.theme}
+      theme={env.theme || site}
       stylePack={env.stylePack}
       dir={env.rtl ? 'rtl' : 'ltr'}
       disableAnimation={env.reducedMotion}
@@ -237,7 +265,7 @@ export interface CodeAction {
 export function CodePanel({ file, code, actions, note }: { file: string; code: (lang: 'ts' | 'js') => string; actions: CodeAction[]; note?: React.ReactNode }) {
   const [lang, setLang] = React.useState<'ts' | 'js'>('ts');
   const [status, setStatus] = React.useState<string | null>(null);
-  const snippet = code(lang);
+  const snippet = reflow(code(lang));
   const copy = async (label: string, text: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -328,21 +356,22 @@ export function Glyph({ name }: { name: GlyphName }) {
  * The app-wide setup the preview assumes (provider size, tone, style pack, direction), as the
  * code a developer adds once. Empty when the environment is at its defaults.
  */
-export function appSetup(env: Env): string[] {
+export function appSetup(env: Env, component?: string): string[] {
   const props = [
+    env.theme && `theme="${env.theme}"`,
     env.size && `size="${env.size}"`,
     env.tone && `tone="${env.tone}"`,
     env.stylePack !== 'default' && `stylePack="${env.stylePack}"`,
     env.rtl && 'dir="rtl"',
   ].filter(Boolean) as string[];
-  if (!props.length) return [];
+  const styles = component ? ['', '// ---- once for the whole app ----', "import '@pinfold/css/core.css';", `import '@pinfold/css/${component}.css';`] : [];
+  if (!props.length) return styles;
   const config = props.map((p) => p.replace(/^(\w+)="(.*)"$/, "$1: '$2'")).join(', ');
   return [
-    '',
-    '// ---- once for the whole app, e.g. app/layout.tsx ----------------------',
+    ...(component ? styles : ['', '// ---- once for the whole app, e.g. app/layout.tsx ----']),
     '// Unset size and tone in the presets above fall back to these.',
     ...(env.stylePack !== 'default' ? ["import '@pinfold/css/packs.css'; // style packs"] : []),
     `<PinfoldProvider ${props.join(' ')}>{children}</PinfoldProvider>`,
-    `// or in pinfold.config.ts: defineConfig({ ${config} }), passed as <PinfoldProvider config={config}>`,
+    `// or: defineConfig({ ${config} }), then <PinfoldProvider config={config}>`,
   ];
 }

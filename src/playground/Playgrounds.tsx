@@ -152,6 +152,17 @@ const BELL = (
   </svg>
 );
 
+const SPEAKER_LOW = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M11 5 6 9H3v6h3l5 4V5zM15.5 9.5a3.5 3.5 0 0 1 0 5" />
+  </svg>
+);
+const SPEAKER_HIGH = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M11 5 6 9H3v6h3l5 4V5zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" />
+  </svg>
+);
+
 /* ------------------------------------------------------------- separator */
 
 export function SeparatorPlayground() {
@@ -909,14 +920,18 @@ export function ToolbarPlayground() {
 /* ---------------------------------------------------------------- slider */
 
 export function SliderPlayground() {
-  const page = usePage(sliderMeta, ['size', 'tone'], { _range: false, _marks: false });
+  const page = usePage(sliderMeta, ['size', 'tone'], { _range: false, _marks: false, _icons: false });
   const range = !!page.inputs._range;
-  const inactive = inactiveSliderOptions({ defaultValue: range ? [20, 80] : [40], showValue: page.options.showValue as string });
+  // Steps of 5 (volume) and 25 (price): few enough for `showSteps` to draw.
+  const scale = range ? { max: 500, step: 25 } : { step: 5 };
+  const marks = page.inputs._marks ? (range ? [0, 100, 250, 500] : [0, 25, 50, 75, 100]).map((value) => ({ value, label: range ? `$${value}` : `${value}` })) : undefined;
+  const inactive = inactiveSliderOptions({ defaultValue: range ? [20, 80] : [40], showValue: page.options.showValue as string, marks, snapToMarks: page.options.snapToMarks as boolean, ...scale });
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
-  const marks = page.inputs._marks ? (range ? [0, 250, 500] : [0, 25, 50, 75, 100]).map((value) => ({ value, label: range ? `$${value}` : `${value}` })) : undefined;
+  if ('step' in inactive) delete (scale as { step?: number }).step;
+  const ends = page.inputs._icons ? { startContent: src(SPEAKER_LOW, '<VolumeLowIcon />'), endContent: src(SPEAKER_HIGH, '<VolumeHighIcon />') } : {};
   const spec: ExampleSpec = range
-    ? { name: 'Price', preset: { ...set, max: 500, step: 10, minGap: 20, formatValue: 'formatValue' in inactive ? undefined : src((v: number) => `$${v}`, '(v) => `$${v}`') }, tree: [{ use: { label: 'Price', name: 'price', defaultValue: [100, 350], marks } }] }
-    : { name: 'Volume', preset: set, tree: [{ use: { label: 'Volume', defaultValue: [40], marks, onChangeEnd: src(() => {}, 'save') } }] };
+    ? { name: 'Price', preset: { ...set, ...scale, minGap: 25, formatValue: 'formatValue' in inactive ? undefined : src((v: number) => `$${v}`, '(v) => `$${v}`') }, tree: [{ use: { label: 'Price', name: 'price', defaultValue: [100, 350], marks, ...ends } }] }
+    : { name: 'Volume', preset: { ...set, ...scale }, tree: [{ use: { label: 'Volume', defaultValue: [40], marks, ...ends, onChangeEnd: src(() => {}, 'save') } }] };
   return (
     <Page
       meta={sliderMeta}
@@ -933,6 +948,7 @@ export function SliderPlayground() {
         <div className="dx-opts">
           <Toggle page={page} name="_range" label="a range (two thumbs)" />
           <Toggle page={page} name="_marks" label="marks" />
+          <Toggle page={page} name="_icons" label="icons either side" />
         </div>
       }
     />

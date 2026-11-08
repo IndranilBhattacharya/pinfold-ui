@@ -1,7 +1,7 @@
 import * as React from 'react';
 import type { ComponentMeta } from '@pinfold/core/meta';
-import { alertMeta, avatarMeta, badgeMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, kbdMeta, menuMeta, popoverMeta, progressMeta, radioMeta, separatorMeta, skeletonMeta, switchMeta, toastMeta, tooltipMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta, selectMeta, comboboxMeta } from '@pinfold/core/meta';
-import { inactiveAlertOptions, inactiveAvatarOptions, inactiveBadgeOptions, inactiveCardOptions, inactiveCheckboxOptions, inactiveDialogOptions, inactiveInputOptions, inactiveMenuOptions, inactivePopoverOptions, inactiveProgressOptions, inactiveSeparatorOptions, inactiveSkeletonOptions, inactiveToggleOptions, inactiveSliderOptions, inactiveNumberOptions, inactiveOtpOptions, inactiveTabsOptions, inactiveBreadcrumbOptions, inactivePaginationOptions, inactiveStepperOptions, inactiveToolbarOptions, inactiveSelectOptions, inactiveComboboxOptions } from '@pinfold/core';
+import { alertMeta, avatarMeta, badgeMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, kbdMeta, menuMeta, popoverMeta, progressMeta, radioMeta, separatorMeta, skeletonMeta, switchMeta, toastMeta, tooltipMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta, selectMeta, comboboxMeta, tagsMeta, commandMeta } from '@pinfold/core/meta';
+import { inactiveAlertOptions, inactiveAvatarOptions, inactiveBadgeOptions, inactiveCardOptions, inactiveCheckboxOptions, inactiveDialogOptions, inactiveInputOptions, inactiveMenuOptions, inactivePopoverOptions, inactiveProgressOptions, inactiveSeparatorOptions, inactiveSkeletonOptions, inactiveToggleOptions, inactiveSliderOptions, inactiveNumberOptions, inactiveOtpOptions, inactiveTabsOptions, inactiveBreadcrumbOptions, inactivePaginationOptions, inactiveStepperOptions, inactiveToolbarOptions, inactiveSelectOptions, inactiveComboboxOptions, inactiveTagsOptions, inactiveCommandOptions } from '@pinfold/core';
 import { defineSeparator } from '@pinfold/react/separator';
 import { defineKbd, Kbd } from '@pinfold/react/kbd';
 import { defineSkeleton } from '@pinfold/react/skeleton';
@@ -28,6 +28,8 @@ import { definePagination } from '@pinfold/react/pagination';
 import { defineStepper } from '@pinfold/react/stepper';
 import { defineSelect } from '@pinfold/react/select';
 import { defineCombobox } from '@pinfold/react/combobox';
+import { defineTags } from '@pinfold/react/tags';
+import { defineCommand } from '@pinfold/react/command';
 import { defineSlider } from '@pinfold/react/slider';
 import { defineNumberField } from '@pinfold/react/number';
 import { defineOtp } from '@pinfold/react/otp';
@@ -1868,6 +1870,191 @@ export function ComboboxPlayground() {
             : 'The first match is active as you type, so Enter takes it. Escape closes, then clears.'
       }
       demo={<><Choice page={page} name="_kind" label="example" options={[['cities', 'cities: filter your rows'], ['server', 'repositories: search a server'], ['tags', 'tags: several, free text']]} /><Keep page={page} /></>}
+    />
+  );
+}
+
+/* ------------------------------------------------------------------ tags */
+
+const PRODUCTS = [
+  { name: 'Trail runner', tags: ['Waterproof', 'Under $100'] },
+  { name: 'City sneaker', tags: ['Vegan', 'Under $100'] },
+  { name: 'Hiking boot', tags: ['Waterproof', 'Leather'] },
+  { name: 'Canvas slip-on', tags: ['Vegan', 'Under $100', 'Sale'] },
+  { name: 'Derby shoe', tags: ['Leather', 'Sale'] },
+  { name: 'Rain boot', tags: ['Waterproof', 'Vegan'] },
+];
+const TOPICS = ['Design', 'Engineering', 'Accessibility', 'Research', 'Writing'];
+const ARTICLES = [
+  { title: 'Focus rings that survive dark mode', topics: ['Design', 'Accessibility'] },
+  { title: 'A listbox from scratch', topics: ['Engineering', 'Accessibility'] },
+  { title: 'Interviewing five teams about forms', topics: ['Research'] },
+  { title: 'Error messages people read', topics: ['Writing', 'Design'] },
+  { title: 'Tokens over themes', topics: ['Design', 'Engineering'] },
+];
+
+/** Filters remove themselves and the product list follows; topics pick the articles. */
+function TagsDemo({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const { _kind, ...rest } = props;
+  const [filters, setFilters] = React.useState(['Waterproof', 'Under $100']);
+  const [topics, setTopics] = React.useState<string[]>(['Accessibility']);
+  if (_kind === 'pick') {
+    const shown = ARTICLES.filter((a) => !topics.length || a.topics.some((t) => topics.includes(t)));
+    return (
+      <div className="dx-stack">
+        <Preset {...rest} value={topics} onChange={setTopics} />
+        <ul className="dx-tasks">{shown.map((a) => <li key={a.title}>{a.title}</li>)}</ul>
+      </div>
+    );
+  }
+  if (_kind === 'status') return <Preset {...rest} />;
+  const shown = PRODUCTS.filter((p) => filters.every((f) => p.tags.includes(f)));
+  return (
+    <div className="dx-stack">
+      <Preset {...rest} items={filters} onRemove={(v: string) => setFilters((f) => f.filter((x) => x !== v))} />
+      <p className="dx-panel__lead">{shown.length} of {PRODUCTS.length} shoes: {shown.map((p) => p.name).join(', ') || 'none'}.</p>
+      {filters.length < 2 ? (
+        <div>
+          <Button label="Reset filters" size="sm" variant="soft" onClick={() => setFilters(['Waterproof', 'Under $100'])} />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+export function TagsPlayground() {
+  const page = usePage(tagsMeta, ['size'], { _kind: 'filters' });
+  const kind = String(page.inputs._kind);
+  const config = { selection: kind === 'pick' ? 'multiple' : (page.options.selection as string), onRemove: kind === 'filters' ? 1 : undefined, maxVisible: kind === 'status' ? 3 : undefined };
+  const inactive = { ...inactiveTagsOptions(config), selection: 'set by the example above.' };
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const shapes: Record<string, { body: string[]; use: Record<string, unknown>; code: string[] }> = {
+    filters: {
+      body: ["const [filters, setFilters] = useState(['Waterproof', 'Under $100']);"],
+      use: { label: 'Filters', items: src(['Waterproof', 'Under $100'], 'filters'), onRemove: src(() => {}, '(value) => setFilters((f) => f.filter((x) => x !== value))') },
+      code: ['$TAG', '<Results filters={filters} />'],
+    },
+    pick: {
+      body: ["const [topics, setTopics] = useState(['Accessibility']);"],
+      use: { label: 'Topics', selection: 'multiple', items: TOPICS, value: src(['Accessibility'], 'topics'), onChange: src(() => {}, 'setTopics') },
+      code: ['$TAG', '<Articles topics={topics} />'],
+    },
+    status: {
+      body: [],
+      use: {
+        label: 'Release',
+        maxVisible: 3,
+        items: [
+          { value: 'live', label: 'Live', tone: 'success' },
+          { value: 'beta', label: 'Beta', tone: 'warning' },
+          { value: 'docs', label: 'Docs', href: '#/tags' },
+          { value: 'a11y', label: 'Accessible', tone: 'info' },
+          { value: 'rtl', label: 'RTL' },
+        ],
+      },
+      code: ['$TAG'],
+    },
+  };
+  const shape = shapes[kind];
+  const spec: ExampleSpec = { name: 'Chips', preset: set, body: shape.body.length ? shape.body : undefined, tree: [{ app: TagsDemo, use: { ...shape.use, _kind: src(kind, '') }, code: shape.code }] };
+  return (
+    <Page
+      meta={tagsMeta}
+      page={page}
+      define={defineTags}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size']}
+      provider={['size']}
+      align="start"
+      file="components/chips"
+      note={
+        kind === 'pick'
+          ? 'A listbox: Tab in once, arrows move, Space picks. The articles follow the picked topics.'
+          : kind === 'status'
+            ? 'Each tag can carry its own tone; a tag with href is a link. "+2" shows the rest.'
+            : 'Each remove button says which tag it removes; focus moves to the next tag. The shoes follow the filters.'
+      }
+      demo={<Choice page={page} name="_kind" label="example" options={[['filters', 'filters to remove'], ['pick', 'topics to pick'], ['status', 'labels, tones and a link']]} />}
+    />
+  );
+}
+
+/* --------------------------------------------------------------- command */
+
+const ICONS_CMD = {
+  file: TAB_ICON('M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5'),
+  folder: FOLDER_ICON,
+  gear: TAB_ICON('M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z'),
+  moon: TAB_ICON('M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z'),
+  user: USER_ICON,
+};
+const COMMANDS = [
+  { label: 'New file', icon: ICONS_CMD.file, shortcut: '⌘N', group: 'File' },
+  { label: 'Open folder', icon: ICONS_CMD.folder, shortcut: '⌘O', group: 'File' },
+  { label: 'Toggle dark mode', icon: ICONS_CMD.moon, keywords: ['theme', 'light'], group: 'View' },
+  { label: 'Preferences', icon: ICONS_CMD.gear, keywords: ['settings'], shortcut: '⌘,', group: 'View' },
+  { label: 'Invite a teammate', icon: ICONS_CMD.user, description: 'Send an email invite', group: 'Team' },
+  { label: 'Billing', icon: ICONS_CMD.user, group: 'Team', disabled: true },
+];
+
+/** Commands run here: the last one shows under the palette. */
+function CommandDemo({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const { _kind, ...rest } = props;
+  const [ran, setRan] = React.useState<string | null>(null);
+  const [open, setOpen] = React.useState(false);
+  const run = (value: string) => setRan(value);
+  if (_kind === 'dialog')
+    return (
+      <div className="dx-stack">
+        <div className="dx-panel__row">
+          <Button label="Open the palette" variant="outline" onClick={() => setOpen(true)} />
+          <Kbd keys={['mod', 'k']} />
+        </div>
+        <Preset {...rest} open={open} onOpenChange={setOpen} onSelect={run} />
+        <p className="dx-panel__lead">{ran ? `Ran "${ran}".` : 'Press ⌘K (Ctrl+K) anywhere on this page.'}</p>
+      </div>
+    );
+  return (
+    <div className="dx-stack">
+      <Preset {...rest} onSelect={run} />
+      <p className="dx-panel__lead">{ran ? `Ran "${ran}".` : 'Type "set" to find Preferences by its keyword.'}</p>
+    </div>
+  );
+}
+
+export function CommandPlayground() {
+  const page = usePage(commandMeta, ['size', 'tone'], { _kind: 'inline' });
+  const kind = String(page.inputs._kind);
+  const inactive = { ...inactiveCommandOptions({ mode: kind }), mode: 'set by the example above.' };
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const preset = kind === 'dialog' ? { ...set, mode: 'dialog' } : set;
+  const items = COMMANDS.map((c, i) => ({ ...c, icon: src(c.icon, ['<FileIcon />', '<FolderIcon />', '<MoonIcon />', '<GearIcon />', '<UserIcon />', '<UserIcon />'][i]) }));
+  const use: Record<string, unknown> = { label: 'Commands', items, onSelect: src(() => {}, 'runCommand'), _kind: src(kind, '') };
+  if (kind === 'dialog') {
+    use.open = src(false, 'open');
+    use.onOpenChange = src(() => {}, 'setOpen');
+  }
+  const spec: ExampleSpec = {
+    name: 'Palette',
+    preset,
+    body: kind === 'dialog' ? ['const [open, setOpen] = useState(false); // ⌘K / Ctrl+K toggles it too'] : undefined,
+    tree: [{ app: CommandDemo, use, code: kind === 'dialog' ? ["<Button label=\"Open the palette\" onClick={() => setOpen(true)} />", '$TAG'] : ['$TAG'] }],
+    after: ['// Each command can carry its own onSelect, or an href that goes through the provider\'s navigate.'],
+  };
+  return (
+    <Page
+      meta={commandMeta}
+      page={page}
+      define={defineCommand}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size', 'tone']}
+      provider
+      align="start"
+      file="components/palette"
+      note={kind === 'dialog' ? 'A native modal: the page goes inert, Escape closes and focus returns. ⌘K / Ctrl+K opens it from anywhere.' : 'Typing narrows by name or keyword; the first command is active, so Enter runs it. Arrows skip the disabled one.'}
+      demo={<Choice page={page} name="_kind" label="example" options={[['inline', 'on the page'], ['dialog', 'a ⌘K dialog']]} />}
     />
   );
 }

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import type { ComponentMeta } from '@pinfold/core/meta';
-import { alertMeta, avatarMeta, badgeMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, kbdMeta, menuMeta, popoverMeta, progressMeta, radioMeta, separatorMeta, skeletonMeta, switchMeta, toastMeta, tooltipMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta, selectMeta, comboboxMeta, tagsMeta, commandMeta, calendarMeta, datepickerMeta, tableMeta } from '@pinfold/core/meta';
-import { inactiveAlertOptions, inactiveAvatarOptions, inactiveBadgeOptions, inactiveCardOptions, inactiveCheckboxOptions, inactiveDialogOptions, inactiveInputOptions, inactiveMenuOptions, inactivePopoverOptions, inactiveProgressOptions, inactiveSeparatorOptions, inactiveSkeletonOptions, inactiveToggleOptions, inactiveSliderOptions, inactiveNumberOptions, inactiveOtpOptions, inactiveTabsOptions, inactiveBreadcrumbOptions, inactivePaginationOptions, inactiveStepperOptions, inactiveToolbarOptions, inactiveSelectOptions, inactiveComboboxOptions, inactiveTagsOptions, inactiveCommandOptions, inactiveCalendarOptions, inactiveDatePickerOptions, inactiveTableOptions } from '@pinfold/core';
+import { alertMeta, avatarMeta, badgeMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, kbdMeta, menuMeta, popoverMeta, progressMeta, radioMeta, separatorMeta, skeletonMeta, switchMeta, toastMeta, tooltipMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta, selectMeta, comboboxMeta, tagsMeta, commandMeta, calendarMeta, datepickerMeta, tableMeta, ratingMeta, timelineMeta, emptyMeta } from '@pinfold/core/meta';
+import { inactiveAlertOptions, inactiveAvatarOptions, inactiveBadgeOptions, inactiveCardOptions, inactiveCheckboxOptions, inactiveDialogOptions, inactiveInputOptions, inactiveMenuOptions, inactivePopoverOptions, inactiveProgressOptions, inactiveSeparatorOptions, inactiveSkeletonOptions, inactiveToggleOptions, inactiveSliderOptions, inactiveNumberOptions, inactiveOtpOptions, inactiveTabsOptions, inactiveBreadcrumbOptions, inactivePaginationOptions, inactiveStepperOptions, inactiveToolbarOptions, inactiveSelectOptions, inactiveComboboxOptions, inactiveTagsOptions, inactiveCommandOptions, inactiveCalendarOptions, inactiveDatePickerOptions, inactiveTableOptions, inactiveRatingOptions, inactiveTimelineOptions, inactiveEmptyOptions } from '@pinfold/core';
 import { defineSeparator } from '@pinfold/react/separator';
 import { defineKbd, Kbd } from '@pinfold/react/kbd';
 import { defineSkeleton } from '@pinfold/react/skeleton';
@@ -33,6 +33,9 @@ import { defineCommand } from '@pinfold/react/command';
 import { defineCalendar } from '@pinfold/react/calendar';
 import { defineDatePicker } from '@pinfold/react/datepicker';
 import { defineTable } from '@pinfold/react/table';
+import { defineRating } from '@pinfold/react/rating';
+import { defineTimeline } from '@pinfold/react/timeline';
+import { defineEmpty } from '@pinfold/react/empty';
 import { defineSlider } from '@pinfold/react/slider';
 import { defineNumberField } from '@pinfold/react/number';
 import { defineOtp } from '@pinfold/react/otp';
@@ -2338,6 +2341,156 @@ export function TablePlayground() {
           : 'Search filters the rows; headers sort (again to reverse, a third time to clear); boxes feed the bar above; a row opens its details.'
       }
       demo={<Choice page={page} name="_kind" label="example" options={[['client', 'rows you hold: search, sort, choose'], ['server', 'a server that sorts and pages']]} />}
+    />
+  );
+}
+
+/* ---------------------------------------------------------------- rating */
+
+const VOTES = [5, 4, 5, 3, 4, 5, 4, 4, 5, 2];
+const WORDS = ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'];
+
+/** Your rating joins the others: the average (a read-only rating) follows. */
+function Review({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const { _ro, ...rest } = props;
+  // The average is read-only: no handler, no form name.
+  const { onChange: _change, name: _name, ...shared } = rest;
+  const [mine, setMine] = React.useState(4);
+  const votes = mine ? [...VOTES, mine] : VOTES;
+  const average = Math.round((votes.reduce((a, b) => a + b, 0) / votes.length) * 10) / 10;
+  return (
+    <div className="dx-stack">
+      <Preset {...rest} value={mine} {...(_ro ? null : { onChange: setMine })} />
+      <p className="dx-panel__lead">{mine ? `${WORDS[Math.ceil(mine)]}: ${mine} of 5.` : 'No rating yet.'}</p>
+      <Preset {...shared} label="Average rating" readOnly showValue value={average} />
+      <span className="dx-hint">{votes.length} ratings</span>
+    </div>
+  );
+}
+
+export function RatingPlayground() {
+  const page = usePage(ratingMeta, ['size'], {});
+  const inactive = inactiveRatingOptions(page.options);
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const spec: ExampleSpec = {
+    name: 'Stars',
+    preset: set,
+    body: ['const [mine, setMine] = useState(4);', 'const average = averageOf([...votes, mine]);'],
+    tree: [{ app: Review, use: { label: 'Your rating', name: 'rating', value: src(4, 'mine'), ...(page.options.readOnly ? null : { onChange: src(() => {}, 'setMine') }), _ro: src(!!page.options.readOnly, '') }, code: ['$TAG', '<Stars label="Average rating" readOnly showValue value={average} />'] }],
+  };
+  return (
+    <Page
+      meta={ratingMeta}
+      page={page}
+      define={defineRating}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size']}
+      provider={['size']}
+      align="start"
+      file="components/review"
+      note="Point to preview, press to choose, press again to clear; arrows move as in any radio group. Your rating moves the average under it."
+    />
+  );
+}
+
+/* -------------------------------------------------------------- timeline */
+
+const STAGES = [
+  { title: 'Ordered', description: 'Wool overshirt, canvas tote', time: '2026-11-02T10:15' },
+  { title: 'Packed', time: '2026-11-03T16:40' },
+  { title: 'Shipped', description: 'Tracking number PF-48213', time: '2026-11-04T09:30', tone: 'success' as const },
+  { title: 'Out for delivery', time: '2026-11-06T07:55' },
+  { title: 'Delivered', time: '2026-11-06T13:20', tone: 'success' as const },
+];
+
+/** An order you can move along: each step joins the history. */
+function OrderTracking({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const [step, setStep] = React.useState(3);
+  const done = step >= STAGES.length;
+  return (
+    <div className="dx-stack">
+      <Preset {...props} items={STAGES.slice(0, step)} pending={!done && props.pending} />
+      <div className="dx-panel__row">
+        <Button label={done ? 'Delivered' : `Mark "${STAGES[step].title}"`} size="sm" variant="soft" disabled={done} onClick={() => setStep((s) => s + 1)} />
+        <Button label="Reset" size="sm" variant="ghost" onClick={() => setStep(1)} />
+      </div>
+    </div>
+  );
+}
+
+export function TimelinePlayground() {
+  const page = usePage(timelineMeta, ['size', 'tone'], {});
+  const inactive = inactiveTimelineOptions(page.options);
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const spec: ExampleSpec = {
+    name: 'History',
+    preset: set,
+    body: ['const events = order.events; // [{ title, time, description?, tone? }]'],
+    tree: [{ app: OrderTracking, use: { label: 'Order history', locale: 'en-GB', items: src(STAGES.slice(0, 3), 'events') }, code: ['$TAG'] }],
+  };
+  return (
+    <Page
+      meta={timelineMeta}
+      page={page}
+      define={defineTimeline}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size', 'tone']}
+      provider
+      align="start"
+      file="components/order-history"
+      note="Times are ISO: shown in the locale (here en-GB), exact in <time datetime>. Mark the next step and the history grows."
+    />
+  );
+}
+
+/* ----------------------------------------------------------------- empty */
+
+const MAIL = ['Your invoice is ready', 'Design review moved to 3pm', 'Welcome to the team'];
+
+/** An inbox: archiving everything leaves the empty state, whose action brings it back. */
+function Inbox({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const [mail, setMail] = React.useState<string[]>([]);
+  if (!mail.length) return <Preset {...props} actions={[{ label: 'Bring back the messages', onClick: () => setMail(MAIL) }, { label: 'Settings' }]} />;
+  return (
+    <div className="dx-stack">
+      <ul className="dx-tasks">{mail.map((m) => <li key={m}>{m}</li>)}</ul>
+      <div>
+        <Button label="Archive all" size="sm" variant="soft" onClick={() => setMail([])} />
+      </div>
+    </div>
+  );
+}
+
+export function EmptyPlayground() {
+  const page = usePage(emptyMeta, ['size', 'tone'], {});
+  const inactive = inactiveEmptyOptions(page.options);
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const spec: ExampleSpec = {
+    name: 'InboxZero',
+    preset: set,
+    body: ['const { messages, restore } = useInbox();'],
+    tree: [
+      {
+        app: Inbox,
+        use: { title: 'You are all caught up', description: 'New messages land here. Archived ones are one click away.', actions: src([], "[{ label: 'Bring back the messages', onClick: restore }, { label: 'Settings' }]") },
+        code: ['{messages.length === 0 ? (', '  $TAG', ') : (', '  <MessageList messages={messages} />', ')}'],
+      },
+    ],
+  };
+  return (
+    <Page
+      meta={emptyMeta}
+      page={page}
+      define={defineEmpty}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size', 'tone']}
+      provider
+      align="start"
+      file="components/inbox"
+      note="The empty state stands where the list was: its main action brings the messages back, and Archive all empties it again."
     />
   );
 }

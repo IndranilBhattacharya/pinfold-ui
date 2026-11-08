@@ -121,18 +121,25 @@ export function OptionControls({
       </div>
       {silent.length ? (
         <div className="dx-opts dx-silent" title={SILENT_HINT}>
-          {silent.map(([key, meta]) => (
-            <label key={key} className="dx-opt" title={meta.description}>
-              <span>{key}</span>
-              <select className="dx-select" value={String(options[key] ?? '')} onChange={(e) => setOption(key, e.target.value)}>
-                {meta.values!.map((v) => (
-                  <option key={String(v)} value={String(v)}>
-                    {String(v)}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ))}
+          {silent.map(([key, meta]) =>
+            meta.type === 'boolean' ? (
+              <label key={key} className="dx-opt dx-opt--check" title={meta.description}>
+                <input type="checkbox" checked={!!options[key]} onChange={(e) => setOption(key, e.target.checked)} />
+                <span>{key}</span>
+              </label>
+            ) : (
+              <label key={key} className="dx-opt" title={meta.description}>
+                <span>{key}</span>
+                <select className="dx-select" value={String(options[key] ?? '')} onChange={(e) => setOption(key, e.target.value)}>
+                  {meta.values!.map((v) => (
+                    <option key={String(v)} value={String(v)}>
+                      {String(v)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ),
+          )}
           <span className="dx-hint">{SILENT_HINT}</span>
         </div>
       ) : null}

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import type { ComponentMeta } from '@pinfold/core/meta';
-import { alertMeta, avatarMeta, badgeMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, kbdMeta, menuMeta, popoverMeta, progressMeta, radioMeta, separatorMeta, skeletonMeta, switchMeta, toastMeta, tooltipMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta } from '@pinfold/core/meta';
-import { inactiveAlertOptions, inactiveAvatarOptions, inactiveBadgeOptions, inactiveCardOptions, inactiveCheckboxOptions, inactiveDialogOptions, inactiveInputOptions, inactiveMenuOptions, inactivePopoverOptions, inactiveProgressOptions, inactiveSeparatorOptions, inactiveSkeletonOptions, inactiveToggleOptions, inactiveSliderOptions, inactiveNumberOptions, inactiveOtpOptions } from '@pinfold/core';
+import { alertMeta, avatarMeta, badgeMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, kbdMeta, menuMeta, popoverMeta, progressMeta, radioMeta, separatorMeta, skeletonMeta, switchMeta, toastMeta, tooltipMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta } from '@pinfold/core/meta';
+import { inactiveAlertOptions, inactiveAvatarOptions, inactiveBadgeOptions, inactiveCardOptions, inactiveCheckboxOptions, inactiveDialogOptions, inactiveInputOptions, inactiveMenuOptions, inactivePopoverOptions, inactiveProgressOptions, inactiveSeparatorOptions, inactiveSkeletonOptions, inactiveToggleOptions, inactiveSliderOptions, inactiveNumberOptions, inactiveOtpOptions, inactiveTabsOptions, inactiveBreadcrumbOptions, inactivePaginationOptions, inactiveStepperOptions, inactiveToolbarOptions } from '@pinfold/core';
 import { defineSeparator } from '@pinfold/react/separator';
 import { defineKbd, Kbd } from '@pinfold/react/kbd';
 import { defineSkeleton } from '@pinfold/react/skeleton';
@@ -21,6 +21,11 @@ import { defineRadio } from '@pinfold/react/radio';
 import { defineSwitch } from '@pinfold/react/switch';
 import { defineToggle } from '@pinfold/react/toggle';
 import { defineToolbar } from '@pinfold/react/toolbar';
+import { defineTabs } from '@pinfold/react/tabs';
+import { Badge } from '@pinfold/react/badge';
+import { defineBreadcrumb } from '@pinfold/react/breadcrumb';
+import { definePagination } from '@pinfold/react/pagination';
+import { defineStepper } from '@pinfold/react/stepper';
 import { defineSlider } from '@pinfold/react/slider';
 import { defineNumberField } from '@pinfold/react/number';
 import { defineOtp } from '@pinfold/react/otp';
@@ -884,8 +889,21 @@ export function TogglePlayground() {
 export function ToolbarPlayground() {
   const page = usePage(toolbarMeta, ['size'], { _icons: false });
   const icons = !!page.inputs._icons;
-  const set = Object.fromEntries(changed(page.options, page.defaults));
-  const items = icons
+  const selection = (page.options.selection as string) ?? 'none';
+  const inactive = inactiveToolbarOptions({ selection });
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const items = selection !== 'none'
+    ? icons
+      ? [
+          { label: 'Bold', value: 'bold', icon: src(BOLD_ICON, '<BoldIcon />'), iconOnly: true },
+          { label: 'Italic', value: 'italic', icon: src(ITALIC_ICON, '<ItalicIcon />'), iconOnly: true },
+        ]
+      : [
+          { label: 'Day', value: 'day' },
+          { label: 'Week', value: 'week' },
+          { label: 'Month', value: 'month' },
+        ]
+    : icons
     ? [
         { label: 'Undo', icon: src(UNDO_ICON, '<UndoIcon />'), iconOnly: true, onClick: src(() => {}, 'undo') },
         { label: 'Redo', icon: src(REDO_ICON, '<RedoIcon />'), iconOnly: true, onClick: src(() => {}, 'redo') },
@@ -897,13 +915,16 @@ export function ToolbarPlayground() {
         { label: 'Today', onClick: src(() => {}, 'today') },
         { label: 'Next', onClick: src(() => {}, 'next') },
       ];
-  const spec: ExampleSpec = { name: icons ? 'Editor' : 'Pager', preset: set, tree: [{ use: { label: icons ? 'Text formatting' : 'Pages', items } }] };
+  const picked = selection === 'none' ? undefined : { defaultValue: icons ? ['bold'] : ['week'], onChange: src(() => {}, icons ? 'setStyles' : 'setView') };
+  const name = selection === 'none' ? (icons ? 'Editor' : 'Pager') : icons ? 'Format' : 'Range';
+  const spec: ExampleSpec = { name, preset: set, tree: [{ use: { label: selection === 'none' ? (icons ? 'Text formatting' : 'Pages') : icons ? 'Text style' : 'Calendar range', items, ...picked } }] };
   return (
     <Page
       meta={toolbarMeta}
       page={page}
       define={defineToolbar}
       spec={spec}
+      inactive={inactive}
       inherit={['size']}
       provider={['size']}
       file={icons ? 'components/editor' : 'components/pager'}
@@ -1022,6 +1043,160 @@ export function OtpPlayground() {
             <InForm page={page} />
           </div>
         </>
+      }
+    />
+  );
+}
+
+/* ------------------------------------------------------------------ tabs */
+
+const TAB_ICON = (d: string) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d={d} />
+  </svg>
+);
+const USER_ICON = TAB_ICON('M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10z');
+const CARD_ICON = TAB_ICON('M3 6h18v12H3zM3 10h18');
+const TEAM_ICON = TAB_ICON('M16 21a5 5 0 0 0-10 0M11 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM21 21a4 4 0 0 0-4-4M17 4a4 4 0 0 1 0 8');
+const BELL_SMALL = TAB_ICON('M6 9a6 6 0 1 1 12 0c0 6 2 7 2 8H4c0-1 2-2 2-8zM10 21a2 2 0 0 0 4 0');
+
+export function TabsPlayground() {
+  const page = usePage(tabsMeta, ['size', 'tone'], { _icons: false, _disabled: false });
+  const icons = !!page.inputs._icons;
+  const inactive = inactiveTabsOptions(page.options);
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const panel = (text: string, name: string) => src(<p>{text}</p>, `<${name} />`);
+  const count = src(<Badge count={3} label="new" />, '<Badge count={3} label="new" />');
+  const items = [
+    { id: 'profile', label: 'Profile', icon: icons ? src(USER_ICON, '<UserIcon />') : undefined, content: panel('Name, photo and how others see you.', 'ProfileForm') },
+    { id: 'billing', label: 'Billing', icon: icons ? src(CARD_ICON, '<CardIcon />') : undefined, content: panel('Your plan, invoices and payment method.', 'BillingForm') },
+    { id: 'team', label: 'Team', icon: icons ? src(TEAM_ICON, '<TeamIcon />') : undefined, disabled: page.inputs._disabled ? true : undefined, content: panel('Invite people and set their roles.', 'TeamForm') },
+    { id: 'alerts', label: 'Notifications', icon: icons ? src(BELL_SMALL, '<BellIcon />') : undefined, endContent: icons ? count : undefined, content: panel('What we email you about, and how often.', 'AlertsForm') },
+  ];
+  const spec: ExampleSpec = { name: 'Settings', preset: set, tree: [{ use: { label: 'Account settings', items } }] };
+  if (icons) spec.imports = ["import { Badge } from '@pinfold/react/badge';"];
+  return (
+    <Page
+      meta={tabsMeta}
+      page={page}
+      define={defineTabs}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size', 'tone']}
+      provider
+      align="start"
+      file="components/settings"
+      note="Arrow keys move between tabs and wrap; a disabled tab is on the way but never selected."
+      demo={
+        <div className="dx-opts">
+          <Toggle page={page} name="_icons" label="icons and a count" />
+          <Toggle page={page} name="_disabled" label="a disabled tab" />
+        </div>
+      }
+    />
+  );
+}
+
+/* ------------------------------------------------------------ breadcrumb */
+
+export function BreadcrumbPlayground() {
+  const page = usePage(breadcrumbMeta, ['size'], { _collapse: false, _icons: false });
+  const maxItems = page.inputs._collapse ? 3 : undefined;
+  const inactive = inactiveBreadcrumbOptions({ maxItems });
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const home = page.inputs._icons ? src(HOME_ICON, '<HomeIcon />') : undefined;
+  const items = [
+    { label: 'Home', href: '/', icon: home },
+    { label: 'Projects', href: '/projects' },
+    { label: 'Pinfold', href: '/projects/pinfold' },
+    { label: 'Documentation', href: '/projects/pinfold/docs' },
+    { label: 'Settings' },
+  ];
+  const spec: ExampleSpec = { name: 'Trail', preset: { ...set, maxItems }, tree: [{ use: { items } }] };
+  return (
+    <Page
+      meta={breadcrumbMeta}
+      page={page}
+      define={defineBreadcrumb}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size']}
+      provider={['size']}
+      file="components/trail"
+      note="The last crumb is the current page. Collapsed crumbs come back with the … button, and focus lands on the first one."
+      demo={
+        <div className="dx-opts">
+          <Toggle page={page} name="_collapse" label="collapse the middle (maxItems: 3)" />
+          <Toggle page={page} name="_icons" label="a home icon" />
+        </div>
+      }
+    />
+  );
+}
+const HOME_ICON = TAB_ICON('M3 11 12 4l9 7M5 10v10h14V10');
+
+/* ------------------------------------------------------------ pagination */
+
+export function PaginationPlayground() {
+  const page = usePage(paginationMeta, ['size', 'tone'], { _links: false });
+  const inactive = inactivePaginationOptions(page.options);
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const use: Record<string, unknown> = { count: 20, defaultPage: 6 };
+  if (page.inputs._links) use.getHref = src((p: number) => `#/pagination?page=${p}`, '(p) => `/blog?page=${p}`');
+  else use.onChange = src(() => {}, 'setPage');
+  const spec: ExampleSpec = { name: 'Pages', preset: set, tree: [{ use }] };
+  return (
+    <Page
+      meta={paginationMeta}
+      page={page}
+      define={definePagination}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size', 'tone']}
+      provider
+      file="components/pages"
+      note="The row keeps its length on every page, so nothing moves under the pointer."
+      demo={
+        <div className="dx-opts">
+          <Toggle page={page} name="_links" label="real links (getHref)" />
+        </div>
+      }
+    />
+  );
+}
+
+/* --------------------------------------------------------------- stepper */
+
+export function StepperPlayground() {
+  const page = usePage(stepperMeta, ['size', 'tone'], { _step: '1', _back: true });
+  const inactive = inactiveStepperOptions(page.options);
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const items = [
+    { label: 'Cart', description: '3 items' },
+    { label: 'Shipping', description: 'Address and speed' },
+    { label: 'Payment' },
+    { label: 'Review' },
+  ];
+  const use: Record<string, unknown> = { value: Number(page.inputs._step), items };
+  if (page.inputs._back) use.onChange = src((step: number) => page.setOption('_step', String(step)), 'setStep');
+  const spec: ExampleSpec = { name: 'Checkout', preset: set, tree: [{ use }] };
+  return (
+    <Page
+      meta={stepperMeta}
+      page={page}
+      define={defineStepper}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size', 'tone']}
+      provider
+      align="start"
+      file="components/checkout"
+      note="Steps already done are buttons that go back (with onChange); steps not reached never are."
+      demo={
+        <div className="dx-opts">
+          <Choice page={page} name="_step" label="current step" options={[['0', '0'], ['1', '1'], ['2', '2'], ['3', '3'], ['4', '4 (all done)']]} />
+          <Toggle page={page} name="_back" label="done steps go back (onChange)" />
+        </div>
       }
     />
   );

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import type { ComponentMeta } from '@pinfold/core/meta';
-import { alertMeta, avatarMeta, badgeMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, kbdMeta, menuMeta, popoverMeta, progressMeta, radioMeta, separatorMeta, skeletonMeta, switchMeta, toastMeta, tooltipMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta, selectMeta, comboboxMeta, tagsMeta, commandMeta } from '@pinfold/core/meta';
-import { inactiveAlertOptions, inactiveAvatarOptions, inactiveBadgeOptions, inactiveCardOptions, inactiveCheckboxOptions, inactiveDialogOptions, inactiveInputOptions, inactiveMenuOptions, inactivePopoverOptions, inactiveProgressOptions, inactiveSeparatorOptions, inactiveSkeletonOptions, inactiveToggleOptions, inactiveSliderOptions, inactiveNumberOptions, inactiveOtpOptions, inactiveTabsOptions, inactiveBreadcrumbOptions, inactivePaginationOptions, inactiveStepperOptions, inactiveToolbarOptions, inactiveSelectOptions, inactiveComboboxOptions, inactiveTagsOptions, inactiveCommandOptions } from '@pinfold/core';
+import { alertMeta, avatarMeta, badgeMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, kbdMeta, menuMeta, popoverMeta, progressMeta, radioMeta, separatorMeta, skeletonMeta, switchMeta, toastMeta, tooltipMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta, selectMeta, comboboxMeta, tagsMeta, commandMeta, calendarMeta, datepickerMeta } from '@pinfold/core/meta';
+import { inactiveAlertOptions, inactiveAvatarOptions, inactiveBadgeOptions, inactiveCardOptions, inactiveCheckboxOptions, inactiveDialogOptions, inactiveInputOptions, inactiveMenuOptions, inactivePopoverOptions, inactiveProgressOptions, inactiveSeparatorOptions, inactiveSkeletonOptions, inactiveToggleOptions, inactiveSliderOptions, inactiveNumberOptions, inactiveOtpOptions, inactiveTabsOptions, inactiveBreadcrumbOptions, inactivePaginationOptions, inactiveStepperOptions, inactiveToolbarOptions, inactiveSelectOptions, inactiveComboboxOptions, inactiveTagsOptions, inactiveCommandOptions, inactiveCalendarOptions, inactiveDatePickerOptions } from '@pinfold/core';
 import { defineSeparator } from '@pinfold/react/separator';
 import { defineKbd, Kbd } from '@pinfold/react/kbd';
 import { defineSkeleton } from '@pinfold/react/skeleton';
@@ -30,6 +30,8 @@ import { defineSelect } from '@pinfold/react/select';
 import { defineCombobox } from '@pinfold/react/combobox';
 import { defineTags } from '@pinfold/react/tags';
 import { defineCommand } from '@pinfold/react/command';
+import { defineCalendar } from '@pinfold/react/calendar';
+import { defineDatePicker } from '@pinfold/react/datepicker';
 import { defineSlider } from '@pinfold/react/slider';
 import { defineNumberField } from '@pinfold/react/number';
 import { defineOtp } from '@pinfold/react/otp';
@@ -2055,6 +2057,158 @@ export function CommandPlayground() {
       file="components/palette"
       note={kind === 'dialog' ? 'A native modal: the page goes inert, Escape closes and focus returns. ⌘K / Ctrl+K opens it from anywhere.' : 'Typing narrows by name or keyword; the first command is active, so Enter runs it. Arrows skip the disabled one.'}
       demo={<Choice page={page} name="_kind" label="example" options={[['inline', 'on the page'], ['dialog', 'a ⌘K dialog']]} />}
+    />
+  );
+}
+
+/* -------------------------------------------------------------- calendar */
+
+const BOOKED = new Set(['2026-11-13', '2026-11-14', '2026-11-27']);
+const EVENTS: Record<string, string[]> = {
+  '2026-11-09': ['Design review, 10:00', 'Lunch with Maya'],
+  '2026-11-12': ['Release 0.17, 16:00'],
+  '2026-11-18': ['Accessibility audit'],
+  '2026-11-25': ['Quarterly planning', 'Team dinner'],
+};
+const nights = (r: { start: string; end: string } | null) => (r ? Math.round((Date.parse(r.end) - Date.parse(r.start)) / 864e5) : 0);
+
+/** A stay whose price follows the range; an agenda that follows the day; days that follow the picks. */
+function CalendarDemo({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const { _kind, ...rest } = props;
+  const [stay, setStay] = React.useState<{ start: string; end: string } | null>({ start: '2026-11-18', end: '2026-11-21' });
+  const [day, setDay] = React.useState('2026-11-09');
+  const [days, setDays] = React.useState<string[]>(['2026-11-10', '2026-11-11', '2026-11-17']);
+  if (_kind === 'range') {
+    const n = nights(stay);
+    return (
+      <div className="dx-stack">
+        <Preset {...rest} value={stay} onChange={setStay} />
+        <ul className="dx-lines">
+          <li><span>Stay</span><span>{stay ? `${stay.start} → ${stay.end}` : '—'}</span></li>
+          <li className="dx-lines__total"><span>{n} night{n === 1 ? '' : 's'} × $140</span><span>${n * 140}</span></li>
+        </ul>
+      </div>
+    );
+  }
+  if (_kind === 'multiple')
+    return (
+      <div className="dx-stack">
+        <Preset {...rest} value={days} onChange={setDays} />
+        <p className="dx-panel__lead">{days.length ? `Available on ${days.length} day${days.length === 1 ? '' : 's'}: ${days.join(', ')}.` : 'Pick the days you are free.'}</p>
+      </div>
+    );
+  return (
+    <div className="dx-stack">
+      <Preset {...rest} value={day} onChange={setDay} />
+      <ul className="dx-tasks">{(EVENTS[day] ?? ['Nothing planned.']).map((e) => <li key={e}>{e}</li>)}</ul>
+    </div>
+  );
+}
+
+export function CalendarPlayground() {
+  const page = usePage(calendarMeta, ['size', 'tone'], { _kind: 'single' });
+  const kind = String(page.inputs._kind);
+  const inactive = { ...inactiveCalendarOptions(page.options), mode: 'set by the example above.' };
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const shapes: Record<string, { body: string[]; use: Record<string, unknown>; code: string[] }> = {
+    single: {
+      body: ["const [day, setDay] = useState('2026-11-09');"],
+      use: { defaultMonth: '2026-11-01', value: src('2026-11-09', 'day'), onChange: src(() => {}, 'setDay') },
+      code: ['$TAG', '<Agenda day={day} />'],
+    },
+    range: {
+      body: ["const [stay, setStay] = useState({ start: '2026-11-18', end: '2026-11-21' });", "const booked = new Set(['2026-11-13', '2026-11-14', '2026-11-27']);"],
+      use: { mode: 'range', defaultMonth: '2026-11-01', min: '2026-11-03', value: src(null, 'stay'), onChange: src(() => {}, 'setStay'), isDateDisabled: src((d: string) => BOOKED.has(d), '(d) => booked.has(d)') },
+      code: ['$TAG', '<Price nights={nights(stay)} />'],
+    },
+    multiple: {
+      body: ["const [days, setDays] = useState(['2026-11-10', '2026-11-11', '2026-11-17']);"],
+      use: { mode: 'multiple', defaultMonth: '2026-11-01', isDateDisabled: src((d: string) => [0, 6].includes(new Date(d).getUTCDay()), '(d) => isWeekend(d)'), value: src([], 'days'), onChange: src(() => {}, 'setDays') },
+      code: ['$TAG'],
+    },
+  };
+  const shape = shapes[kind];
+  const spec: ExampleSpec = { name: 'Picker', preset: set, body: shape.body, tree: [{ app: CalendarDemo, use: { ...shape.use, _kind: src(kind, '') }, code: shape.code }] };
+  return (
+    <Page
+      meta={calendarMeta}
+      page={page}
+      define={defineCalendar}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size', 'tone']}
+      provider
+      align="start"
+      file="components/picker"
+      note={
+        kind === 'range'
+          ? 'Two picks, in any order; the band follows the pointer until the second. Booked nights cannot be chosen. The price follows.'
+          : kind === 'multiple'
+            ? 'Each pick toggles a day; weekends cannot be chosen. Values are ISO dates, the same on the server.'
+            : 'Arrows move a day or a week, PageUp and PageDown a month (with Shift, a year). The agenda follows the day.'
+      }
+      demo={<Choice page={page} name="_kind" label="example" options={[['single', 'a day and its agenda'], ['range', 'a stay and its price'], ['multiple', 'days you are free']]} />}
+    />
+  );
+}
+
+/* ------------------------------------------------------------ datepicker */
+
+/** A due date with how far away it is; a stay with its nights. */
+function DateDemo({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const { _kind, ...rest } = props;
+  const [due, setDue] = React.useState<string | null>('2026-11-20');
+  const [stay, setStay] = React.useState<{ start: string; end: string } | null>({ start: '2026-12-22', end: '2026-12-27' });
+  if (_kind === 'range')
+    return (
+      <div className="dx-stack">
+        <Preset {...rest} value={stay} onChange={setStay} />
+        <p className="dx-panel__lead">{stay ? `${nights(stay)} nights, checking in ${stay.start}.` : 'No dates yet.'}</p>
+      </div>
+    );
+  return (
+    <div className="dx-stack">
+      <Preset {...rest} value={due} onChange={setDue} />
+      <p className="dx-panel__lead">{due ? `Due ${due}: ${Math.round((Date.parse(due) - Date.parse('2026-11-08')) / 864e5)} days after 8 November.` : 'No due date.'}</p>
+    </div>
+  );
+}
+
+export function DatePickerPlayground() {
+  const page = usePage(datepickerMeta, ['size', 'tone'], { _kind: 'single', _keep: true });
+  const kind = String(page.inputs._kind);
+  const inactive = { ...inactiveDatePickerOptions(page.options), mode: 'set by the example above.' };
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const use: Record<string, unknown> =
+    kind === 'range'
+      ? { label: 'Stay', mode: 'range', name: 'stay', months: 2, locale: 'en-GB', value: src(null, 'stay'), onChange: src(() => {}, 'setStay'), _kind: src(kind, '') }
+      : { label: 'Due date', description: 'Type it, or pick it from the calendar.', locale: 'en-GB', min: '2026-11-08', value: src(null, 'due'), onChange: src(() => {}, 'setDue'), _kind: src(kind, '') };
+  const spec: ExampleSpec = {
+    name: 'DateField',
+    preset: set,
+    body: [kind === 'range' ? "const [stay, setStay] = useState({ start: '2026-12-22', end: '2026-12-27' });" : "const [due, setDue] = useState('2026-11-20');"],
+    tree: [{ app: DateDemo, use, code: ['$TAG'] }],
+    previewOnly: page.inputs._keep ? { open: true } : undefined,
+  };
+  return (
+    <Page
+      meta={datepickerMeta}
+      page={page}
+      define={defineDatePicker}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size', 'tone']}
+      provider
+      align="start"
+      file="components/date-field"
+      frame={(live) => <div className="dx-list-demo dx-list-demo--tall">{live}</div>}
+      note={page.inputs._keep ? KEEP_NOTE : 'Type "24/12/2026" (the UK order here) and press Enter, or ArrowDown to open the calendar on the chosen day.'}
+      demo={
+        <>
+          <Choice page={page} name="_kind" label="example" options={[['single', 'a due date'], ['range', 'a stay (range)']]} />
+          <Keep page={page} />
+        </>
+      }
     />
   );
 }

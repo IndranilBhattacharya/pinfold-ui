@@ -62,6 +62,8 @@ export function useUrlState<S>(key: string, initial: S, revive: (stored: any) =>
 }
 
 export const reviveEnv = (env: unknown): Env => ({ ...ENV, ...(env as object) });
+/** A select hands back text; an enum of numbers (`months`, `headingLevel`) wants the number back. */
+const typed = (meta: PropMeta, text: string): unknown => meta.values?.find((v) => String(v) === text) ?? text;
 const SILENT_HINT = 'No visual change: these set what assistive tech or the keyboard does.';
 
 /** The meta-driven option controls, with the inactive ones disabled and explained. */
@@ -105,7 +107,7 @@ export function OptionControls({
                 className="dx-select"
                 disabled={key in inactive}
                 value={options[key] === undefined ? '' : String(options[key])}
-                onChange={(e) => setOption(key, e.target.value === '' ? undefined : e.target.value)}
+                onChange={(e) => setOption(key, e.target.value === '' ? undefined : typed(meta, e.target.value))}
               >
                 {/* No library default means "inherit": offer that instead of a fixed value. */}
                 {meta.default === undefined || inherit.includes(key) ? <option value="">{autoLabel(key, meta)}</option> : null}
@@ -130,7 +132,7 @@ export function OptionControls({
             ) : (
               <label key={key} className="dx-opt" title={meta.description}>
                 <span>{key}</span>
-                <select className="dx-select" value={String(options[key] ?? '')} onChange={(e) => setOption(key, e.target.value)}>
+                <select className="dx-select" value={String(options[key] ?? '')} onChange={(e) => setOption(key, typed(meta, e.target.value))}>
                   {meta.values!.map((v) => (
                     <option key={String(v)} value={String(v)}>
                       {String(v)}

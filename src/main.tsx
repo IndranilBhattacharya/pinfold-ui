@@ -38,6 +38,8 @@ import '@pinfold/css/table.css';
 import '@pinfold/css/rating.css';
 import '@pinfold/css/timeline.css';
 import '@pinfold/css/empty.css';
+import '@pinfold/css/carousel.css';
+import '@pinfold/css/resizable.css';
 import '@pinfold/css/slider.css';
 import '@pinfold/css/number.css';
 import '@pinfold/css/otp.css';

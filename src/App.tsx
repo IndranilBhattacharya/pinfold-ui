@@ -4,10 +4,10 @@ import { PaletteStudio } from './PaletteStudio';
 import { useAccordion } from '@pinfold/react/accordion';
 import { resolveNode, version } from '@pinfold/core';
 import type { AccordionConfig, AccordionVariant } from '@pinfold/react/accordion';
-import { accordionMeta, alertMeta, avatarMeta, badgeMeta, buttonMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, menuMeta, radioMeta, switchMeta, popoverMeta, progressMeta, toastMeta, tooltipMeta, kbdMeta, separatorMeta, skeletonMeta, spinnerMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta, selectMeta, comboboxMeta, tagsMeta, commandMeta, calendarMeta, datepickerMeta, tableMeta, ratingMeta, timelineMeta, emptyMeta, type ComponentMeta, type PropMeta } from '@pinfold/core/meta';
+import { accordionMeta, alertMeta, avatarMeta, badgeMeta, buttonMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, menuMeta, radioMeta, switchMeta, popoverMeta, progressMeta, toastMeta, tooltipMeta, kbdMeta, separatorMeta, skeletonMeta, spinnerMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta, selectMeta, comboboxMeta, tagsMeta, commandMeta, calendarMeta, datepickerMeta, tableMeta, ratingMeta, timelineMeta, emptyMeta, carouselMeta, resizableMeta, type ComponentMeta, type PropMeta } from '@pinfold/core/meta';
 import { AccordionPlayground } from './playground/AccordionPlayground';
 import { ButtonPlayground, SpinnerPlayground } from './playground/ButtonPlayground';
-import { AlertPlayground, AvatarPlayground, BadgePlayground, CardPlayground, CheckboxPlayground, DialogPlayground, InputPlayground, KbdPlayground, MenuPlayground, PopoverPlayground, ProgressPlayground, RadioPlayground, SeparatorPlayground, SkeletonPlayground, SwitchPlayground, ToastPlayground, TooltipPlayground, TogglePlayground, ToolbarPlayground, SliderPlayground, NumberPlayground, OtpPlayground, TabsPlayground, BreadcrumbPlayground, PaginationPlayground, StepperPlayground, SelectPlayground, ComboboxPlayground, TagsPlayground, CommandPlayground, CalendarPlayground, DatePickerPlayground, TablePlayground, RatingPlayground, TimelinePlayground, EmptyPlayground } from './playground/Playgrounds';
+import { AlertPlayground, AvatarPlayground, BadgePlayground, CardPlayground, CheckboxPlayground, DialogPlayground, InputPlayground, KbdPlayground, MenuPlayground, PopoverPlayground, ProgressPlayground, RadioPlayground, SeparatorPlayground, SkeletonPlayground, SwitchPlayground, ToastPlayground, TooltipPlayground, TogglePlayground, ToolbarPlayground, SliderPlayground, NumberPlayground, OtpPlayground, TabsPlayground, BreadcrumbPlayground, PaginationPlayground, StepperPlayground, SelectPlayground, ComboboxPlayground, TagsPlayground, CommandPlayground, CalendarPlayground, DatePickerPlayground, TablePlayground, RatingPlayground, TimelinePlayground, EmptyPlayground, CarouselPlayground, ResizablePlayground } from './playground/Playgrounds';
 import { SiteMode } from './playground/shared';
 import { reflow } from './playground/example';
 
@@ -63,6 +63,8 @@ const COMPONENTS: ComponentRoute[] = [
   { meta: ratingMeta, status: 'new', Playground: RatingPlayground },
   { meta: timelineMeta, status: 'new', Playground: TimelinePlayground },
   { meta: emptyMeta, status: 'new', Playground: EmptyPlayground },
+  { meta: carouselMeta, status: 'new', Playground: CarouselPlayground },
+  { meta: resizableMeta, status: 'new', Playground: ResizablePlayground },
 ];
 
 function useRoute(): string {

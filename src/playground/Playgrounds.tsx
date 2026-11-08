@@ -1,7 +1,7 @@
 import * as React from 'react';
 import type { ComponentMeta } from '@pinfold/core/meta';
-import { alertMeta, avatarMeta, badgeMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, kbdMeta, menuMeta, popoverMeta, progressMeta, radioMeta, separatorMeta, skeletonMeta, switchMeta, toastMeta, tooltipMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta, selectMeta, comboboxMeta, tagsMeta, commandMeta, calendarMeta, datepickerMeta, tableMeta, ratingMeta, timelineMeta, emptyMeta } from '@pinfold/core/meta';
-import { inactiveAlertOptions, inactiveAvatarOptions, inactiveBadgeOptions, inactiveCardOptions, inactiveCheckboxOptions, inactiveDialogOptions, inactiveInputOptions, inactiveMenuOptions, inactivePopoverOptions, inactiveProgressOptions, inactiveSeparatorOptions, inactiveSkeletonOptions, inactiveToggleOptions, inactiveSliderOptions, inactiveNumberOptions, inactiveOtpOptions, inactiveTabsOptions, inactiveBreadcrumbOptions, inactivePaginationOptions, inactiveStepperOptions, inactiveToolbarOptions, inactiveSelectOptions, inactiveComboboxOptions, inactiveTagsOptions, inactiveCommandOptions, inactiveCalendarOptions, inactiveDatePickerOptions, inactiveTableOptions, inactiveRatingOptions, inactiveTimelineOptions, inactiveEmptyOptions } from '@pinfold/core';
+import { alertMeta, avatarMeta, badgeMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, kbdMeta, menuMeta, popoverMeta, progressMeta, radioMeta, separatorMeta, skeletonMeta, switchMeta, toastMeta, tooltipMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta, selectMeta, comboboxMeta, tagsMeta, commandMeta, calendarMeta, datepickerMeta, tableMeta, ratingMeta, timelineMeta, emptyMeta, carouselMeta, resizableMeta } from '@pinfold/core/meta';
+import { inactiveAlertOptions, inactiveAvatarOptions, inactiveBadgeOptions, inactiveCardOptions, inactiveCheckboxOptions, inactiveDialogOptions, inactiveInputOptions, inactiveMenuOptions, inactivePopoverOptions, inactiveProgressOptions, inactiveSeparatorOptions, inactiveSkeletonOptions, inactiveToggleOptions, inactiveSliderOptions, inactiveNumberOptions, inactiveOtpOptions, inactiveTabsOptions, inactiveBreadcrumbOptions, inactivePaginationOptions, inactiveStepperOptions, inactiveToolbarOptions, inactiveSelectOptions, inactiveComboboxOptions, inactiveTagsOptions, inactiveCommandOptions, inactiveCalendarOptions, inactiveDatePickerOptions, inactiveTableOptions, inactiveRatingOptions, inactiveTimelineOptions, inactiveEmptyOptions, inactiveCarouselOptions, inactiveResizableOptions } from '@pinfold/core';
 import { defineSeparator } from '@pinfold/react/separator';
 import { defineKbd, Kbd } from '@pinfold/react/kbd';
 import { defineSkeleton } from '@pinfold/react/skeleton';
@@ -36,6 +36,8 @@ import { defineTable } from '@pinfold/react/table';
 import { defineRating } from '@pinfold/react/rating';
 import { defineTimeline } from '@pinfold/react/timeline';
 import { defineEmpty } from '@pinfold/react/empty';
+import { defineCarousel } from '@pinfold/react/carousel';
+import { defineResizable } from '@pinfold/react/resizable';
 import { defineSlider } from '@pinfold/react/slider';
 import { defineNumberField } from '@pinfold/react/number';
 import { defineOtp } from '@pinfold/react/otp';
@@ -2491,6 +2493,144 @@ export function EmptyPlayground() {
       align="start"
       file="components/inbox"
       note="The empty state stands where the list was: its main action brings the messages back, and Archive all empties it again."
+    />
+  );
+}
+
+/* -------------------------------------------------------------- carousel */
+
+const SHOP = [
+  { name: 'Wool overshirt', price: 118 },
+  { name: 'Canvas tote', price: 34 },
+  { name: 'Linen shirt', price: 76 },
+  { name: 'Field jacket', price: 189 },
+  { name: 'Knit beanie', price: 28 },
+  { name: 'Leather belt', price: 52 },
+];
+
+/** Products in a row: adding one fills the cart under it. */
+function Shelf({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const [cart, setCart] = React.useState<string[]>([]);
+  const slides = SHOP.map((p, i) => ({
+    label: p.name,
+    content: (
+      <div className="dx-product">
+        <div className="dx-product__art" style={{ background: `linear-gradient(135deg, oklch(0.75 0.09 ${(i * 55) % 360}), oklch(0.6 0.12 ${(i * 55 + 40) % 360}))` }} />
+        <strong>{p.name}</strong>
+        <span className="dx-hint">${p.price}</span>
+        <Button label={cart.includes(p.name) ? 'In cart' : 'Add to cart'} size="sm" variant={cart.includes(p.name) ? 'soft' : 'solid'} onClick={() => setCart((c) => (c.includes(p.name) ? c.filter((x) => x !== p.name) : [...c, p.name]))} />
+      </div>
+    ),
+  }));
+  const total = SHOP.filter((p) => cart.includes(p.name)).reduce((s, p) => s + p.price, 0);
+  return (
+    <div className="dx-stack">
+      <Preset {...props} slides={slides} />
+      <p className="dx-panel__lead">{cart.length ? `${cart.length} in cart: $${total}.` : 'Your cart is empty.'}</p>
+    </div>
+  );
+}
+
+export function CarouselPlayground() {
+  const page = usePage(carouselMeta, ['size', 'tone'], { _autoplay: false, _per: '2' });
+  const perView = Number(page.inputs._per);
+  const inactive = inactiveCarouselOptions({ slides: SHOP, slidesPerView: perView });
+  const set = { ...Object.fromEntries(changed(page.options, page.defaults, inactive)), ...(perView !== 1 ? { slidesPerView: perView } : null) };
+  const use: Record<string, unknown> = { label: 'New arrivals', slides: src([], "products.map((p) => ({ label: p.name, content: <ProductCard product={p} onAdd={addToCart} /> }))") };
+  if (page.inputs._autoplay) use.autoplay = 4000;
+  const spec: ExampleSpec = { name: 'Gallery', preset: set, body: ['const { cart, addToCart } = useCart();'], tree: [{ app: Shelf, use, code: ['$TAG', '<CartSummary cart={cart} />'] }] };
+  return (
+    <Page
+      meta={carouselMeta}
+      page={page}
+      define={defineCarousel}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size', 'tone']}
+      provider
+      align="start"
+      file="components/new-arrivals"
+      note="Swipe or scroll the row, or use the buttons and dots. Adding a product fills the cart under it. With autoplay there is a pause button, and it stops while you point at it."
+      demo={
+        <>
+          <Choice page={page} name="_per" label="slidesPerView" options={[['1', '1'], ['1.2', '1.2 (peek)'], ['2', '2'], ['3', '3']]} />
+          <div className="dx-opts">
+            <Toggle page={page} name="_autoplay" label="autoplay every 4 s" />
+          </div>
+        </>
+      }
+    />
+  );
+}
+
+/* ------------------------------------------------------------- resizable */
+
+const FILES: Record<string, string> = {
+  'App.tsx': "export function App() {\n  return <Workspace label=\"Editor\" panels={panels} />;\n}",
+  'theme.css': ':root {\n  --pinfold-radius-scale: 1.25;\n}',
+  'README.md': '# Pinfold\n\nDrag the handle, or focus it and use the arrow keys.',
+};
+
+/** An editor: the file list on one side drives the code on the other. */
+function Editor({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const [file, setFile] = React.useState('App.tsx');
+  const panels = [
+    {
+      id: 'files',
+      label: 'Files',
+      defaultSize: 28,
+      min: 18,
+      max: 50,
+      content: (
+        <ul className="dx-filelist">
+          {Object.keys(FILES).map((f) => (
+            <li key={f}>
+              <button type="button" aria-current={f === file || undefined} onClick={() => setFile(f)}>
+                {FILE_ICON}
+                {f}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ),
+    },
+    { id: 'code', label: 'Code', min: 30, content: <pre className="dx-file dx-file--flat">{FILES[file]}</pre> },
+  ];
+  return <Preset {...props} panels={panels} />;
+}
+
+export function ResizablePlayground() {
+  const page = usePage(resizableMeta, ['size', 'tone'], {});
+  const inactive = inactiveResizableOptions(page.options);
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const spec: ExampleSpec = {
+    name: 'Workspace',
+    preset: set,
+    body: ["const [file, setFile] = useState('App.tsx');"],
+    tree: [
+      {
+        app: Editor,
+        use: {
+          label: 'Editor',
+          autoSaveId: 'editor',
+          panels: src([], "[{ id: 'files', label: 'Files', defaultSize: 28, min: 18, max: 50, content: <FileList current={file} onOpen={setFile} /> }, { id: 'code', label: 'Code', min: 30, content: <Code file={file} /> }]"),
+        },
+        code: ['$TAG'],
+      },
+    ],
+  };
+  return (
+    <Page
+      meta={resizableMeta}
+      page={page}
+      define={defineResizable}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size', 'tone']}
+      provider
+      align="start"
+      file="components/editor"
+      note="Drag the handle, or focus it and use the arrow keys (Home and End for the limits; a double click restores it). The sizes are kept in this browser. Choosing a file shows it beside."
     />
   );
 }

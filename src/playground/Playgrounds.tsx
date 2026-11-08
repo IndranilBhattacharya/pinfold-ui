@@ -1,7 +1,7 @@
 import * as React from 'react';
 import type { ComponentMeta } from '@pinfold/core/meta';
-import { alertMeta, avatarMeta, badgeMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, kbdMeta, menuMeta, popoverMeta, progressMeta, radioMeta, separatorMeta, skeletonMeta, switchMeta, toastMeta, tooltipMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta } from '@pinfold/core/meta';
-import { inactiveAlertOptions, inactiveAvatarOptions, inactiveBadgeOptions, inactiveCardOptions, inactiveCheckboxOptions, inactiveDialogOptions, inactiveInputOptions, inactiveMenuOptions, inactivePopoverOptions, inactiveProgressOptions, inactiveSeparatorOptions, inactiveSkeletonOptions, inactiveToggleOptions, inactiveSliderOptions, inactiveNumberOptions, inactiveOtpOptions, inactiveTabsOptions, inactiveBreadcrumbOptions, inactivePaginationOptions, inactiveStepperOptions, inactiveToolbarOptions } from '@pinfold/core';
+import { alertMeta, avatarMeta, badgeMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, kbdMeta, menuMeta, popoverMeta, progressMeta, radioMeta, separatorMeta, skeletonMeta, switchMeta, toastMeta, tooltipMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta, selectMeta, comboboxMeta } from '@pinfold/core/meta';
+import { inactiveAlertOptions, inactiveAvatarOptions, inactiveBadgeOptions, inactiveCardOptions, inactiveCheckboxOptions, inactiveDialogOptions, inactiveInputOptions, inactiveMenuOptions, inactivePopoverOptions, inactiveProgressOptions, inactiveSeparatorOptions, inactiveSkeletonOptions, inactiveToggleOptions, inactiveSliderOptions, inactiveNumberOptions, inactiveOtpOptions, inactiveTabsOptions, inactiveBreadcrumbOptions, inactivePaginationOptions, inactiveStepperOptions, inactiveToolbarOptions, inactiveSelectOptions, inactiveComboboxOptions } from '@pinfold/core';
 import { defineSeparator } from '@pinfold/react/separator';
 import { defineKbd, Kbd } from '@pinfold/react/kbd';
 import { defineSkeleton } from '@pinfold/react/skeleton';
@@ -26,6 +26,8 @@ import { Badge } from '@pinfold/react/badge';
 import { defineBreadcrumb } from '@pinfold/react/breadcrumb';
 import { definePagination } from '@pinfold/react/pagination';
 import { defineStepper } from '@pinfold/react/stepper';
+import { defineSelect } from '@pinfold/react/select';
+import { defineCombobox } from '@pinfold/react/combobox';
 import { defineSlider } from '@pinfold/react/slider';
 import { defineNumberField } from '@pinfold/react/number';
 import { defineOtp } from '@pinfold/react/otp';
@@ -1680,6 +1682,192 @@ export function StepperPlayground() {
           )}
         </>
       }
+    />
+  );
+}
+
+/* ---------------------------------------------------------------- select */
+
+const PLANS = [
+  { value: 'free', label: 'Free', description: '1 project', group: 'Personal', price: 0 },
+  { value: 'pro', label: 'Pro', description: 'Unlimited projects', group: 'Personal', price: 12 },
+  { value: 'team', label: 'Team', description: 'Up to 25 seats', group: 'Business', price: 48 },
+  { value: 'enterprise', label: 'Enterprise', description: 'Talk to us', group: 'Business', price: -1, disabled: true },
+];
+const REGIONS = ['Frankfurt', 'Mumbai', 'Oregon', 'São Paulo', 'Singapore', 'Sydney', 'Tokyo', 'Virginia'];
+const LABELS = ['bug', 'design', 'docs', 'feature', 'performance', 'security'];
+
+/** A project form: the select's value drives the summary under it. */
+function ProjectForm({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const { _kind, ...rest } = props;
+  const [plan, setPlan] = React.useState<string | null>('pro');
+  const [labels, setLabels] = React.useState<string[]>(['bug', 'docs']);
+  const [region, setRegion] = React.useState<string | null>('Tokyo');
+  if (_kind === 'multiple')
+    return (
+      <div className="dx-stack">
+        <Preset {...rest} value={labels} onChange={setLabels} />
+        <p className="dx-panel__lead">{labels.length ? `Issues labelled ${labels.join(', ')} go to this board.` : 'No labels: every issue goes to this board.'}</p>
+      </div>
+    );
+  if (_kind === 'strings')
+    return (
+      <div className="dx-stack">
+        <Preset {...rest} value={region} onChange={setRegion} />
+        <p className="dx-panel__lead">{region ? `Data stays in ${region}.` : 'Pick where your data lives.'}</p>
+      </div>
+    );
+  const chosen = PLANS.find((p) => p.value === plan);
+  return (
+    <div className="dx-stack">
+      <Preset {...rest} value={plan} onChange={setPlan} />
+      <ul className="dx-lines">
+        <li><span>Plan</span><span>{chosen?.label ?? '—'}</span></li>
+        <li className="dx-lines__total"><span>Billed monthly</span><span>{chosen ? `$${chosen.price}.00` : '—'}</span></li>
+      </ul>
+    </div>
+  );
+}
+
+export function SelectPlayground() {
+  const page = usePage(selectMeta, ['size', 'tone'], { _kind: 'groups', _keep: true });
+  const kind = String(page.inputs._kind);
+  const inactive = inactiveSelectOptions({ multiple: kind === 'multiple' });
+  const set = Object.fromEntries(changed(page.options, page.defaults, { ...inactive, multiple: 'set by the example' }));
+  const shapes: Record<string, { body: string[]; use: Record<string, unknown>; code: string[] }> = {
+    groups: {
+      body: ["const [plan, setPlan] = useState('pro');"],
+      use: { label: 'Plan', items: PLANS.map(({ price, ...p }) => p), value: src('pro', 'plan'), onChange: src(() => {}, 'setPlan') },
+      code: ['$TAG', '<PlanSummary plan={plan} />'],
+    },
+    strings: {
+      body: ["const [region, setRegion] = useState('Tokyo');"],
+      use: { label: 'Region', description: 'Where your data lives.', items: REGIONS, value: src('Tokyo', 'region'), onChange: src(() => {}, 'setRegion') },
+      code: ['$TAG'],
+    },
+    multiple: {
+      body: ["const [labels, setLabels] = useState(['bug', 'docs']);"],
+      use: { label: 'Labels', multiple: true, name: 'labels', items: LABELS, value: src(['bug', 'docs'], 'labels'), onChange: src(() => {}, 'setLabels') },
+      code: ['$TAG'],
+    },
+  };
+  const shape = shapes[kind];
+  const spec: ExampleSpec = { name: 'Field', preset: set, body: shape.body, tree: [{ app: ProjectForm, use: { ...shape.use, _kind: src(kind, '') }, code: shape.code }], previewOnly: page.inputs._keep ? { open: true } : undefined };
+  return (
+    <Page
+      meta={selectMeta}
+      page={page}
+      define={defineSelect}
+      spec={spec}
+      inactive={{ ...inactive, multiple: 'set by the example above.' }}
+      inherit={['size', 'tone']}
+      provider
+      align="start"
+      file="components/project-form"
+      frame={(live) => <div className="dx-list-demo">{live}</div>}
+      note={page.inputs._keep ? KEEP_NOTE : 'Arrows, Home and End move past disabled rows; letters jump; Enter or Space chooses. A hidden native select submits and validates.'}
+      demo={<><Choice page={page} name="_kind" label="example" options={[['groups', 'a plan: groups and descriptions'], ['strings', 'a region: rows from strings'], ['multiple', 'labels: several values']]} /><Keep page={page} /></>}
+    />
+  );
+}
+
+/* -------------------------------------------------------------- combobox */
+
+const CITIES = ['Amsterdam', 'Athens', 'Bogotá', 'Kraków', 'Lisbon', 'Montréal', 'Oslo', 'Osaka', 'Reykjavík', 'São Paulo', 'Zagreb', 'Zürich'];
+const REPOS = ['pinfold/pinfold', 'pinfold/pinfold-ui', 'facebook/react', 'vercel/next.js', 'vitejs/vite', 'tailwindlabs/tailwindcss', 'microsoft/typescript', 'nodejs/node', 'denoland/deno', 'sveltejs/svelte', 'vuejs/core', 'withastro/astro'];
+
+/** City: the chosen value drives a card; repository: a simulated server search; tags: a tag input. */
+function Finder({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const { _kind, loading: _printed, ...rest } = props;
+  const [city, setCity] = React.useState<string | null>(null);
+  const [tags, setTags] = React.useState<string[]>(['react']);
+  const [query, setQuery] = React.useState('vi');
+  const [results, setResults] = React.useState<string[]>(() => REPOS.filter((r) => r.includes('vi')));
+  const searched = React.useRef('vi');
+  const [fetching, setFetching] = React.useState(false);
+  // The "server": answers after a short wait; an empty query asks for nothing. Keyed on the query
+  // whose results are on screen, so a remount (or React's double effect) never refetches.
+  React.useEffect(() => {
+    if (_kind !== 'server' || query === searched.current) return setFetching(false);
+    if (!query.trim()) {
+      searched.current = query;
+      setFetching(false);
+      return setResults([]);
+    }
+    setFetching(true);
+    const timer = setTimeout(() => {
+      searched.current = query;
+      setResults(REPOS.filter((r) => r.includes(query.trim().toLowerCase())));
+      setFetching(false);
+    }, 450);
+    return () => clearTimeout(timer);
+  }, [_kind, query]);
+  if (_kind === 'server')
+    return (
+      <div className="dx-stack">
+        <Preset {...rest} items={results} inputValue={query} onInputChange={setQuery} {...(fetching ? { loading: true } : null)} />
+        <p className="dx-panel__lead">{query ? `${results.length} repositories match "${query}".` : 'Type a few letters: results come from the (simulated) server.'}</p>
+      </div>
+    );
+  if (_kind === 'tags')
+    return (
+      <div className="dx-stack">
+        <Preset {...rest} value={tags} onChange={setTags} />
+        <p className="dx-panel__lead">{tags.length} tags: {tags.join(', ') || 'none'}.</p>
+      </div>
+    );
+  return (
+    <div className="dx-stack">
+      <Preset {...rest} value={city} onChange={setCity} />
+      <p className="dx-panel__lead">{city ? `Shipping to ${city}.` : 'Type "zur" or "sao": accents and case do not matter.'}</p>
+    </div>
+  );
+}
+
+export function ComboboxPlayground() {
+  const page = usePage(comboboxMeta, ['size', 'tone'], { _kind: 'cities', _keep: true });
+  const kind = String(page.inputs._kind);
+  const inactive = inactiveComboboxOptions({ multiple: kind === 'tags' });
+  const fixed = { multiple: 'set by the example above.', ...(kind === 'server' ? { filter: 'set by the example: the server filters.' } : {}), ...(kind === 'tags' ? { allowCustom: 'set by the example above.' } : {}) };
+  const set = Object.fromEntries(changed(page.options, page.defaults, { ...inactive, ...fixed }));
+  const shapes: Record<string, { body: string[]; use: Record<string, unknown> }> = {
+    cities: {
+      body: ['const [city, setCity] = useState(null);'],
+      use: { label: 'City', placeholder: 'Search cities', items: CITIES, defaultInputValue: 'o', value: src(null, 'city'), onChange: src(() => {}, 'setCity') },
+    },
+    server: {
+      body: ["const [query, setQuery] = useState('vi');", 'const { data = [], isFetching } = useQuery({ queryKey: [\'repos\', query], queryFn: () => searchRepos(query), enabled: !!query });'],
+      use: { label: 'Repository', placeholder: 'owner/name', filter: 'none', items: src([], 'data'), loading: src(false, 'isFetching'), inputValue: src('vi', 'query'), onInputChange: src(() => {}, 'setQuery') },
+    },
+    tags: {
+      body: ["const [tags, setTags] = useState(['react']);"],
+      use: { label: 'Tags', multiple: true, allowCustom: true, placeholder: 'Add a tag', defaultInputValue: 'type', items: ['react', 'typescript', 'css', 'accessibility', 'design-system'], value: src(['react'], 'tags'), onChange: src(() => {}, 'setTags') },
+    },
+  };
+  const shape = shapes[kind];
+  const spec: ExampleSpec = { name: 'Search', preset: set, body: shape.body, tree: [{ app: Finder, use: { ...shape.use, _kind: src(kind, '') }, code: ['$TAG'] }], previewOnly: page.inputs._keep ? { open: true } : undefined };
+  return (
+    <Page
+      meta={comboboxMeta}
+      page={page}
+      define={defineCombobox}
+      spec={spec}
+      inactive={{ ...inactive, ...fixed }}
+      inherit={['size', 'tone']}
+      provider
+      align="start"
+      file="components/search"
+      frame={(live) => <div className="dx-list-demo">{live}</div>}
+      note={
+        page.inputs._keep
+          ? KEEP_NOTE
+          : kind === 'server'
+          ? 'filter="none": your items are the results; loading shows a row and marks the list busy while the (simulated) request runs.'
+          : kind === 'tags'
+            ? 'Enter adds what you typed; Backspace in an empty field removes the last tag.'
+            : 'The first match is active as you type, so Enter takes it. Escape closes, then clears.'
+      }
+      demo={<><Choice page={page} name="_kind" label="example" options={[['cities', 'cities: filter your rows'], ['server', 'repositories: search a server'], ['tags', 'tags: several, free text']]} /><Keep page={page} /></>}
     />
   );
 }

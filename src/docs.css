@@ -576,3 +576,6 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 40rem) {
   .dx-board { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* A select or combobox kept open: room for its list inside the stage. */
+.dx-list-demo { inline-size: 100%; min-block-size: 23rem; }

@@ -29,6 +29,7 @@ import '@pinfold/css/tabs.css';
 import '@pinfold/css/breadcrumb.css';
 import '@pinfold/css/pagination.css';
 import '@pinfold/css/stepper.css';
+import '@pinfold/css/select.css';
 import '@pinfold/css/slider.css';
 import '@pinfold/css/number.css';
 import '@pinfold/css/otp.css';

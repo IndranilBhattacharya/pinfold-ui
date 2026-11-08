@@ -1,7 +1,7 @@
 import * as React from 'react';
 import type { ComponentMeta } from '@pinfold/core/meta';
-import { alertMeta, avatarMeta, badgeMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, kbdMeta, menuMeta, popoverMeta, progressMeta, radioMeta, separatorMeta, skeletonMeta, switchMeta, toastMeta, tooltipMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta, selectMeta, comboboxMeta, tagsMeta, commandMeta, calendarMeta, datepickerMeta, tableMeta, ratingMeta, timelineMeta, emptyMeta, carouselMeta, resizableMeta } from '@pinfold/core/meta';
-import { inactiveAlertOptions, inactiveAvatarOptions, inactiveBadgeOptions, inactiveCardOptions, inactiveCheckboxOptions, inactiveDialogOptions, inactiveInputOptions, inactiveMenuOptions, inactivePopoverOptions, inactiveProgressOptions, inactiveSeparatorOptions, inactiveSkeletonOptions, inactiveToggleOptions, inactiveSliderOptions, inactiveNumberOptions, inactiveOtpOptions, inactiveTabsOptions, inactiveBreadcrumbOptions, inactivePaginationOptions, inactiveStepperOptions, inactiveToolbarOptions, inactiveSelectOptions, inactiveComboboxOptions, inactiveTagsOptions, inactiveCommandOptions, inactiveCalendarOptions, inactiveDatePickerOptions, inactiveTableOptions, inactiveRatingOptions, inactiveTimelineOptions, inactiveEmptyOptions, inactiveCarouselOptions, inactiveResizableOptions } from '@pinfold/core';
+import { alertMeta, avatarMeta, badgeMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, kbdMeta, menuMeta, popoverMeta, progressMeta, radioMeta, separatorMeta, skeletonMeta, switchMeta, toastMeta, tooltipMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta, selectMeta, comboboxMeta, tagsMeta, commandMeta, calendarMeta, datepickerMeta, tableMeta, ratingMeta, timelineMeta, emptyMeta, carouselMeta, resizableMeta, sidebarMeta, navmenuMeta, colorpickerMeta } from '@pinfold/core/meta';
+import { inactiveAlertOptions, inactiveAvatarOptions, inactiveBadgeOptions, inactiveCardOptions, inactiveCheckboxOptions, inactiveDialogOptions, inactiveInputOptions, inactiveMenuOptions, inactivePopoverOptions, inactiveProgressOptions, inactiveSeparatorOptions, inactiveSkeletonOptions, inactiveToggleOptions, inactiveSliderOptions, inactiveNumberOptions, inactiveOtpOptions, inactiveTabsOptions, inactiveBreadcrumbOptions, inactivePaginationOptions, inactiveStepperOptions, inactiveToolbarOptions, inactiveSelectOptions, inactiveComboboxOptions, inactiveTagsOptions, inactiveCommandOptions, inactiveCalendarOptions, inactiveDatePickerOptions, inactiveTableOptions, inactiveRatingOptions, inactiveTimelineOptions, inactiveEmptyOptions, inactiveCarouselOptions, inactiveResizableOptions, inactiveSidebarOptions, inactiveNavMenuOptions, inactiveColorPickerOptions } from '@pinfold/core';
 import { defineSeparator } from '@pinfold/react/separator';
 import { defineKbd, Kbd } from '@pinfold/react/kbd';
 import { defineSkeleton } from '@pinfold/react/skeleton';
@@ -38,6 +38,9 @@ import { defineTimeline } from '@pinfold/react/timeline';
 import { defineEmpty } from '@pinfold/react/empty';
 import { defineCarousel } from '@pinfold/react/carousel';
 import { defineResizable } from '@pinfold/react/resizable';
+import { defineSidebar } from '@pinfold/react/sidebar';
+import { defineNavMenu } from '@pinfold/react/navmenu';
+import { defineColorPicker } from '@pinfold/react/colorpicker';
 import { defineSlider } from '@pinfold/react/slider';
 import { defineNumberField } from '@pinfold/react/number';
 import { defineOtp } from '@pinfold/react/otp';
@@ -2631,6 +2634,275 @@ export function ResizablePlayground() {
       align="start"
       file="components/editor"
       note="Drag the handle, or focus it and use the arrow keys (Home and End for the limits; a double click restores it). The sizes are kept in this browser. Choosing a file shows it beside."
+    />
+  );
+}
+
+/* --------------------------------------------------------------- sidebar */
+
+const NAV_ITEMS = [
+  { label: 'Inbox', href: '/inbox', icon: svg('M4 13h4l2 3h4l2-3h4M5 5h14l2 8v6H3v-6z'), badge: 4 },
+  { label: 'Today', href: '/today', icon: CAL_ICON },
+  {
+    label: 'Projects',
+    icon: svg('M3 6h6l2 2h10v11H3z'),
+    items: [
+      { label: 'Pinfold', href: '/projects/pinfold' },
+      { label: 'Atlas', href: '/projects/atlas', badge: 'New' },
+      { label: 'Archive', href: '/projects/archive' },
+    ],
+  },
+  { label: 'Reports', href: '/reports', icon: BOARD_ICON },
+  { label: 'Settings', href: '/settings', icon: svg('M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM4 12h2M18 12h2M12 4v2M12 18v2'), group: 'Account' },
+  { label: 'Billing', href: '/billing', icon: svg('M3 6h18v12H3zM3 10h18'), group: 'Account' },
+];
+const NAV_PAGES: Record<string, { title: string; lead: string }> = {
+  '/inbox': { title: 'Inbox', lead: '4 unread messages, newest first.' },
+  '/today': { title: 'Today', lead: 'Three tasks due and one meeting at 15:00.' },
+  '/projects/pinfold': { title: 'Pinfold', lead: '41 components, 12 open issues.' },
+  '/projects/atlas': { title: 'Atlas', lead: 'Started this week: two members, no issues yet.' },
+  '/projects/archive': { title: 'Archive', lead: 'Finished projects, read only.' },
+  '/reports': { title: 'Reports', lead: 'Weekly activity and time spent per project.' },
+  '/settings': { title: 'Settings', lead: 'Profile, notifications and connected apps.' },
+  '/billing': { title: 'Billing', lead: 'Team plan, renews on the 1st.' },
+};
+
+/** An app shell: the sidebar drives the page beside it through its router. */
+function Shell({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const [path, setPath] = React.useState('/projects/atlas');
+  const current = NAV_PAGES[path] ?? { title: path, lead: '' };
+  return (
+    <div className="dx-app">
+      <Preset
+        {...props}
+        value={path}
+        onNavigate={setPath}
+        header={
+          <div className="dx-app__brand">
+            <span aria-hidden="true">A</span>
+            <strong>Acme Inc</strong>
+          </div>
+        }
+        footer={
+          <div className="dx-app__brand dx-app__brand--user">
+            <span aria-hidden="true">ML</span>
+            <span>Mara Lind</span>
+          </div>
+        }
+      />
+      <main className="dx-app__main">
+        <p className="dx-hint">{path}</p>
+        <h3>{current.title}</h3>
+        <p className="dx-panel__lead">{current.lead}</p>
+      </main>
+    </div>
+  );
+}
+
+export function SidebarPlayground() {
+  const page = usePage(sidebarMeta, ['size', 'tone'], {});
+  const inactive = inactiveSidebarOptions(page.options);
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const spec: ExampleSpec = {
+    name: 'AppNav',
+    preset: set,
+    body: ['const pathname = usePathname();', 'const router = useRouter();'],
+    tree: [
+      {
+        app: Shell,
+        use: {
+          label: 'Main',
+          value: src('/projects/atlas', 'pathname'),
+          onNavigate: src(undefined, 'router.push'),
+          header: src(null, '<Workspace />'),
+          footer: src(null, '<Account />'),
+          items: src(NAV_ITEMS, "[{ label: 'Inbox', href: '/inbox', icon: <InboxIcon />, badge: 4 }, { label: 'Today', href: '/today', icon: <CalendarIcon /> }, { label: 'Projects', icon: <FolderIcon />, items: [{ label: 'Pinfold', href: '/projects/pinfold' }, { label: 'Atlas', href: '/projects/atlas', badge: 'New' }, { label: 'Archive', href: '/projects/archive' }] }, { label: 'Reports', href: '/reports', icon: <ChartIcon /> }, { label: 'Settings', href: '/settings', icon: <CogIcon />, group: 'Account' }, { label: 'Billing', href: '/billing', icon: <CardIcon />, group: 'Account' }]"),
+        },
+        code: ['<div className="app">', '  $TAG', '  <main>{children}</main>', '</div>'],
+      },
+    ],
+  };
+  return (
+    <Page
+      meta={sidebarMeta}
+      page={page}
+      define={defineSidebar}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size', 'tone']}
+      provider
+      align="start"
+      file="app/layout"
+      note="Choosing an entry routes the page beside it (here a small in-page router stands in for yours). Projects opens because it holds the current page. With collapsible, the button at the foot folds it into a rail: names stay for screen readers, badges become dots, and pressing Projects opens it again."
+    />
+  );
+}
+
+/* ------------------------------------------------------- navigation menu */
+
+const SITE_ITEMS = [
+  {
+    label: 'Products',
+    items: [
+      { label: 'Analytics', href: '/analytics', description: 'Know where your traffic comes from.', icon: svg('M4 20V10M10 20V4M16 20v-7M22 20H2') },
+      { label: 'Automation', href: '/automation', description: 'Flows that run on their own.', icon: svg('M13 2 4 14h7l-1 8 9-12h-7z') },
+      { label: 'Reports', href: '/reports', description: 'Weekly numbers, sent to the team.', icon: svg('M6 3h9l4 4v14H6zM9 12h7M9 16h7') },
+      { label: 'Security', href: '/security', description: 'Single sign-on and audit logs.', icon: svg('M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z') },
+    ],
+  },
+  {
+    label: 'Resources',
+    content: (
+      <a className="dx-feature" href="/launch" onClick={(e) => e.preventDefault()}>
+        <strong>Northwind 3.0</strong>
+        <span>Flows, reports and a new editor, out now.</span>
+      </a>
+    ),
+    items: [
+      { label: 'Docs', href: '/docs', description: 'Guides and the API reference.' },
+      { label: 'Changelog', href: '/changelog', description: 'What shipped this month.' },
+      { label: 'Community', href: '/community', description: 'Questions, answers and events.' },
+    ],
+  },
+  { label: 'Pricing', href: '/pricing' },
+  { label: 'Customers', href: '/customers' },
+];
+const SITE_PAGES: Record<string, string> = {
+  '/': 'Home: the product in one page.',
+  '/analytics': 'Analytics: sessions, sources and funnels.',
+  '/automation': 'Automation: triggers, steps and runs.',
+  '/reports': 'Reports: scheduled summaries by email.',
+  '/security': 'Security: SSO, roles and the audit log.',
+  '/docs': 'Docs: start here.',
+  '/changelog': 'Changelog: 12 releases this year.',
+  '/community': 'Community: 4,200 members.',
+  '/pricing': 'Pricing: free, team and enterprise.',
+  '/customers': 'Customers: stories from 40 teams.',
+};
+
+/** A website: the menu routes the page under it. */
+function SiteHeader({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const [path, setPath] = React.useState('/analytics');
+  return (
+    <div className="dx-site">
+      <header className="dx-site__bar">
+        <a className="dx-site__logo" href="/" onClick={(e) => { e.preventDefault(); setPath('/'); }}>
+          Northwind
+        </a>
+        <Preset {...props} value={path} onNavigate={setPath} />
+      </header>
+      <div className="dx-site__page">
+        <p className="dx-hint">{path}</p>
+        <p className="dx-panel__lead">{SITE_PAGES[path] ?? path}</p>
+      </div>
+    </div>
+  );
+}
+
+export function NavMenuPlayground() {
+  const page = usePage(navmenuMeta, ['size', 'tone'], { _keep: true });
+  const inactive = inactiveNavMenuOptions({ items: SITE_ITEMS });
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const spec: ExampleSpec = {
+    name: 'SiteNav',
+    preset: set,
+    body: ['const pathname = usePathname();', 'const router = useRouter();'],
+    tree: [
+      {
+        app: SiteHeader,
+        use: {
+          label: 'Main',
+          value: src('/analytics', 'pathname'),
+          onNavigate: src(undefined, 'router.push'),
+          items: src(SITE_ITEMS, "[{ label: 'Products', items: [{ label: 'Analytics', href: '/analytics', description: 'Know where your traffic comes from.', icon: <ChartIcon /> }, { label: 'Automation', href: '/automation', description: 'Flows that run on their own.', icon: <BoltIcon /> }, { label: 'Reports', href: '/reports', description: 'Weekly numbers, sent to the team.', icon: <FileIcon /> }, { label: 'Security', href: '/security', description: 'Single sign-on and audit logs.', icon: <ShieldIcon /> }] }, { label: 'Resources', content: <LaunchCard />, items: [{ label: 'Docs', href: '/docs', description: 'Guides and the API reference.' }, { label: 'Changelog', href: '/changelog', description: 'What shipped this month.' }, { label: 'Community', href: '/community', description: 'Questions, answers and events.' }] }, { label: 'Pricing', href: '/pricing' }, { label: 'Customers', href: '/customers' }]"),
+        },
+        code: ['<header>', '  <Logo />', '  $TAG', '</header>'],
+      },
+    ],
+    previewOnly: page.inputs._keep ? { open: 'Products' } : undefined,
+  };
+  return (
+    <Page
+      meta={navmenuMeta}
+      page={page}
+      define={defineNavMenu}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size', 'tone']}
+      provider
+      align="start"
+      file="components/site-header"
+      note={page.inputs._keep ? 'Products is kept open here so its options show (not in the code). Turn off "keep open" to use it for real: rest the pointer on an entry, or press it; arrow keys move between entries and into a panel.' : 'Rest the pointer on Products or Resources, or tab to them and press Enter or Arrow Down. Choosing a link routes the page under the header.'}
+      demo={<Keep page={page} />}
+    />
+  );
+}
+
+/* ---------------------------------------------------------- color picker */
+
+const BRAND_SWATCHES = ['#4f46e5', '#0ea5e9', '#16a34a', '#f59e0b', '#e11d48', '#0f172a'];
+
+/** A brand colour editor: the card and the tokens follow the picker. */
+function BrandEditor({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const [color, setColor] = React.useState<{ hex: string; rgb: string; hsl: string; oklch: string; alpha: number }>({ hex: '#4f46e5', rgb: 'rgb(79 70 229)', hsl: 'hsl(243 75% 59%)', oklch: 'oklch(51.1% 0.23 276.9)', alpha: 1 });
+  return (
+    <div className="dx-brand">
+      <Preset {...props} onChange={(_value: string, c: typeof color) => setColor(c)} />
+      <div className="dx-brand__out">
+        <div className="dx-brand__card" style={{ '--dx-brand': color.rgb } as React.CSSProperties}>
+          <span className="dx-brand__chip">New</span>
+          <strong>Your brand, live</strong>
+          <span className="dx-hint">Buttons, links and highlights use it.</span>
+          <span className="dx-brand__button">Get started</span>
+        </div>
+        <dl className="dx-brand__tokens">
+          {(['hex', 'rgb', 'hsl', 'oklch'] as const).map((k) => (
+            <React.Fragment key={k}>
+              <dt>{k}</dt>
+              <dd>
+                <code>{color[k]}</code>
+              </dd>
+            </React.Fragment>
+          ))}
+        </dl>
+      </div>
+    </div>
+  );
+}
+
+export function ColorPickerPlayground() {
+  const page = usePage(colorpickerMeta, ['size'], {});
+  const inactive = inactiveColorPickerOptions(page.options);
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const spec: ExampleSpec = {
+    name: 'BrandColor',
+    preset: set,
+    body: ["const [brand, setBrand] = useState('#4f46e5');"],
+    tree: [
+      {
+        app: BrandEditor,
+        use: {
+          label: 'Brand colour',
+          value: src('#4f46e5', 'brand'),
+          onChange: src(undefined, 'setBrand'),
+          swatches: src(BRAND_SWATCHES, "['#4f46e5', '#0ea5e9', '#16a34a', '#f59e0b', '#e11d48', '#0f172a']"),
+        },
+        code: ['$TAG', "<BrandCard style={{ '--brand': brand }} />"],
+      },
+    ],
+  };
+  return (
+    <Page
+      meta={colorpickerMeta}
+      page={page}
+      define={defineColorPicker}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size']}
+      provider={['size']}
+      align="start"
+      file="components/brand-color"
+      note="Drag in the area, use the sliders, press a swatch, or type or paste any CSS colour (hex, rgb, hsl, oklch) and press Enter. The card and the token list beside it follow; format sets how the value is written. The eyedropper shows in browsers that have it (Chromium)."
     />
   );
 }

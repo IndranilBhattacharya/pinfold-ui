@@ -580,3 +580,4 @@ a { color: inherit; text-decoration: none; }
 /* A select or combobox kept open: room for its list inside the stage. */
 .dx-list-demo { inline-size: 100%; min-block-size: 23rem; }
 .dx-list-demo--tall { min-block-size: 30rem; }
+.dx-bulk { align-items: center; padding: 0.5rem 0.75rem; background: color-mix(in oklab, var(--pinfold-color-accent) 9%, transparent); border-radius: var(--pinfold-radius-md); }

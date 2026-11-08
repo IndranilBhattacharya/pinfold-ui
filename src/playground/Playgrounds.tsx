@@ -1,14 +1,14 @@
 import * as React from 'react';
 import type { ComponentMeta } from '@pinfold/core/meta';
-import { alertMeta, avatarMeta, badgeMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, kbdMeta, menuMeta, popoverMeta, progressMeta, radioMeta, separatorMeta, skeletonMeta, switchMeta, toastMeta, tooltipMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta, selectMeta, comboboxMeta, tagsMeta, commandMeta, calendarMeta, datepickerMeta } from '@pinfold/core/meta';
-import { inactiveAlertOptions, inactiveAvatarOptions, inactiveBadgeOptions, inactiveCardOptions, inactiveCheckboxOptions, inactiveDialogOptions, inactiveInputOptions, inactiveMenuOptions, inactivePopoverOptions, inactiveProgressOptions, inactiveSeparatorOptions, inactiveSkeletonOptions, inactiveToggleOptions, inactiveSliderOptions, inactiveNumberOptions, inactiveOtpOptions, inactiveTabsOptions, inactiveBreadcrumbOptions, inactivePaginationOptions, inactiveStepperOptions, inactiveToolbarOptions, inactiveSelectOptions, inactiveComboboxOptions, inactiveTagsOptions, inactiveCommandOptions, inactiveCalendarOptions, inactiveDatePickerOptions } from '@pinfold/core';
+import { alertMeta, avatarMeta, badgeMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, kbdMeta, menuMeta, popoverMeta, progressMeta, radioMeta, separatorMeta, skeletonMeta, switchMeta, toastMeta, tooltipMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta, selectMeta, comboboxMeta, tagsMeta, commandMeta, calendarMeta, datepickerMeta, tableMeta } from '@pinfold/core/meta';
+import { inactiveAlertOptions, inactiveAvatarOptions, inactiveBadgeOptions, inactiveCardOptions, inactiveCheckboxOptions, inactiveDialogOptions, inactiveInputOptions, inactiveMenuOptions, inactivePopoverOptions, inactiveProgressOptions, inactiveSeparatorOptions, inactiveSkeletonOptions, inactiveToggleOptions, inactiveSliderOptions, inactiveNumberOptions, inactiveOtpOptions, inactiveTabsOptions, inactiveBreadcrumbOptions, inactivePaginationOptions, inactiveStepperOptions, inactiveToolbarOptions, inactiveSelectOptions, inactiveComboboxOptions, inactiveTagsOptions, inactiveCommandOptions, inactiveCalendarOptions, inactiveDatePickerOptions, inactiveTableOptions } from '@pinfold/core';
 import { defineSeparator } from '@pinfold/react/separator';
 import { defineKbd, Kbd } from '@pinfold/react/kbd';
 import { defineSkeleton } from '@pinfold/react/skeleton';
 import { defineBadge } from '@pinfold/react/badge';
 import { defineAlert } from '@pinfold/react/alert';
 import { Avatar, defineAvatar } from '@pinfold/react/avatar';
-import { defineCard } from '@pinfold/react/card';
+import { Card, defineCard } from '@pinfold/react/card';
 import { defineProgress } from '@pinfold/react/progress';
 import { defineTooltip } from '@pinfold/react/tooltip';
 import { definePopover } from '@pinfold/react/popover';
@@ -32,6 +32,7 @@ import { defineTags } from '@pinfold/react/tags';
 import { defineCommand } from '@pinfold/react/command';
 import { defineCalendar } from '@pinfold/react/calendar';
 import { defineDatePicker } from '@pinfold/react/datepicker';
+import { defineTable } from '@pinfold/react/table';
 import { defineSlider } from '@pinfold/react/slider';
 import { defineNumberField } from '@pinfold/react/number';
 import { defineOtp } from '@pinfold/react/otp';
@@ -2209,6 +2210,134 @@ export function DatePickerPlayground() {
           <Keep page={page} />
         </>
       }
+    />
+  );
+}
+
+/* ----------------------------------------------------------------- table */
+
+const ROLES = ['Engineer', 'Designer', 'Researcher', 'Writer', 'Manager'];
+const TEAM = Array.from({ length: 23 }, (_, i) => ({
+  id: `u${i + 1}`,
+  name: ['Maya Chen', 'Leo Park', 'Ines Duarte', 'Sam Okafor', 'Aiko Mori', 'Noah Fischer', 'Priya Nair', 'Tom Hale', 'Lena Kraus', 'Omar Haddad', 'Sara Lind', 'Jon Price'][i % 12] + (i >= 12 ? ' II' : ''),
+  role: ROLES[(i * 3) % ROLES.length],
+  projects: ((i * 7) % 9) + 1,
+  joined: `20${18 + (i % 8)}-0${(i % 9) + 1}-1${i % 9}`,
+}));
+type Person = (typeof TEAM)[number];
+
+/** A directory: search filters the rows, boxes feed a bulk bar, a row opens its details. */
+function Directory({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const { _kind, _choose, loading: _printed, ...rest } = props;
+  const [query, setQuery] = React.useState('');
+  const [chosen, setChosen] = React.useState<string[]>([]);
+  const [open, setOpen] = React.useState<Person | null>(null);
+  const [page, setPage] = React.useState(1);
+  const [sort, setSort] = React.useState<{ key: string; direction: 'ascending' | 'descending' } | null>(null);
+  const [fetching, setFetching] = React.useState(false);
+  const [served, setServed] = React.useState(() => TEAM.slice(0, 8));
+  const found = TEAM.filter((p) => `${p.name} ${p.role}`.toLowerCase().includes(query.trim().toLowerCase()));
+  // The "server": sorts and pages after a short wait. Keyed on what is on screen, so a remount never refetches.
+  const loaded = React.useRef('1/null');
+  React.useEffect(() => {
+    if (_kind !== 'server') return;
+    const key = `${page}/${sort ? sort.key + sort.direction : 'null'}`;
+    if (key === loaded.current) return;
+    setFetching(true);
+    const timer = setTimeout(() => {
+      const ordered = sort ? [...TEAM].sort((a, b) => String(a[sort.key as keyof Person]).localeCompare(String(b[sort.key as keyof Person]), undefined, { numeric: true }) * (sort.direction === 'ascending' ? 1 : -1)) : TEAM;
+      loaded.current = key;
+      setServed(ordered.slice((page - 1) * 8, page * 8));
+      setFetching(false);
+    }, 450);
+    return () => clearTimeout(timer);
+  }, [_kind, page, sort]);
+  const server = _kind === 'server';
+  return (
+    <div className="dx-stack">
+      {server ? null : <Input label="Search people" hideLabel placeholder="Search by name or role" value={query} onChange={(v) => (setQuery(v), setPage(1))} />}
+      {chosen.length ? (
+        <div className="dx-panel__row dx-bulk">
+          <span>{chosen.length} selected</span>
+          <Button label="Message" size="sm" variant="soft" />
+          <Button label="Clear" size="sm" variant="ghost" onClick={() => setChosen([])} />
+        </div>
+      ) : null}
+      <Preset
+        {...rest}
+        rows={server ? served : found}
+        {...(server ? { total: TEAM.length, manualSort: true, sort, onSortChange: (s: typeof sort) => (setSort(s), setPage(1)) } : null)}
+        page={page}
+        onPageChange={setPage}
+        {...(_choose ? { selected: chosen, onSelectionChange: setChosen } : null)}
+        onRowAction={(row: Person) => setOpen(row)}
+        {...(fetching ? { loading: true } : null)}
+      />
+      {open ? (
+        <Card title={open.name} description={`${open.role} · ${open.projects} projects · joined ${open.joined}`} actions={[{ label: 'Close', onClick: () => setOpen(null) }]} />
+      ) : null}
+    </div>
+  );
+}
+
+export function TablePlayground() {
+  const page = usePage(tableMeta, ['size', 'tone'], { _kind: 'client' });
+  const kind = String(page.inputs._kind);
+  const inactive = inactiveTableOptions({ selection: page.options.selection as string, pageSize: 8 });
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const columns = [
+    { key: 'name', sortable: true },
+    { key: 'role', sortable: true },
+    { key: 'projects', align: 'end', sortable: true },
+    { key: 'joined', header: 'Joined', sortable: true },
+  ];
+  const choose = !!page.options.selection && page.options.selection !== 'none';
+  const use: Record<string, unknown> = { label: 'Team', columns, pageSize: 8, _kind: src(kind, ''), _choose: src(choose, '') };
+  const spec: ExampleSpec =
+    kind === 'server'
+      ? {
+          name: 'Grid',
+          preset: set,
+          body: [
+            'const [page, setPage] = useState(1);',
+            'const [sort, setSort] = useState(null);',
+            "const { data, isFetching } = useQuery({ queryKey: ['team', page, sort], queryFn: () => fetchTeam({ page, sort }), placeholderData: keepPreviousData });",
+          ],
+          tree: [{ app: Directory, use: { ...use, rows: src([], 'data.rows'), total: src(TEAM.length, 'data.total'), manualSort: true, sort: src(null, 'sort'), onSortChange: src(() => {}, 'setSort'), page: src(1, 'page'), onPageChange: src(() => {}, 'setPage'), loading: src(false, 'isFetching') }, code: ['$TAG'] }],
+        }
+      : {
+          name: 'Grid',
+          preset: set,
+          body: [
+            "const [query, setQuery] = useState('');",
+            'const [chosen, setChosen] = useState([]);',
+            'const rows = team.filter((p) => matches(p, query));',
+          ],
+          tree: [
+            {
+              app: Directory,
+              use: { ...use, rows: src(TEAM, 'rows'), ...(choose ? { selected: src([], 'chosen'), onSelectionChange: src(() => {}, 'setChosen') } : null), onRowAction: src(() => {}, '(person) => openProfile(person)') },
+              code: ['<Search value={query} onChange={setQuery} />', ...(choose ? ['{chosen.length > 0 && <BulkBar count={chosen.length} />}'] : []), '$TAG'],
+            },
+          ],
+        };
+  return (
+    <Page
+      meta={tableMeta}
+      page={page}
+      define={defineTable}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size', 'tone']}
+      provider
+      align="start"
+      file="components/team"
+      note={
+        kind === 'server'
+          ? 'The (simulated) server sorts and pages: manualSort and total. While it answers, the rows stay and the table is busy.'
+          : 'Search filters the rows; headers sort (again to reverse, a third time to clear); boxes feed the bar above; a row opens its details.'
+      }
+      demo={<Choice page={page} name="_kind" label="example" options={[['client', 'rows you hold: search, sort, choose'], ['server', 'a server that sorts and pages']]} />}
     />
   );
 }

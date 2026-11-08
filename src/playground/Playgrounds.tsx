@@ -30,6 +30,10 @@ import { defineSlider } from '@pinfold/react/slider';
 import { defineNumberField } from '@pinfold/react/number';
 import { defineOtp } from '@pinfold/react/otp';
 import { Button, useButton } from '@pinfold/react/button';
+import { Input } from '@pinfold/react/input';
+import { Switch } from '@pinfold/react/switch';
+import { Radio } from '@pinfold/react/radio';
+import { Progress } from '@pinfold/react/progress';
 import { changed, CodePanel, controlsOf, defaultsOf, ENV, EnvControls, OptionControls, reviveEnv, Stage, useUrlState, type Env } from './shared';
 import { exampleCode, Live, src, type ExampleNode, type ExampleSpec } from './example';
 import { LANDSCAPE, PEOPLE } from './people';
@@ -1059,22 +1063,164 @@ const USER_ICON = TAB_ICON('M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0
 const CARD_ICON = TAB_ICON('M3 6h18v12H3zM3 10h18');
 const TEAM_ICON = TAB_ICON('M16 21a5 5 0 0 0-10 0M11 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM21 21a4 4 0 0 0-4-4M17 4a4 4 0 0 1 0 8');
 const BELL_SMALL = TAB_ICON('M6 9a6 6 0 1 1 12 0c0 6 2 7 2 8H4c0-1 2-2 2-8zM10 21a2 2 0 0 0 4 0');
+const FILE_ICON = TAB_ICON('M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5');
+const HOME_ICON = TAB_ICON('M3 11 12 4l9 7M5 10v10h14V10');
+const FOLDER_ICON = TAB_ICON('M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z');
+
+function ProfilePanel() {
+  return (
+    <div className="dx-panel">
+      <Input label="Name" defaultValue="Maya Chen" />
+      <Input label="Email" type="email" defaultValue="maya@example.com" description="Where we send receipts." />
+      <div><Button label="Save profile" size="sm" /></div>
+    </div>
+  );
+}
+function BillingPanel() {
+  return (
+    <div className="dx-panel">
+      <p className="dx-panel__lead">Team plan · $48 a month · renews on 1 December</p>
+      <Progress value={72} label="Seats used: 18 of 25" />
+      <div className="dx-panel__row">
+        <Button label="Change plan" size="sm" variant="soft" />
+        <Button label="Invoices" size="sm" variant="ghost" />
+      </div>
+    </div>
+  );
+}
+function TeamPanel() {
+  return (
+    <ul className="dx-panel dx-people">
+      {PEOPLE.slice(0, 4).map((p, i) => (
+        <li key={p.name}>
+          <Avatar name={p.name} src={p.photo} size="sm" />
+          <span>{p.name}</span>
+          <span className="dx-hint">{['Owner', 'Admin', 'Editor', 'Viewer'][i]}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+function AlertsPanel() {
+  return (
+    <div className="dx-panel">
+      <Switch label="Comments on my work" defaultChecked />
+      <Switch label="Weekly summary" description="Every Monday, 9 am." defaultChecked />
+      <Switch label="Product news" />
+    </div>
+  );
+}
+
+const SOURCE: Record<string, string> = {
+  'index.tsx': "import { createRoot } from 'react-dom/client';\nimport { App } from './App';\n\ncreateRoot(document.getElementById('root')!).render(<App />);",
+  'App.tsx': "export function App() {\n  return <Settings label=\"Settings\" items={items} />;\n}",
+  'theme.css': ':root {\n  --pinfold-radius-scale: 1.25;\n}',
+};
+const START_FILES = ['index.tsx', 'App.tsx', 'theme.css'];
+
+/** Editor tabs: open files that close and add, in the demo's own state. */
+function EditorTabs({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const [files, setFiles] = React.useState(START_FILES);
+  const [open, setOpen] = React.useState('App.tsx');
+  const items = files.map((name) => ({ id: name, label: name, icon: FILE_ICON, content: <pre className="dx-file">{SOURCE[name] ?? '// A new, empty file'}</pre> }));
+  const add = () => {
+    let n = 1;
+    while (files.includes(`untitled-${n}.ts`)) n++;
+    setFiles((f) => [...f, `untitled-${n}.ts`]);
+    setOpen(`untitled-${n}.ts`);
+  };
+  return <Preset {...props} items={items} value={open} onChange={setOpen} onClose={(id: string) => setFiles((f) => f.filter((x) => x !== id))} onAdd={add} />;
+}
+
+const VIEWS = ['Board', 'List', 'Timeline'] as const;
+const TASKS = ['Design review', 'Ship 0.14', 'Docs pass', 'Fix focus ring', 'Pack audit', 'Release notes'];
+function ViewOf({ name }: { name: string }) {
+  if (name === 'Board')
+    return (
+      <div className="dx-board">
+        {['To do', 'Doing', 'Done'].map((col, c) => (
+          <div key={col}>
+            <strong>{col}</strong>
+            {TASKS.filter((_, i) => i % 3 === c).map((t) => <span key={t}>{t}</span>)}
+          </div>
+        ))}
+      </div>
+    );
+  if (name === 'List') return <ol className="dx-tasks">{TASKS.map((t) => <li key={t}>{t}</li>)}</ol>;
+  return (
+    <ol className="dx-timeline">
+      {TASKS.slice(0, 4).map((t, i) => (
+        <li key={t} style={{ marginInlineStart: `${i * 12}%`, inlineSize: '40%' }}>{t}</li>
+      ))}
+    </ol>
+  );
+}
+/** Views: string tabs, controlled, and the content they pick rendered beside them. */
+function ViewTabs({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const [view, setView] = React.useState<string>('Board');
+  return (
+    <div className="dx-stack">
+      <Preset {...props} value={view} onChange={setView} />
+      <ViewOf name={view} />
+    </div>
+  );
+}
 
 export function TabsPlayground() {
-  const page = usePage(tabsMeta, ['size', 'tone'], { _icons: false, _disabled: false });
+  const page = usePage(tabsMeta, ['size', 'tone'], { _demo: 'settings', _icons: true, _disabled: false });
+  const demo = String(page.inputs._demo);
   const icons = !!page.inputs._icons;
-  const inactive = inactiveTabsOptions(page.options);
+  const inactive = inactiveTabsOptions({ ...page.options, onAdd: demo === 'editor' || undefined, onClose: demo === 'editor' || undefined });
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
-  const panel = (text: string, name: string) => src(<p>{text}</p>, `<${name} />`);
   const count = src(<Badge count={3} label="new" />, '<Badge count={3} label="new" />');
-  const items = [
-    { id: 'profile', label: 'Profile', icon: icons ? src(USER_ICON, '<UserIcon />') : undefined, content: panel('Name, photo and how others see you.', 'ProfileForm') },
-    { id: 'billing', label: 'Billing', icon: icons ? src(CARD_ICON, '<CardIcon />') : undefined, content: panel('Your plan, invoices and payment method.', 'BillingForm') },
-    { id: 'team', label: 'Team', icon: icons ? src(TEAM_ICON, '<TeamIcon />') : undefined, disabled: page.inputs._disabled ? true : undefined, content: panel('Invite people and set their roles.', 'TeamForm') },
-    { id: 'alerts', label: 'Notifications', icon: icons ? src(BELL_SMALL, '<BellIcon />') : undefined, endContent: icons ? count : undefined, content: panel('What we email you about, and how often.', 'AlertsForm') },
-  ];
-  const spec: ExampleSpec = { name: 'Settings', preset: set, tree: [{ use: { label: 'Account settings', items } }] };
-  if (icons) spec.imports = ["import { Badge } from '@pinfold/react/badge';"];
+  let spec: ExampleSpec;
+  if (demo === 'editor') {
+    const items = START_FILES.map((name) => ({ id: name, label: name }));
+    spec = {
+      name: 'FileTabs',
+      preset: set,
+      body: [
+        "const [files, setFiles] = useState(['index.tsx', 'App.tsx', 'theme.css']);",
+        "const [open, setOpen] = useState('App.tsx');",
+        'const items = files.map((name) => ({ id: name, label: name, icon: <FileIcon />, content: <Editor file={name} /> }));',
+      ],
+      tree: [
+        {
+          app: EditorTabs,
+          use: {
+            label: 'Open files',
+            items: src(items, 'items'),
+            value: src('App.tsx', 'open'),
+            onChange: src(() => {}, 'setOpen'),
+            onClose: src(() => {}, '(id) => setFiles((f) => f.filter((name) => name !== id))'),
+            onAdd: src(() => {}, '() => setFiles((f) => [...f, `untitled-${f.length}.ts`])'),
+          },
+          code: ['$TAG'],
+        },
+      ],
+    };
+  } else if (demo === 'views') {
+    spec = {
+      name: 'ViewTabs',
+      preset: set,
+      body: ["const [view, setView] = useState('Board');"],
+      tree: [{ app: ViewTabs, use: { label: 'View', items: [...VIEWS], value: src('Board', 'view'), onChange: src(() => {}, 'setView') }, code: ['$TAG', '<ViewOf name={view} />'] }],
+    };
+  } else {
+    const items = [
+      { id: 'profile', label: 'Profile', icon: icons ? src(USER_ICON, '<UserIcon />') : undefined, content: src(<ProfilePanel />, '<ProfilePanel />') },
+      { id: 'billing', label: 'Billing', icon: icons ? src(CARD_ICON, '<CardIcon />') : undefined, content: src(<BillingPanel />, '<BillingPanel />') },
+      { id: 'team', label: 'Team', icon: icons ? src(TEAM_ICON, '<TeamIcon />') : undefined, disabled: page.inputs._disabled ? true : undefined, content: src(<TeamPanel />, '<TeamPanel />') },
+      { id: 'alerts', label: 'Notifications', icon: icons ? src(BELL_SMALL, '<BellIcon />') : undefined, endContent: icons ? count : undefined, content: src(<AlertsPanel />, '<AlertsPanel />') },
+    ];
+    spec = {
+      name: 'Settings',
+      preset: set,
+      tree: [{ use: { label: 'Account settings', items } }],
+      after: ['// ProfilePanel, BillingPanel…: your own components. Each renders only while its tab is selected', '// (keepMounted keeps them, and their state, when hidden).'],
+    };
+    if (icons) spec.imports = ["import { Badge } from '@pinfold/react/badge';"];
+  }
   return (
     <Page
       meta={tabsMeta}
@@ -1086,12 +1232,23 @@ export function TabsPlayground() {
       provider
       align="start"
       file="components/settings"
-      note="Arrow keys move between tabs and wrap; a disabled tab is on the way but never selected."
+      note={
+        demo === 'editor'
+          ? 'Close with the × or Delete; the neighbour takes over and keeps focus. + adds a file. Your state owns the list.'
+          : demo === 'views'
+            ? 'Strings are tabs: items={["Board", "List", "Timeline"]}. The selected id drives whatever you render.'
+            : 'Arrow keys move between tabs and wrap; a disabled tab is on the way but never selected. Each panel is a real component.'
+      }
       demo={
-        <div className="dx-opts">
-          <Toggle page={page} name="_icons" label="icons and a count" />
-          <Toggle page={page} name="_disabled" label="a disabled tab" />
-        </div>
+        <>
+          <Choice page={page} name="_demo" label="example" options={[['settings', 'settings with panels'], ['editor', 'editor: close and add'], ['views', 'views from strings']]} />
+          {demo === 'settings' ? (
+            <div className="dx-opts">
+              <Toggle page={page} name="_icons" label="icons and a count" />
+              <Toggle page={page} name="_disabled" label="a disabled tab" />
+            </div>
+          ) : null}
+        </>
       }
     />
   );
@@ -1099,20 +1256,83 @@ export function TabsPlayground() {
 
 /* ------------------------------------------------------------ breadcrumb */
 
-export function BreadcrumbPlayground() {
-  const page = usePage(breadcrumbMeta, ['size'], { _collapse: false, _icons: false });
-  const maxItems = page.inputs._collapse ? 3 : undefined;
-  const inactive = inactiveBreadcrumbOptions({ maxItems });
-  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
-  const home = page.inputs._icons ? src(HOME_ICON, '<HomeIcon />') : undefined;
-  const items = [
-    { label: 'Home', href: '/', icon: home },
-    { label: 'Projects', href: '/projects' },
-    { label: 'Pinfold', href: '/projects/pinfold' },
-    { label: 'Documentation', href: '/projects/pinfold/docs' },
-    { label: 'Settings' },
+type Tree = { [name: string]: Tree };
+const FOLDERS: Tree = {
+  projects: { pinfold: { docs: { guides: {}, reference: {} }, src: { components: {}, tokens: {} }, tests: {} }, atlas: { docs: {}, src: {} }, nova: { designs: {} } },
+  team: { design: {}, research: {} },
+  archive: { 2024: {}, 2025: {} },
+};
+const segmentsOf = (path: string) => path.split('/').filter(Boolean);
+const folderAt = (segments: string[]) => segments.reduce<Tree | undefined>((node, s) => node?.[s], FOLDERS) ?? {};
+const readable = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/** The crumbs of a path, each with the other folders at its level as a menu. */
+function crumbsFor(path: string, icon: boolean) {
+  const all = segmentsOf(path);
+  return [
+    { label: 'Home', href: '/', icon: icon ? HOME_ICON : undefined },
+    ...all.map((segment, i) => {
+      const href = '/' + all.slice(0, i + 1).join('/');
+      const siblings = Object.keys(folderAt(all.slice(0, i))).filter((s) => s !== segment);
+      return { label: readable(segment), href, menu: siblings.length ? siblings.map((s) => ({ label: readable(s), href: '/' + [...all.slice(0, i), s].join('/') })) : undefined };
+    }),
   ];
-  const spec: ExampleSpec = { name: 'Trail', preset: { ...set, maxItems }, tree: [{ use: { items } }] };
+}
+
+/** A folder browser: the trail and the folder it points at share one path. */
+function FolderBrowser({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const [path, setPath] = React.useState('/projects/pinfold/docs/guides');
+  const children = Object.keys(folderAt(segmentsOf(path)));
+  const trail = props.path !== undefined ? { path, items: undefined } : { items: crumbsFor(path, !!props._icon) };
+  const { _icon, ...rest } = props;
+  return (
+    <div className="dx-stack">
+      <Preset {...rest} {...trail} onNavigate={(href: string) => setPath(href)} />
+      <div className="dx-folder" aria-label="Folder contents">
+        {children.length ? (
+          children.map((name) => (
+            <button key={name} type="button" className="dx-folder__item" onClick={() => setPath(`${path === '/' ? '' : path}/${name}`)}>
+              {FOLDER_ICON}
+              {readable(name)}
+            </button>
+          ))
+        ) : (
+          <span className="dx-hint">This folder is empty. Use the trail to go back up.</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function BreadcrumbPlayground() {
+  const page = usePage(breadcrumbMeta, ['size', 'tone'], { _source: 'items', _collapse: false, _icons: true });
+  const fromPath = page.inputs._source === 'path';
+  const maxItems = page.inputs._collapse ? 3 : undefined;
+  const inactive = inactiveBreadcrumbOptions({ maxItems, variant: page.options.variant as string, ...(fromPath ? { path: '/' } : { items: [] }) });
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  const start = '/projects/pinfold/docs/guides';
+  const use: Record<string, unknown> = fromPath
+    ? { path: src(start, 'path'), onNavigate: src(() => {}, 'setPath') }
+    : { items: src(crumbsFor(start, !!page.inputs._icons), 'crumbs'), onNavigate: src(() => {}, 'setPath'), _icon: src(!!page.inputs._icons, '') };
+  const spec: ExampleSpec = {
+    name: 'Trail',
+    preset: { ...set, maxItems },
+    body: fromPath
+      ? ["const [path, setPath] = useState('/projects/pinfold/docs/guides'); // or your router's pathname"]
+      : [
+          "const [path, setPath] = useState('/projects/pinfold/docs/guides');",
+          "const segments = path.split('/').filter(Boolean);",
+          'const crumbs = [',
+          `  { label: 'Home', href: '/'${page.inputs._icons ? ', icon: <HomeIcon />' : ''} },`,
+          '  ...segments.map((segment, i) => ({',
+          '    label: titleCase(segment),',
+          "    href: '/' + segments.slice(0, i + 1).join('/'),",
+          '    menu: otherFolders(segments.slice(0, i), segment), // [{ label, href }]: the pages next to this one',
+          '  })),',
+          '];',
+        ],
+    tree: [{ app: FolderBrowser, use, code: ['$TAG', '<FolderView path={path} onOpen={setPath} />'] }],
+  };
   return (
     <Page
       meta={breadcrumbMeta}
@@ -1120,31 +1340,143 @@ export function BreadcrumbPlayground() {
       define={defineBreadcrumb}
       spec={spec}
       inactive={inactive}
-      inherit={['size']}
+      inherit={['size', 'tone']}
       provider={['size']}
+      align="start"
       file="components/trail"
-      note="The last crumb is the current page. Collapsed crumbs come back with the … button, and focus lands on the first one."
+      note={
+        fromPath
+          ? 'path={pathname} builds the trail: one crumb per segment, made readable. Clicks go to onNavigate (or the provider\'s navigate), so the page never reloads.'
+          : 'Each crumb opens the folders next to it (▾). The last crumb is the current page. Clicks go to onNavigate, so the page never reloads.'
+      }
       demo={
-        <div className="dx-opts">
-          <Toggle page={page} name="_collapse" label="collapse the middle (maxItems: 3)" />
-          <Toggle page={page} name="_icons" label="a home icon" />
-        </div>
+        <>
+          <Choice page={page} name="_source" label="crumbs from" options={[['items', 'items, with menus of the other folders'], ['path', 'a URL path (path)']]} />
+          <div className="dx-opts">
+            <Toggle page={page} name="_collapse" label="collapse the middle (maxItems: 3)" />
+            {fromPath ? null : <Toggle page={page} name="_icons" label="a home icon" />}
+          </div>
+        </>
       }
     />
   );
 }
-const HOME_ICON = TAB_ICON('M3 11 12 4l9 7M5 10v10h14V10');
 
 /* ------------------------------------------------------------ pagination */
 
+const CUSTOMERS = ['Northwind', 'Globex', 'Initech', 'Umbrella', 'Hooli', 'Vandelay', 'Stark', 'Wayne', 'Acme', 'Soylent', 'Tyrell'];
+const STATUSES = [
+  ['Paid', 'success'],
+  ['Pending', 'warning'],
+  ['Overdue', 'danger'],
+] as const;
+const INVOICES = Array.from({ length: 137 }, (_, i) => ({
+  id: `INV-${String(2041 + i)}`,
+  customer: CUSTOMERS[(i * 7) % CUSTOMERS.length],
+  amount: ((i * 7919) % 4800) + 120,
+  status: STATUSES[(i * 5) % 7 === 0 ? 2 : (i * 3) % 4 === 0 ? 1 : 0],
+}));
+type Invoice = (typeof INVOICES)[number];
+
+function InvoiceTable({ rows, busy }: { rows: readonly Invoice[]; busy?: boolean }) {
+  return (
+    <div className="dx-table-wrap" aria-busy={busy || undefined} style={{ opacity: busy ? 0.55 : 1, transition: 'opacity 150ms' }}>
+      <table className="dx-table dx-table--data">
+        <thead>
+          <tr>
+            <th>Invoice</th>
+            <th>Customer</th>
+            <th>Status</th>
+            <th style={{ textAlign: 'end' }}>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.id}>
+              <td><code>{r.id}</code></td>
+              <td>{r.customer}</td>
+              <td><Badge label={r.status[0]} tone={r.status[1]} size="sm" /></td>
+              <td style={{ textAlign: 'end' }}>${r.amount.toLocaleString('en-US')}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/** Invoices paged three ways: an array in memory, a server that counts, and a cursor API. */
+function Invoices({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const mode = props._mode as 'client' | 'server' | 'cursor';
+  // `loading` is printed as your fetch state; the preview drives it from its own fetch.
+  const { _mode, loading: _printed, ...rest } = props;
+  const [query, setQuery] = React.useState({ page: 1, pageSize: rest.pageSizes?.[0] ?? 10 });
+  const slice = (q: typeof query) => INVOICES.slice((q.page - 1) * q.pageSize, q.page * q.pageSize);
+  const [shown, setShown] = React.useState(() => slice(query));
+  const [fetching, setFetching] = React.useState(false);
+  // The "server": answers after a short wait, as a real request would. The first page arrives with the page.
+  // Keyed on what is on screen, so a remount (or React's double effect in development) never refetches.
+  const loaded = React.useRef(`${query.page}/${query.pageSize}`);
+  React.useEffect(() => {
+    const key = `${query.page}/${query.pageSize}`;
+    if (key === loaded.current) return;
+    if (mode === 'client') {
+      loaded.current = key;
+      return setShown(slice(query));
+    }
+    setFetching(true);
+    const timer = setTimeout(() => {
+      loaded.current = key;
+      setShown(slice(query));
+      setFetching(false);
+    }, 450);
+    return () => clearTimeout(timer);
+  }, [mode, query.page, query.pageSize]); // eslint-disable-line react-hooks/exhaustive-deps
+  const onChange = (page: number, { pageSize }: { pageSize: number }) => setQuery({ page, pageSize });
+  const counted = mode === 'cursor' ? { hasNext: query.page * query.pageSize < INVOICES.length, total: undefined } : { total: INVOICES.length };
+  return (
+    <div className="dx-stack">
+      <InvoiceTable rows={shown} busy={fetching} />
+      <Preset {...rest} {...counted} page={query.page} pageSize={query.pageSize} onChange={onChange} {...(fetching ? { loading: true } : null)} />
+    </div>
+  );
+}
+
 export function PaginationPlayground() {
-  const page = usePage(paginationMeta, ['size', 'tone'], { _links: false });
-  const inactive = inactivePaginationOptions(page.options);
+  const page = usePage(paginationMeta, ['size', 'tone'], { _data: 'client', _sizes: true });
+  const mode = String(page.inputs._data) as 'client' | 'server' | 'cursor';
+  const sizes = page.inputs._sizes ? [10, 25, 50] : undefined;
+  const scope = mode === 'cursor' ? { hasNext: true } : { total: INVOICES.length };
+  const inactive = inactivePaginationOptions({ ...page.options, ...scope });
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
-  const use: Record<string, unknown> = { count: 20, defaultPage: 6 };
-  if (page.inputs._links) use.getHref = src((p: number) => `#/pagination?page=${p}`, '(p) => `/blog?page=${p}`');
-  else use.onChange = src(() => {}, 'setPage');
-  const spec: ExampleSpec = { name: 'Pages', preset: set, tree: [{ use }] };
+  const onChange = src(() => {}, '(page, { pageSize }) => setQuery({ page, pageSize })');
+  const base = { page: src(1, 'query.page'), pageSize: src(sizes?.[0] ?? 10, 'query.pageSize'), pageSizes: sizes, onChange, _mode: src(mode, '') };
+  const shapes = {
+    client: {
+      body: ['const [query, setQuery] = useState({ page: 1, pageSize: 10 });', 'const rows = invoices.slice((query.page - 1) * query.pageSize, query.page * query.pageSize);'],
+      use: { total: src(INVOICES.length, 'invoices.length'), ...base },
+      code: ['<InvoiceTable rows={rows} />', '$TAG'],
+    },
+    server: {
+      body: [
+        'const [query, setQuery] = useState({ page: 1, pageSize: 10 });',
+        '// Your fetch, e.g. TanStack Query: GET /invoices?offset=(page - 1) * pageSize&limit=pageSize',
+        "const { data, isFetching } = useQuery({ queryKey: ['invoices', query], queryFn: () => fetchInvoices(query), placeholderData: keepPreviousData });",
+      ],
+      use: { total: src(INVOICES.length, 'data.total'), ...base, loading: src(false, 'isFetching') },
+      code: ['<InvoiceTable rows={data.rows} busy={isFetching} />', '$TAG'],
+    },
+    cursor: {
+      body: [
+        'const [query, setQuery] = useState({ page: 1, pageSize: 10 });',
+        '// A cursor API has no total: it says whether there is more.',
+        'const { data, isFetching } = useInvoicesAfter(cursors[query.page - 1], query.pageSize); // { rows, nextCursor }',
+      ],
+      use: { hasNext: src(true, 'data.nextCursor != null'), ...base, loading: src(false, 'isFetching') },
+      code: ['<InvoiceTable rows={data.rows} busy={isFetching} />', '$TAG'],
+    },
+  }[mode];
+  const spec: ExampleSpec = { name: 'Pages', preset: set, body: shapes.body, tree: [{ app: Invoices, use: shapes.use, code: shapes.code }] };
   return (
     <Page
       meta={paginationMeta}
@@ -1154,12 +1486,22 @@ export function PaginationPlayground() {
       inactive={inactive}
       inherit={['size', 'tone']}
       provider
-      file="components/pages"
-      note="The row keeps its length on every page, so nothing moves under the pointer."
+      align="start"
+      file="components/invoices"
+      note={
+        mode === 'client'
+          ? 'One state object drives the rows and the pages. A page-size change keeps the first row on screen.'
+          : mode === 'server'
+            ? 'The table waits on a (simulated) server: loading keeps the old rows, pulses the cursor and blocks double clicks.'
+            : 'No total from the API: hasNext says whether there is more; the row shows previous, the page, next.'
+      }
       demo={
-        <div className="dx-opts">
-          <Toggle page={page} name="_links" label="real links (getHref)" />
-        </div>
+        <>
+          <Choice page={page} name="_data" label="data" options={[['client', 'an array you hold'], ['server', 'a server that counts (total)'], ['cursor', 'a cursor API (hasNext)']]} />
+          <div className="dx-opts">
+            <Toggle page={page} name="_sizes" label="page sizes [10, 25, 50]" />
+          </div>
+        </>
       }
     />
   );
@@ -1167,19 +1509,141 @@ export function PaginationPlayground() {
 
 /* --------------------------------------------------------------- stepper */
 
-export function StepperPlayground() {
-  const page = usePage(stepperMeta, ['size', 'tone'], { _step: '1', _back: true });
-  const inactive = inactiveStepperOptions(page.options);
-  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+function CartStep() {
+  return (
+    <ul className="dx-lines">
+      <li><span>Wool overshirt · M</span><span>$118.00</span></li>
+      <li><span>Canvas tote</span><span>$34.00</span></li>
+      <li className="dx-lines__total"><span>Subtotal</span><span>$152.00</span></li>
+    </ul>
+  );
+}
+function ShippingStep({ address, setAddress, error }: { address: string; setAddress: (v: string) => void; error?: string }) {
+  return (
+    <div className="dx-panel">
+      <Input label="Full name" defaultValue="Maya Chen" />
+      <Input label="Street address" value={address} onChange={setAddress} error={error} required placeholder="12 Harbour Road" />
+    </div>
+  );
+}
+function PaymentStep() {
+  return (
+    <Radio
+      label="Pay with"
+      variant="card"
+      defaultValue="card"
+      items={[
+        { value: 'card', label: 'Card', description: 'Visa ending 4242' },
+        { value: 'paypal', label: 'PayPal' },
+        { value: 'invoice', label: 'Invoice', description: 'Due in 30 days' },
+      ]}
+    />
+  );
+}
+function ReviewStep({ address }: { address: string }) {
+  return (
+    <ul className="dx-lines">
+      <li><span>Ship to</span><span>{address || '—'}</span></li>
+      <li><span>Pay with</span><span>Card ending 4242</span></li>
+      <li className="dx-lines__total"><span>Total</span><span>$152.00</span></li>
+    </ul>
+  );
+}
+const WIZARD = [
+  { label: 'Cart', description: '2 items' },
+  { label: 'Shipping', description: 'Where it goes' },
+  { label: 'Payment', optional: true },
+  { label: 'Review' },
+];
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** A checkout: the stepper drives the panels; Next checks the address first. */
+function Checkout({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const { _async, _markError, ...rest } = props;
+  const [step, setStep] = React.useState(0);
+  const [address, setAddress] = React.useState('');
+  const [error, setError] = React.useState<string>();
+  const validate = () => {
+    const ok = address.trim().length > 3;
+    setError(ok ? undefined : 'Enter the street address.');
+    return ok;
+  };
   const items = [
-    { label: 'Cart', description: '3 items' },
-    { label: 'Shipping', description: 'Address and speed' },
-    { label: 'Payment' },
-    { label: 'Review' },
+    { ...WIZARD[0], content: <CartStep /> },
+    { ...WIZARD[1], error: _markError && !!error, content: <ShippingStep address={address} setAddress={(v) => (setAddress(v), setError(undefined))} error={error} /> },
+    { ...WIZARD[2], content: <PaymentStep /> },
+    { ...WIZARD[3], content: <ReviewStep address={address} /> },
   ];
-  const use: Record<string, unknown> = { value: Number(page.inputs._step), items };
-  if (page.inputs._back) use.onChange = src((step: number) => page.setOption('_step', String(step)), 'setStep');
-  const spec: ExampleSpec = { name: 'Checkout', preset: set, tree: [{ use }] };
+  const done = (
+    <div className="dx-panel dx-done">
+      <strong>Order placed.</strong>
+      <span className="dx-hint">A receipt is on its way to maya@example.com.</span>
+      <div><Button label="Start over" size="sm" variant="soft" onClick={() => (setStep(0), setAddress(''))} /></div>
+    </div>
+  );
+  return (
+    <Preset
+      {...rest}
+      items={items}
+      value={step}
+      onChange={setStep}
+      onNext={(s: number) => (s !== 1 ? true : _async ? wait(700).then(validate) : validate())}
+      onComplete={() => wait(600)}
+      doneContent={done}
+    />
+  );
+}
+
+/** Progress only: the stepper beside your own flow, its value from your state. */
+function StepsOnly({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const { _back, ...rest } = props;
+  const [step, setStep] = React.useState<number>(rest.value);
+  React.useEffect(() => setStep(rest.value), [rest.value]);
+  return <Preset {...rest} value={step} onChange={_back ? setStep : undefined} />;
+}
+
+export function StepperPlayground() {
+  const page = usePage(stepperMeta, ['size', 'tone'], { _content: true, _async: true, _error: true, _step: '1', _back: true });
+  const content = !!page.inputs._content;
+  const inactive = inactiveStepperOptions({ ...page.options, onChange: content || page.inputs._back ? () => {} : undefined, items: content ? [{ content: 1 }] : [] });
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
+  let spec: ExampleSpec;
+  if (content) {
+    spec = {
+      name: 'Checkout',
+      preset: set,
+      body: [
+        'const [step, setStep] = useState(0);',
+        "const [address, setAddress] = useState('');",
+        `const checkAddress = ${page.inputs._async ? "async () => (await api.validateAddress(address)).ok; // Next shows loading meanwhile" : '() => address.trim().length > 3;'}`,
+      ],
+      tree: [
+        {
+          app: Checkout,
+          use: {
+            items: [
+              { ...WIZARD[0], content: src(null, '<Cart />') },
+              { ...WIZARD[1], content: src(null, '<ShippingForm address={address} onChange={setAddress} />'), error: page.inputs._error ? src(false, '!addressValid') : undefined },
+              { ...WIZARD[2], content: src(null, '<Payment />') },
+              { ...WIZARD[3], content: src(null, '<Review />') },
+            ],
+            value: src(0, 'step'),
+            onChange: src(() => {}, 'setStep'),
+            onNext: src(() => true, '(step) => step !== 1 || checkAddress()'),
+            onComplete: src(() => {}, 'placeOrder'),
+            doneContent: src(null, '<OrderPlaced onRestart={() => setStep(0)} />'),
+            _async: src(!!page.inputs._async, ''),
+            _markError: src(!!page.inputs._error, ''),
+          },
+          code: ['$TAG'],
+        },
+      ],
+    };
+  } else {
+    const use: Record<string, unknown> = { value: src(Number(page.inputs._step), String(page.inputs._step)), items: ['Cart', 'Shipping', 'Payment', 'Review'], _back: src(!!page.inputs._back, '') };
+    if (page.inputs._back) use.onChange = src(() => {}, 'setStep');
+    spec = { name: 'Steps', preset: set, tree: [{ app: StepsOnly, use, code: ['$TAG'] }] };
+  }
   return (
     <Page
       meta={stepperMeta}
@@ -1191,12 +1655,30 @@ export function StepperPlayground() {
       provider
       align="start"
       file="components/checkout"
-      note="Steps already done are buttons that go back (with onChange); steps not reached never are."
+      note={
+        content
+          ? 'Try Next on Shipping with an empty address: onNext keeps you there (after a check when it is async). Done steps go back; Finish waits on onComplete.'
+          : 'Steps already done are buttons that go back (with onChange); steps not reached never are, unless linear is off.'
+      }
       demo={
-        <div className="dx-opts">
-          <Choice page={page} name="_step" label="current step" options={[['0', '0'], ['1', '1'], ['2', '2'], ['3', '3'], ['4', '4 (all done)']]} />
-          <Toggle page={page} name="_back" label="done steps go back (onChange)" />
-        </div>
+        <>
+          <div className="dx-opts">
+            <Toggle page={page} name="_content" label="steps with content, Back and Next" />
+          </div>
+          {content ? (
+            <div className="dx-opts">
+              <Toggle page={page} name="_async" label="async check on Next" />
+              <Toggle page={page} name="_error" label="mark the step with an error" />
+            </div>
+          ) : (
+            <>
+              <Choice page={page} name="_step" label="current step" options={[['0', '0'], ['1', '1'], ['2', '2'], ['3', '3'], ['4', '4 (all done)']]} />
+              <div className="dx-opts">
+                <Toggle page={page} name="_back" label="steps are buttons (onChange)" />
+              </div>
+            </>
+          )}
+        </>
       }
     />
   );

@@ -21,7 +21,20 @@ export type ExampleNode =
   | string
   | { use: Record<string, unknown> }
   | { element: React.ReactNode; code: string }
-  | { tag: string; props?: Record<string, unknown>; children: ExampleNode[] };
+  | { tag: string; props?: Record<string, unknown>; children: ExampleNode[] }
+  | AppNode;
+
+/**
+ * The component inside a small app that holds state: the preview renders `app` (which renders
+ * the preset with `props` plus its own state), the code prints `code` with `$TAG` standing for
+ * the preset's tag printed from `use`.
+ */
+export interface AppNode {
+  app: React.ComponentType<{ Preset: React.ElementType; props: Record<string, any> }>;
+  use: Record<string, unknown>;
+  code: string[];
+}
+const isApp = (node: ExampleNode): node is AppNode => typeof node === 'object' && 'app' in node;
 
 export interface ExampleSpec {
   /** The name the preset is exported as. */
@@ -30,6 +43,8 @@ export interface ExampleSpec {
   tree: ExampleNode[];
   /** Extra import lines the tree needs. */
   imports?: string[];
+  /** Lines in the example component before `return`: its state and data. */
+  body?: string[];
   /** Lines after the component, e.g. how to call its controller. */
   after?: string[];
   /** Applied in the preview only, never printed: keeps an overlay open so its options show. */
@@ -65,6 +80,11 @@ function printTree(nodes: ExampleNode[], name: string, indent: string): string[]
   return nodes.flatMap((node) => {
     if (typeof node === 'string') return [indent + node];
     if ('element' in node) return [indent + node.code];
+    if (isApp(node)) {
+      // `_` keys are the demo's own switches: the preview reads them, the code never shows them.
+      const tag = `<${[name, ...clean(node.use).filter(([k]) => !k.startsWith('_')).map(([k, v]) => attr(k, v))].join(' ')} />`;
+      return node.code.map((line) => indent + line.replace('$TAG', tag));
+    }
     if ('use' in node) return [`${indent}<${[name, ...clean(node.use).map(([k, v]) => attr(k, v))].join(' ')} />`];
     const open = [node.tag, ...clean(node.props ?? {}).map(([k, v]) => attr(k, v))].join(' ');
     return [`${indent}<${open}>`, ...printTree(node.children, name, indent + '  '), `${indent}</${node.tag}>`];
@@ -85,8 +105,10 @@ export function exampleCode(meta: ComponentMeta, spec: ExampleSpec, env: Env): s
     '',
     '// Use it anywhere.',
     'export function Example() {',
+    ...(spec.body ?? []).map((l) => '  ' + l),
+    ...(spec.body?.length ? [''] : []),
     '  return (',
-    ...(spec.tree.length > 1 || spec.tree.some((n) => typeof n === 'string') ? ['    <>', ...body.map((l) => '  ' + l), '    </>'] : body),
+    ...(spec.tree.length > 1 || spec.tree.some((n) => typeof n === 'string' || (isApp(n) && n.code.length > 1)) ? ['    <>', ...body.map((l) => '  ' + l), '    </>'] : body),
     '  );',
     '}',
     ...(spec.after?.length ? ['', ...spec.after] : []),
@@ -98,6 +120,7 @@ function renderTree(nodes: ExampleNode[], Preset: React.ElementType, previewOnly
   return nodes.map((node, i) => {
     if (typeof node === 'string') return <React.Fragment key={i}>{node}</React.Fragment>;
     if ('element' in node) return <React.Fragment key={i}>{node.element}</React.Fragment>;
+    if (isApp(node)) return <node.app key={i} Preset={Preset} props={{ ...plain(node.use), ...previewOnly }} />;
     if ('use' in node) return <Preset key={i} {...plain(node.use)} {...previewOnly} />;
     return React.createElement(node.tag, { key: i, ...plain(node.props ?? {}) }, renderTree(node.children, Preset, previewOnly));
   });

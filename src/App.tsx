@@ -10,6 +10,7 @@ import { ButtonPlayground, SpinnerPlayground } from './playground/ButtonPlaygrou
 import { AlertPlayground, AvatarPlayground, BadgePlayground, CardPlayground, CheckboxPlayground, DialogPlayground, InputPlayground, KbdPlayground, MenuPlayground, PopoverPlayground, ProgressPlayground, RadioPlayground, SeparatorPlayground, SkeletonPlayground, SwitchPlayground, ToastPlayground, TooltipPlayground, TogglePlayground, ToolbarPlayground, SliderPlayground, NumberPlayground, OtpPlayground, TabsPlayground, BreadcrumbPlayground, PaginationPlayground, StepperPlayground, SelectPlayground, ComboboxPlayground, TagsPlayground, CommandPlayground, CalendarPlayground, DatePickerPlayground, TablePlayground, RatingPlayground, TimelinePlayground, EmptyPlayground, CarouselPlayground, ResizablePlayground, SidebarPlayground, NavMenuPlayground, ColorPickerPlayground } from './playground/Playgrounds';
 import { SiteMode } from './playground/shared';
 import { reflow } from './playground/example';
+import { MakeItYours } from './playground/customize';
 
 /**
  * The site shell: a side nav and one page per route (`#/button`). Bare minimum on
@@ -198,6 +199,10 @@ function ComponentPage({ route }: { route: ComponentRoute }) {
       </Section>
 
       {Extra ? <Extra /> : null}
+
+      <Section id="customize" title="Make it yours" lede="Every part has a name. Add a class or a style to it, merge any prop into it, or draw it with your own component: the library keeps the keys, focus and ARIA.">
+        <MakeItYours meta={meta} Code={Code} />
+      </Section>
 
       <Section id="examples" title="Examples" lede="From the component's metadata, the same snippets that ship in llms.txt.">
         <div className="dx-compare">

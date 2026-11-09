@@ -2166,10 +2166,48 @@ export function CalendarPlayground() {
 /* ------------------------------------------------------------ datepicker */
 
 /** A due date with how far away it is; a stay with its nights. */
+/** Nights booked at the cabin: they cannot be picked, and a stay cannot span them. */
+const CABIN_BOOKED = new Set(['2026-11-14', '2026-11-15', '2026-11-27', '2026-12-05', '2026-12-06']);
+const nightPrice = (d: string) => 90 + ((Number(d.slice(8)) * 37) % 80) + ([5, 6].includes(new Date(d + 'T00:00:00Z').getUTCDay()) ? 40 : 0);
+
 function DateDemo({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
   const { _kind, ...rest } = props;
   const [due, setDue] = React.useState<string | null>('2026-11-20');
   const [stay, setStay] = React.useState<{ start: string; end: string } | null>({ start: '2026-12-22', end: '2026-12-27' });
+  const [report, setReport] = React.useState<{ start: string; end: string } | null>({ start: '2026-11-01', end: '2026-11-09' });
+  const [meeting, setMeeting] = React.useState<string | null>('2026-11-20T14:30');
+  const [month, setMonth] = React.useState<string | null>('2026-11-01');
+  const [booking, setBooking] = React.useState<{ start: string; end: string } | null>(null);
+  if (_kind === 'report')
+    return (
+      <div className="dx-stack">
+        <Preset {...rest} value={report} onChange={setReport} />
+        <p className="dx-panel__lead">{report ? `Revenue from ${report.start} to ${report.end}.` : 'Pick a range or a preset.'}</p>
+      </div>
+    );
+  if (_kind === 'booking') {
+    const total = booking ? Array.from({ length: nights(booking) }, (_, i) => nightPrice(new Date(Date.parse(booking.start) + i * 864e5).toISOString().slice(0, 10))).reduce((a, b) => a + b, 0) : 0;
+    return (
+      <div className="dx-stack">
+        <Preset {...rest} value={booking} onChange={setBooking} isDateDisabled={(d: string) => CABIN_BOOKED.has(d)} dayContent={(d: string) => (CABIN_BOOKED.has(d) ? null : `$${nightPrice(d)}`)} />
+        <p className="dx-panel__lead">{booking ? `${nights(booking)} nights: $${total}.` : 'Two to fourteen nights; booked nights are struck through and a stay cannot span them.'}</p>
+      </div>
+    );
+  }
+  if (_kind === 'meeting')
+    return (
+      <div className="dx-stack">
+        <Preset {...rest} value={meeting} onChange={setMeeting} />
+        <p className="dx-panel__lead">{meeting ? `Meeting at ${meeting.replace('T', ' ')} (a wall time, no zone).` : 'No time yet.'}</p>
+      </div>
+    );
+  if (_kind === 'month')
+    return (
+      <div className="dx-stack">
+        <Preset {...rest} value={month} onChange={setMonth} />
+        <p className="dx-panel__lead">{month ? `Invoices for ${month.slice(0, 7)}.` : 'No month.'}</p>
+      </div>
+    );
   if (_kind === 'range')
     return (
       <div className="dx-stack">
@@ -2190,14 +2228,39 @@ export function DatePickerPlayground() {
   const kind = String(page.inputs._kind);
   const inactive = { ...inactiveDatePickerOptions(page.options), mode: 'set by the example above.' };
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
-  const use: Record<string, unknown> =
-    kind === 'range'
-      ? { label: 'Stay', mode: 'range', name: 'stay', months: 2, locale: 'en-GB', value: src(null, 'stay'), onChange: src(() => {}, 'setStay'), _kind: src(kind, '') }
-      : { label: 'Due date', description: 'Type it, or pick it from the calendar.', locale: 'en-GB', min: '2026-11-08', value: src(null, 'due'), onChange: src(() => {}, 'setDue'), _kind: src(kind, '') };
+  const uses: Record<string, Record<string, unknown>> = {
+    range: { label: 'Stay', mode: 'range', name: 'stay', months: 2, locale: 'en-GB', value: src(null, 'stay'), onChange: src(() => {}, 'setStay') },
+    report: { label: 'Report period', mode: 'range', months: 2, locale: 'en-GB', presets: ['today', 'last7', 'last30', 'thisMonth', 'lastMonth', 'thisYear'], value: src(null, 'period'), onChange: src(() => {}, 'setPeriod') },
+    booking: {
+      label: 'Your stay',
+      mode: 'range',
+      months: 2,
+      locale: 'en-GB',
+      min: '2026-11-08',
+      minDays: 3,
+      maxDays: 15,
+      isDateDisabled: src(() => false, '(day) => booked.has(day)'),
+      dayContent: src(() => null, '(day) => (booked.has(day) ? null : `$${price(day)}`)'),
+      value: src(null, 'stay'),
+      onChange: src(() => {}, 'setStay'),
+    },
+    meeting: { label: 'Meeting', locale: 'en-GB', time: true, timeStep: 15, hourCycle: 24, value: src(null, 'meeting'), onChange: src(() => {}, 'setMeeting') },
+    month: { label: 'Billing month', granularity: 'month', locale: 'en-GB', value: src(null, 'month'), onChange: src(() => {}, 'setMonth') },
+    single: { label: 'Due date', description: 'Type it, or pick it from the calendar.', locale: 'en-GB', min: '2026-11-08', value: src(null, 'due'), onChange: src(() => {}, 'setDue') },
+  };
+  const use: Record<string, unknown> = { ...(uses[kind] ?? uses.single), _kind: src(kind, '') };
+  const bodies: Record<string, string> = {
+    range: "const [stay, setStay] = useState({ start: '2026-12-22', end: '2026-12-27' });",
+    report: "const [period, setPeriod] = useState({ start: '2026-11-01', end: '2026-11-09' });",
+    booking: 'const [stay, setStay] = useState(null);',
+    meeting: "const [meeting, setMeeting] = useState('2026-11-20T14:30');",
+    month: "const [month, setMonth] = useState('2026-11-01');",
+    single: "const [due, setDue] = useState('2026-11-20');",
+  };
   const spec: ExampleSpec = {
     name: 'DateField',
     preset: set,
-    body: [kind === 'range' ? "const [stay, setStay] = useState({ start: '2026-12-22', end: '2026-12-27' });" : "const [due, setDue] = useState('2026-11-20');"],
+    body: [bodies[kind] ?? bodies.single],
     tree: [{ app: DateDemo, use, code: ['$TAG'] }],
     previewOnly: page.inputs._keep ? { open: true } : undefined,
   };
@@ -2216,7 +2279,19 @@ export function DatePickerPlayground() {
       note={page.inputs._keep ? KEEP_NOTE : 'Type "24/12/2026" (the UK order here) and press Enter, or ArrowDown to open the calendar on the chosen day.'}
       demo={
         <>
-          <Choice page={page} name="_kind" label="example" options={[['single', 'a due date'], ['range', 'a stay (range)']]} />
+          <Choice
+            page={page}
+            name="_kind"
+            label="example"
+            options={[
+              ['single', 'a due date'],
+              ['range', 'a stay (range)'],
+              ['report', 'a report range with presets'],
+              ['booking', 'a booking: nights, prices, booked days'],
+              ['meeting', 'a meeting: day and time'],
+              ['month', 'a billing month'],
+            ]}
+          />
           <Keep page={page} />
         </>
       }
@@ -2235,6 +2310,98 @@ const TEAM = Array.from({ length: 23 }, (_, i) => ({
   joined: `20${18 + (i % 8)}-0${(i % 9) + 1}-1${i % 9}`,
 }));
 type Person = (typeof TEAM)[number];
+
+const ORDER_STATUSES = ['paid', 'pending', 'refunded', 'failed'] as const;
+const STATUS_TONE = { paid: 'success', pending: 'warning', refunded: 'neutral', failed: 'danger' } as const;
+const ORDER_PRODUCTS = ['Wool overshirt', 'Canvas tote', 'Linen shirt', 'Desk lamp', 'Field notebook', 'Ceramic mug', 'Rain jacket', 'Trail shoes'];
+const ORDER_REGIONS = ['Europe', 'Americas', 'Asia Pacific'];
+const BUYERS = ['Maya Chen', 'Leo Park', 'Ines Duarte', 'Sam Okafor', 'Aiko Mori', 'Noah Fischer', 'Priya Nair', 'Tom Hale', 'Lena Kraus', 'Omar Haddad'];
+/** Orders made up from their position: the same on every load. */
+const ORDERS = Array.from({ length: 240 }, (_, i) => {
+  const who = BUYERS[(i * 7) % BUYERS.length];
+  const qty = ((i * 5) % 6) + 1;
+  return {
+    id: `#${String(4100 + i)}`,
+    customer: { name: who, email: `${who.split(' ')[0].toLowerCase()}@example.com` },
+    product: ORDER_PRODUCTS[(i * 3) % ORDER_PRODUCTS.length],
+    qty,
+    total: Math.round(qty * (19 + ((i * 37) % 160)) * 100) / 100,
+    status: ORDER_STATUSES[(i * 11) % 7 < 4 ? 0 : (i * 11) % 7 - 3] as (typeof ORDER_STATUSES)[number],
+    region: ORDER_REGIONS[(i * 5) % 3],
+    placed: `2026-${String(1 + ((i * 13) % 11)).padStart(2, '0')}-${String(1 + ((i * 17) % 28)).padStart(2, '0')}`,
+  };
+});
+type Order = (typeof ORDERS)[number];
+
+/** Your own cells: a person with their email, a status badge. Any component goes in a cell. */
+const BuyerCell = ({ row }: { row: Order }) => (
+  <span className="dx-buyer">
+    <Avatar name={row.customer.name} size="sm" />
+    <span>
+      <strong>{row.customer.name}</strong>
+      <small>{row.customer.email}</small>
+    </span>
+  </span>
+);
+const ORDER_COLUMNS = [
+  { key: 'id', width: 96, pinned: 'start' as const },
+  { key: 'customer.name', header: 'Customer', width: 230, cell: ({ row }: { row: Order }) => <BuyerCell row={row} /> },
+  { key: 'product', width: 160 },
+  { key: 'qty', header: 'Qty', type: 'number' as const, width: 90, editable: true, validate: (v: unknown) => (Number(v) < 1 ? 'At least one' : undefined), aggregate: 'sum' as const },
+  { key: 'total', type: 'number' as const, width: 120, format: { style: 'currency', currency: 'USD' }, aggregate: 'sum' as const },
+  { key: 'status', type: 'enum' as const, options: [...ORDER_STATUSES], width: 130, editable: true, cell: ({ value }: { value: unknown }) => <Badge label={String(value)} tone={STATUS_TONE[value as keyof typeof STATUS_TONE]} /> },
+  { key: 'region', type: 'enum' as const, width: 140 },
+  { key: 'placed', type: 'date' as const, width: 130 },
+];
+const ORDER_COLUMNS_CODE = `[
+  { key: 'id', width: 96, pinned: 'start' },
+  { key: 'customer.name', header: 'Customer', cell: ({ row }) => <Buyer person={row.customer} /> },
+  'product',
+  { key: 'qty', type: 'number', editable: true, validate: (v) => (v < 1 ? 'At least one' : undefined), aggregate: 'sum' },
+  { key: 'total', type: 'number', format: { style: 'currency', currency: 'USD' }, aggregate: 'sum' },
+  { key: 'status', type: 'enum', options: ['paid', 'pending', 'refunded', 'failed'], editable: true, cell: ({ value }) => <Badge label={value} tone={tones[value]} /> },
+  { key: 'region', type: 'enum' },
+  { key: 'placed', type: 'date' },
+]`;
+
+/** Orders you can edit in place: the grid reports the edit, your state keeps it. */
+function OrdersGrid({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const [rows, setRows] = React.useState(ORDERS);
+  return (
+    <Preset
+      {...props}
+      rows={rows}
+      onCellEdit={({ rowKey, key, value }: { rowKey: string; key: keyof Order; value: unknown }) => setRows((all) => all.map((r) => (r.id === rowKey ? { ...r, [key]: value } : r)))}
+      renderDetail={(o: Order) => (
+        <div className="dx-order-detail">
+          <span>{o.qty} × {o.product}</span>
+          <span>Ships to {o.region}</span>
+          <span>{o.customer.email}</span>
+        </div>
+      )}
+    />
+  );
+}
+
+const EVENT_TYPES = ['page_view', 'sign_in', 'purchase', 'search', 'share', 'sign_out'];
+/** A pretend server holding a billion events: any block, at once, made from its position. */
+function eventAt(i: number) {
+  const t = Date.UTC(2026, 0, 1) + i * 37_000;
+  return { id: i + 1, time: new Date(t).toISOString(), type: EVENT_TYPES[(i * 7) % EVENT_TYPES.length], user: `user${(i * 7919) % 99991}@example.com`, latency: 20 + ((i * 131) % 480) };
+}
+const BILLION = 1_000_000_000;
+const EVENTS_SOURCE = {
+  rowCount: BILLION,
+  getRows: ({ start, end, sort, signal }: { start: number; end: number; sort: Array<{ key: string; direction: string }>; signal: AbortSignal }) =>
+    new Promise<object[]>((resolve) => {
+      // A short wait stands in for the network; a request scrolled past is aborted.
+      const timer = setTimeout(() => {
+        const desc = sort[0]?.key === 'id' && sort[0].direction === 'descending';
+        resolve(Array.from({ length: end - start }, (_, n) => eventAt(desc ? BILLION - 1 - (start + n) : start + n)));
+      }, 120);
+      signal.addEventListener('abort', () => clearTimeout(timer));
+    }),
+};
 
 /** A directory: search filters the rows, boxes feed a bulk bar, a row opens its details. */
 function Directory({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
@@ -2276,7 +2443,7 @@ function Directory({ Preset, props }: { Preset: React.ElementType; props: Record
       <Preset
         {...rest}
         rows={server ? served : found}
-        {...(server ? { total: TEAM.length, manualSort: true, sort, onSortChange: (s: typeof sort) => (setSort(s), setPage(1)) } : null)}
+        {...(server ? { total: TEAM.length, manualSort: true, sort, onSortChange: (s: Array<NonNullable<typeof sort>>) => (setSort(s[0] ?? null), setPage(1)) } : null)}
         page={page}
         onPageChange={setPage}
         {...(_choose ? { selected: chosen, onSelectionChange: setChosen } : null)}
@@ -2291,46 +2458,87 @@ function Directory({ Preset, props }: { Preset: React.ElementType; props: Record
 }
 
 export function TablePlayground() {
-  const page = usePage(tableMeta, ['size', 'tone'], { _kind: 'client' });
+  const page = usePage(tableMeta, ['size', 'tone'], { _kind: 'grid', _group: '', _detail: true, _toolbar: true });
   const kind = String(page.inputs._kind);
-  const inactive = inactiveTableOptions({ selection: page.options.selection as string, pageSize: 8 });
+  const grid = kind === 'grid';
+  const billion = kind === 'billion';
+  const opts = page.options as Record<string, unknown>;
+  const inactive = inactiveTableOptions({
+    selection: opts.selection as string,
+    pageSize: grid || kind === 'client' || kind === 'server' ? 8 : undefined,
+    virtual: !!opts.virtual,
+    dataSource: billion ? {} : undefined,
+    sortable: !!opts.sortable || !grid,
+    filterable: !!opts.filterable,
+    renderDetail: grid && page.inputs._detail ? () => null : undefined,
+  });
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
-  const columns = [
-    { key: 'name', sortable: true },
-    { key: 'role', sortable: true },
-    { key: 'projects', align: 'end', sortable: true },
-    { key: 'joined', header: 'Joined', sortable: true },
-  ];
-  const choose = !!page.options.selection && page.options.selection !== 'none';
-  const use: Record<string, unknown> = { label: 'Team', columns, pageSize: 8, _kind: src(kind, ''), _choose: src(choose, '') };
-  const spec: ExampleSpec =
-    kind === 'server'
-      ? {
-          name: 'Grid',
-          preset: set,
-          body: [
-            'const [page, setPage] = useState(1);',
-            'const [sort, setSort] = useState(null);',
-            "const { data, isFetching } = useQuery({ queryKey: ['team', page, sort], queryFn: () => fetchTeam({ page, sort }), placeholderData: keepPreviousData });",
-          ],
-          tree: [{ app: Directory, use: { ...use, rows: src([], 'data.rows'), total: src(TEAM.length, 'data.total'), manualSort: true, sort: src(null, 'sort'), onSortChange: src(() => {}, 'setSort'), page: src(1, 'page'), onPageChange: src(() => {}, 'setPage'), loading: src(false, 'isFetching') }, code: ['$TAG'] }],
-        }
-      : {
-          name: 'Grid',
-          preset: set,
-          body: [
-            "const [query, setQuery] = useState('');",
-            'const [chosen, setChosen] = useState([]);',
-            'const rows = team.filter((p) => matches(p, query));',
-          ],
-          tree: [
-            {
-              app: Directory,
-              use: { ...use, rows: src(TEAM, 'rows'), ...(choose ? { selected: src([], 'chosen'), onSelectionChange: src(() => {}, 'setChosen') } : null), onRowAction: src(() => {}, '(person) => openProfile(person)') },
-              code: ['<Search value={query} onChange={setQuery} />', ...(choose ? ['{chosen.length > 0 && <BulkBar count={chosen.length} />}'] : []), '$TAG'],
-            },
-          ],
-        };
+  const choose = !!opts.selection && opts.selection !== 'none';
+  const tall = !!opts.virtual || billion;
+  let spec: ExampleSpec;
+  if (grid) {
+    const use: Record<string, unknown> = {
+      label: 'Orders',
+      columns: src(ORDER_COLUMNS, ORDER_COLUMNS_CODE),
+      rows: src(ORDERS, 'orders'),
+      ...(opts.virtual ? { dimensions: { height: 520 } } : { pageSize: 8, pageSizes: [8, 25, 50] }),
+      ...(page.inputs._toolbar ? { toolbar: { search: true, columns: true, export: 'orders.csv' } } : null),
+      ...(page.inputs._group ? { groupBy: String(page.inputs._group) } : null),
+      onCellEdit: src(() => {}, '({ rowKey, key, value }) => saveOrder(rowKey, { [key]: value })'),
+      ...(page.inputs._detail ? { renderDetail: src(() => null, '(order) => <OrderDetail order={order} />') } : null),
+    };
+    spec = { name: 'Grid', preset: set, tree: [{ app: OrdersGrid, use, code: ['$TAG'] }] };
+  } else if (billion) {
+    spec = {
+      name: 'Grid',
+      preset: set,
+      body: ['// Your API: rows start..end in the given order and filters. Aborted when scrolled past.', 'const events = { rowCount: 1_000_000_000, getRows: ({ start, end, sort, filters, signal }) => api.events({ start, end, sort, filters }, { signal }) };'],
+      tree: [
+        {
+          use: { label: 'Events', dataSource: src(EVENTS_SOURCE, 'events'), columns: ['id', 'time', 'type', 'user', { key: 'latency', type: 'number', format: { style: 'unit', unit: 'millisecond' } }], dimensions: { height: 520 } },
+          code: ['$TAG'],
+        },
+      ],
+    };
+  } else {
+    const columns = [
+      { key: 'name', sortable: true },
+      { key: 'role', sortable: true },
+      { key: 'projects', align: 'end', sortable: true },
+      { key: 'joined', header: 'Joined', sortable: true },
+    ];
+    const use: Record<string, unknown> = { label: 'Team', columns, pageSize: 8, _kind: src(kind, ''), _choose: src(choose, '') };
+    spec =
+      kind === 'server'
+        ? {
+            name: 'Grid',
+            preset: set,
+            body: [
+              'const [page, setPage] = useState(1);',
+              'const [sort, setSort] = useState([]);',
+              "const { data, isFetching } = useQuery({ queryKey: ['team', page, sort], queryFn: () => fetchTeam({ page, sort }), placeholderData: keepPreviousData });",
+            ],
+            tree: [{ app: Directory, use: { ...use, rows: src([], 'data.rows'), total: src(TEAM.length, 'data.total'), manualSort: true, sort: src(null, 'sort'), onSortChange: src(() => {}, 'setSort'), page: src(1, 'page'), onPageChange: src(() => {}, 'setPage'), loading: src(false, 'isFetching') }, code: ['$TAG'] }],
+          }
+        : {
+            name: 'Grid',
+            preset: set,
+            body: ["const [query, setQuery] = useState('');", 'const [chosen, setChosen] = useState([]);', 'const rows = team.filter((p) => matches(p, query));'],
+            tree: [
+              {
+                app: Directory,
+                use: { ...use, rows: src(TEAM, 'rows'), ...(choose ? { selected: src([], 'chosen'), onSelectionChange: src(() => {}, 'setChosen') } : null), onRowAction: src(() => {}, '(person) => openProfile(person)') },
+                code: ['<Search value={query} onChange={setQuery} />', ...(choose ? ['{chosen.length > 0 && <BulkBar count={chosen.length} />}'] : []), '$TAG'],
+              },
+            ],
+          };
+  }
+  const notes: Record<string, string> = {
+    grid: 'Turn on sortable, filterable, resizable or reorderable columns above. Shift + click a second header sorts by both. Double-click a quantity or a status to edit it; Enter saves. The first column stays pinned while the rest scrolls sideways; the Columns menu hides or pins any column; group by status or region for folding groups with totals.',
+    billion: 'A billion rows, one block of 100 at a time from a (simulated) server: only the rows in view exist, the scrollbar still covers them all, and the wheel moves row by row. Sort by Id to ask the server for the other order.',
+    server: 'The (simulated) server sorts and pages: manualSort and total. While it answers, the rows stay and the table is busy.',
+    client: 'Search filters the rows; headers sort (again to reverse, a third time to clear); boxes feed the bar above; a row opens its details.',
+  };
   return (
     <Page
       meta={tableMeta}
@@ -2341,13 +2549,31 @@ export function TablePlayground() {
       inherit={['size', 'tone']}
       provider
       align="start"
-      file="components/team"
-      note={
-        kind === 'server'
-          ? 'The (simulated) server sorts and pages: manualSort and total. While it answers, the rows stay and the table is busy.'
-          : 'Search filters the rows; headers sort (again to reverse, a third time to clear); boxes feed the bar above; a row opens its details.'
+      file="components/orders"
+      frame={tall ? (live) => <div className="dx-grid-demo">{live}</div> : undefined}
+      note={notes[kind]}
+      demo={
+        <>
+          <Choice
+            page={page}
+            name="_kind"
+            label="example"
+            options={[
+              ['grid', 'orders: every grid feature'],
+              ['billion', 'a billion rows from a server'],
+              ['client', 'a directory you search and choose from'],
+              ['server', 'a server that sorts and pages'],
+            ]}
+          />
+          {grid ? (
+            <>
+              <Choice page={page} name="_group" label="group by" options={[['', 'nothing'], ['status', 'status'], ['region', 'region']]} />
+              <Toggle page={page} name="_detail" label="details under a row" />
+              <Toggle page={page} name="_toolbar" label="toolbar (search, columns, CSV)" />
+            </>
+          ) : null}
+        </>
       }
-      demo={<Choice page={page} name="_kind" label="example" options={[['client', 'rows you hold: search, sort, choose'], ['server', 'a server that sorts and pages']]} />}
     />
   );
 }

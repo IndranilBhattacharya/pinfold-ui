@@ -552,6 +552,7 @@ export function MenuPlayground() {
     { label: 'Edit', shortcut: 'E', onSelect: src(() => {}, 'edit') as never },
     { label: 'Duplicate', shortcut: 'D', onSelect: src(() => {}, 'duplicate') as never },
     { label: 'Archive', disabled: true },
+    { type: 'submenu', label: 'Move to', items: [{ label: 'Inbox', onSelect: src(() => {}, 'moveToInbox') as never }, { label: 'Later', onSelect: src(() => {}, 'moveToLater') as never }, { type: 'submenu', label: 'Project', items: [{ label: 'Pinfold', onSelect: src(() => {}, 'moveToPinfold') as never }, { label: 'Atlas', onSelect: src(() => {}, 'moveToAtlas') as never }] }] },
     { type: 'separator' },
     { type: 'checkbox', label: 'Wrap lines', checked: !!page.inputs._wrap, onSelect: src(() => page.setOption('_wrap', !page.inputs._wrap), 'toggleWrap') as never },
     { type: 'group', label: 'Sort by', items: [{ type: 'radio', label: 'Name', checked: page.inputs._sort === 'name', onSelect: src(() => page.setOption('_sort', 'name'), 'sortByName') as never }, { type: 'radio', label: 'Date', checked: page.inputs._sort === 'date', onSelect: src(() => page.setOption('_sort', 'date'), 'sortByDate') as never }] },
@@ -1144,7 +1145,7 @@ function EditorTabs({ Preset, props }: { Preset: React.ElementType; props: Recor
     setFiles((f) => [...f, `untitled-${n}.ts`]);
     setOpen(`untitled-${n}.ts`);
   };
-  return <Preset {...props} items={items} value={open} onChange={setOpen} onClose={(id: string) => setFiles((f) => f.filter((x) => x !== id))} onAdd={add} />;
+  return <Preset {...props} items={items} value={open} onChange={setOpen} onClose={(id: string) => setFiles((f) => f.filter((x) => x !== id))} onAdd={add} onReorder={setFiles} />;
 }
 
 const VIEWS = ['Board', 'List', 'Timeline'] as const;
@@ -1185,7 +1186,7 @@ export function TabsPlayground() {
   const page = usePage(tabsMeta, ['size', 'tone'], { _demo: 'settings', _icons: true, _disabled: false });
   const demo = String(page.inputs._demo);
   const icons = !!page.inputs._icons;
-  const inactive = inactiveTabsOptions({ ...page.options, onAdd: demo === 'editor' || undefined, onClose: demo === 'editor' || undefined });
+  const inactive = inactiveTabsOptions({ ...page.options, onAdd: demo === 'editor' || undefined, onClose: demo === 'editor' || undefined, onReorder: demo === 'editor' || undefined });
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
   const count = src(<Badge count={3} label="new" />, '<Badge count={3} label="new" />');
   let spec: ExampleSpec;
@@ -1209,6 +1210,7 @@ export function TabsPlayground() {
             onChange: src(() => {}, 'setOpen'),
             onClose: src(() => {}, '(id) => setFiles((f) => f.filter((name) => name !== id))'),
             onAdd: src(() => {}, '() => setFiles((f) => [...f, `untitled-${f.length}.ts`])'),
+            onReorder: src(() => {}, 'setFiles'),
           },
           code: ['$TAG'],
         },

@@ -79,7 +79,7 @@ function usePage(meta: ComponentMeta, inherit: string[] = [], demo: Record<strin
 }
 type PageApi = ReturnType<typeof usePage>;
 
-const autoFromEnv = (env: Env) => (key: string, meta: { default?: unknown }) => `unset (${env[key as 'size'] || meta.default})`;
+const autoFromEnv = (env: Env) => (key: string, meta: { default?: unknown; auto?: string }) => `unset (${env[key as 'size'] || (meta.default ?? meta.auto)})`;
 
 function Text({ page, name, label, hint, multiline }: { page: PageApi; name: string; label: string; hint?: string; multiline?: boolean }) {
   const id = `demo-${name}`;

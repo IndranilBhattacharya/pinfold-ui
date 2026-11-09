@@ -577,7 +577,7 @@ const SAMPLES = [
 ];
 const sampleCode = SAMPLES.map((t) => `Toasts.show({ id: '${t.id}', title: '${t.title}', description: '${t.description}', tone: '${t.tone}', duration: 0 });`);
 
-function ToastRegion(props: { placement?: ToastPlacement; stack?: boolean; visible?: number }) {
+function ToastRegion(props: Record<string, unknown>) {
   React.useEffect(() => {
     for (const t of SAMPLES) Toasts.show(t);
     return () => Toasts.clear();
@@ -619,7 +619,8 @@ export function ToastPlayground() {
       <div className="dx-play__preview">
         <Stage env={page.env}>
           <p className="dx-demo-text">Toasts appear in the corner set by placement. Hover or tab into the pile to fan it out. The three samples stay so the options show.</p>
-          <ToastRegion placement={page.options.placement as ToastPlacement} stack={page.options.stack as boolean} visible={visible} />
+          {/* Every option the code shows reaches the region. */}
+          <ToastRegion {...set} />
         </Stage>
         <div className="dx-gallery__row dx-resolved">
           <Saved />
@@ -1791,11 +1792,28 @@ export function SelectPlayground() {
 const CITIES = ['Amsterdam', 'Athens', 'Bogotá', 'Kraków', 'Lisbon', 'Montréal', 'Oslo', 'Osaka', 'Reykjavík', 'São Paulo', 'Zagreb', 'Zürich'];
 const REPOS = ['pinfold/pinfold', 'pinfold/pinfold-ui', 'facebook/react', 'vercel/next.js', 'vitejs/vite', 'tailwindlabs/tailwindcss', 'microsoft/typescript', 'nodejs/node', 'denoland/deno', 'sveltejs/svelte', 'vuejs/core', 'withastro/astro'];
 
+/** Ten thousand people behind a (simulated) API: the combobox fetches, waits for typing to pause, cancels old requests. */
+const DIRECTORY = Array.from({ length: 10_000 }, (_, i) => {
+  const first = ['Maya', 'Leo', 'Ines', 'Sam', 'Aiko', 'Noah', 'Priya', 'Tom', 'Lena', 'Omar', 'Sara', 'Jon', 'Mei', 'Ravi', 'Zoe'][i % 15];
+  const last = ['Chen', 'Park', 'Duarte', 'Okafor', 'Mori', 'Fischer', 'Nair', 'Hale', 'Kraus', 'Haddad', 'Lind', 'Price', 'Novak', 'Silva'][(i * 7) % 14];
+  return { value: `p${i}`, label: `${first} ${last}`, description: `${['Design', 'Engineering', 'Research', 'Sales', 'Support'][(i * 3) % 5]} · #${1000 + i}` };
+});
+function searchPeople(query: string, { signal }: { signal: AbortSignal }) {
+  return new Promise<typeof DIRECTORY>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      const q = query.trim().toLowerCase();
+      resolve((q ? DIRECTORY.filter((p) => p.label.toLowerCase().includes(q)) : DIRECTORY).slice(0, 400));
+    }, 300);
+    signal.addEventListener('abort', () => (clearTimeout(timer), reject(new DOMException('aborted', 'AbortError'))));
+  });
+}
+
 /** City: the chosen value drives a card; repository: a simulated server search; tags: a tag input. */
 function Finder({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
   const { _kind, loading: _printed, ...rest } = props;
   const [city, setCity] = React.useState<string | null>(null);
   const [tags, setTags] = React.useState<string[]>(['react']);
+  const [team, setTeam] = React.useState<string[]>(['p0', 'p16']);
   const [query, setQuery] = React.useState('vi');
   const [results, setResults] = React.useState<string[]>(() => REPOS.filter((r) => r.includes('vi')));
   const searched = React.useRef('vi');
@@ -1824,6 +1842,13 @@ function Finder({ Preset, props }: { Preset: React.ElementType; props: Record<st
         <p className="dx-panel__lead">{query ? `${results.length} repositories match "${query}".` : 'Type a few letters: results come from the (simulated) server.'}</p>
       </div>
     );
+  if (_kind === 'people')
+    return (
+      <div className="dx-stack">
+        <Preset {...rest} value={team} onChange={setTeam} />
+        <p className="dx-panel__lead">{team.length} on the team. Chosen people stay in the list, disabled; remove them with their chip.</p>
+      </div>
+    );
   if (_kind === 'tags')
     return (
       <div className="dx-stack">
@@ -1842,8 +1867,8 @@ function Finder({ Preset, props }: { Preset: React.ElementType; props: Record<st
 export function ComboboxPlayground() {
   const page = usePage(comboboxMeta, ['size', 'tone'], { _kind: 'cities', _keep: true });
   const kind = String(page.inputs._kind);
-  const inactive = inactiveComboboxOptions({ multiple: kind === 'tags' });
-  const fixed = { multiple: 'set by the example above.', ...(kind === 'server' ? { filter: 'set by the example: the server filters.' } : {}), ...(kind === 'tags' ? { allowCustom: 'set by the example above.' } : {}) };
+  const inactive = inactiveComboboxOptions({ multiple: kind === 'tags' || kind === 'people' });
+  const fixed = { multiple: 'set by the example above.', ...(kind === 'server' || kind === 'people' ? { filter: 'set by the example: the server filters.' } : {}), ...(kind === 'tags' ? { allowCustom: 'set by the example above.', selectedInList: 'what is typed here hides the chosen tag; see the team example.' } : {}), ...(kind === 'people' ? { selectedInList: 'set by the example above.', chipsPlacement: 'set by the example above.' } : {}) };
   const set = Object.fromEntries(changed(page.options, page.defaults, { ...inactive, ...fixed }));
   const shapes: Record<string, { body: string[]; use: Record<string, unknown> }> = {
     cities: {
@@ -1853,6 +1878,19 @@ export function ComboboxPlayground() {
     server: {
       body: ["const [query, setQuery] = useState('vi');", 'const { data = [], isFetching } = useQuery({ queryKey: [\'repos\', query], queryFn: () => searchRepos(query), enabled: !!query });'],
       use: { label: 'Repository', placeholder: 'owner/name', filter: 'none', items: src([], 'data'), loading: src(false, 'isFetching'), inputValue: src('vi', 'query'), onInputChange: src(() => {}, 'setQuery') },
+    },
+    people: {
+      body: ["const [team, setTeam] = useState(['p0', 'p16']);", '// Your API: rows for what is typed. signal cancels a request the next keystroke made stale.', 'const searchPeople = (query, { signal }) => fetch(`/api/people?q=${query}`, { signal }).then((r) => r.json());'],
+      use: {
+        label: 'Team',
+        multiple: true,
+        placeholder: 'Search 10,000 people',
+        loadItems: src(searchPeople, 'searchPeople'),
+        chipsPlacement: 'below',
+        selectedInList: 'disable',
+        value: src(['p0', 'p16'], 'team'),
+        onChange: src(() => {}, 'setTeam'),
+      },
     },
     tags: {
       body: ["const [tags, setTags] = useState(['react']);"],
@@ -1878,11 +1916,13 @@ export function ComboboxPlayground() {
           ? KEEP_NOTE
           : kind === 'server'
           ? 'filter="none": your items are the results; loading shows a row and marks the list busy while the (simulated) request runs.'
+          : kind === 'people'
+            ? 'loadItems fetches as you type (after a pause, older requests cancelled, results cached per query). Chosen people show as a tag group under the field and stay disabled in the list.'
           : kind === 'tags'
             ? 'Enter adds what you typed; Backspace in an empty field removes the last tag.'
             : 'The first match is active as you type, so Enter takes it. Escape closes, then clears.'
       }
-      demo={<><Choice page={page} name="_kind" label="example" options={[['cities', 'cities: filter your rows'], ['server', 'repositories: search a server'], ['tags', 'tags: several, free text']]} /><Keep page={page} /></>}
+      demo={<><Choice page={page} name="_kind" label="example" options={[['cities', 'cities: filter your rows'], ['server', 'repositories: search a server'], ['people', 'a team: 10,000 people, async, chips'], ['tags', 'tags: several, free text']]} /><Keep page={page} /></>}
     />
   );
 }
@@ -2249,6 +2289,7 @@ export function DatePickerPlayground() {
     single: { label: 'Due date', description: 'Type it, or pick it from the calendar.', locale: 'en-GB', min: '2026-11-08', value: src(null, 'due'), onChange: src(() => {}, 'setDue') },
   };
   const use: Record<string, unknown> = { ...(uses[kind] ?? uses.single), _kind: src(kind, '') };
+  if (page.options.granularity && page.options.granularity !== 'day') delete use.months;
   const bodies: Record<string, string> = {
     range: "const [stay, setStay] = useState({ start: '2026-12-22', end: '2026-12-27' });",
     report: "const [period, setPeriod] = useState({ start: '2026-11-01', end: '2026-11-09' });",
@@ -2472,9 +2513,10 @@ export function TablePlayground() {
     filterable: !!opts.filterable,
     renderDetail: grid && page.inputs._detail ? () => null : undefined,
   });
+  if (!grid) Object.assign(inactive, billion ? { virtual: 'a data source always scrolls virtually.' } : { sortable: 'set per column by this example.', virtual: 'this example pages its rows.' });
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
   const choose = !!opts.selection && opts.selection !== 'none';
-  const tall = !!opts.virtual || billion;
+  const tall = (grid && !!opts.virtual) || billion;
   let spec: ExampleSpec;
   if (grid) {
     const use: Record<string, unknown> = {

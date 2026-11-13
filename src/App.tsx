@@ -14,6 +14,7 @@ import { accordionMeta, alertMeta, avatarMeta, badgeMeta, buttonMeta, cardMeta, 
 import { AccordionPlayground } from './playground/AccordionPlayground';
 import { ButtonPlayground, SpinnerPlayground } from './playground/ButtonPlayground';
 import { AlertPlayground, AvatarPlayground, BadgePlayground, CardPlayground, CheckboxPlayground, DialogPlayground, InputPlayground, KbdPlayground, MenuPlayground, PopoverPlayground, ProgressPlayground, RadioPlayground, SeparatorPlayground, SkeletonPlayground, SwitchPlayground, ToastPlayground, TooltipPlayground, TogglePlayground, ToolbarPlayground, SliderPlayground, NumberPlayground, OtpPlayground, TabsPlayground, BreadcrumbPlayground, PaginationPlayground, StepperPlayground, SelectPlayground, ComboboxPlayground, TagsPlayground, CommandPlayground, CalendarPlayground, DatePickerPlayground, TablePlayground, RatingPlayground, TimelinePlayground, EmptyPlayground, CarouselPlayground, ResizablePlayground, SidebarPlayground, NavMenuPlayground, ColorPickerPlayground } from './playground/Playgrounds';
+import { ScrollAreaPlayground, AppShellPlayground, NavbarPlayground, CursorPlayground } from './playground/LayoutPlaygrounds';
 import { SiteMode } from './playground/shared';
 import { reflow } from './playground/example';
 import { MakeItYours } from './playground/customize';
@@ -105,10 +106,10 @@ const COMPONENTS: ComponentRoute[] = [
   { meta: sidebarMeta, status: 'stable', Playground: SidebarPlayground },
   { meta: navmenuMeta, status: 'stable', Playground: NavMenuPlayground },
   { meta: colorpickerMeta, status: 'stable', Playground: ColorPickerPlayground },
-  { meta: scrollareaMeta, status: 'new' },
-  { meta: appshellMeta, status: 'new' },
-  { meta: navbarMeta, status: 'new' },
-  { meta: cursorMeta, status: 'new' },
+  { meta: scrollareaMeta, status: 'new', Playground: ScrollAreaPlayground },
+  { meta: appshellMeta, status: 'new', Playground: AppShellPlayground },
+  { meta: navbarMeta, status: 'new', Playground: NavbarPlayground },
+  { meta: cursorMeta, status: 'new', Playground: CursorPlayground },
 ];
 
 function useRoute(): string {

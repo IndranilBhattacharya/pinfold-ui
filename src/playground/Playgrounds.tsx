@@ -49,7 +49,7 @@ import { Input } from '@pinfold/react/input';
 import { Switch } from '@pinfold/react/switch';
 import { Radio } from '@pinfold/react/radio';
 import { Progress } from '@pinfold/react/progress';
-import { changed, CodePanel, controlsOf, defaultsOf, ENV, EnvControls, OptionControls, reviveEnv, Stage, useUrlState, type Env } from './shared';
+import { changed, CodePanel, controlsOf, defaultsOf, ENV, EnvControls, Flag, Note, OptionControls, Pick, reviveEnv, Stage, TextField, Tool, useUrlState, type Env } from './shared';
 import { exampleCode, Live, src, type ExampleNode, type ExampleSpec } from './example';
 import { LANDSCAPE, PEOPLE } from './people';
 
@@ -66,7 +66,7 @@ interface State {
   env: Env;
 }
 
-function usePage(meta: ComponentMeta, inherit: string[] = [], demo: Record<string, unknown> = {}) {
+export function usePage(meta: ComponentMeta, inherit: string[] = [], demo: Record<string, unknown> = {}) {
   const controls = controlsOf(meta);
   const defaults = { ...defaultsOf(controls), ...Object.fromEntries(inherit.map((k) => [k, undefined])) };
   const initial: State = { options: { ...defaults, ...demo }, env: ENV };
@@ -77,45 +77,31 @@ function usePage(meta: ComponentMeta, inherit: string[] = [], demo: Record<strin
   const inputs = state.options;
   return { controls, defaults, options, inputs, env: state.env, setOption, setEnv, reset: () => setState(initial) };
 }
-type PageApi = ReturnType<typeof usePage>;
+export type PageApi = ReturnType<typeof usePage>;
 
 const autoFromEnv = (env: Env) => (key: string, meta: { default?: unknown; auto?: string }) => `unset (${env[key as 'size'] || (meta.default ?? meta.auto)})`;
 
-function Text({ page, name, label, hint, multiline }: { page: PageApi; name: string; label: string; hint?: string; multiline?: boolean }) {
-  const id = `demo-${name}`;
-  const value = String(page.inputs[name] ?? '');
-  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => page.setOption(name, e.target.value);
+export function Text({ page, name, label, hint, multiline }: { page: PageApi; name: string; label: string; hint?: string; multiline?: boolean }) {
   return (
     <div className="dx-field">
-      <label className="dx-label" htmlFor={id}>
-        {label} {hint ? <span className="dx-hint">{hint}</span> : null}
-      </label>
-      {multiline ? <textarea id={id} className="dx-input" rows={3} value={value} onChange={onChange} /> : <input id={id} className="dx-input" value={value} onChange={onChange} />}
+      <TextField label={label} description={hint} multiline={multiline} rows={multiline ? 3 : undefined} value={String(page.inputs[name] ?? '')} onChange={(value) => page.setOption(name, value)} />
     </div>
   );
 }
 
-function Toggle({ page, name, label, disabled }: { page: PageApi; name: string; label: string; disabled?: boolean }) {
+export function Toggle({ page, name, label, disabled }: { page: PageApi; name: string; label: string; disabled?: boolean }) {
   return (
-    <label className="dx-opt dx-opt--check">
-      <input type="checkbox" checked={!!page.inputs[name]} disabled={disabled} onChange={(e) => page.setOption(name, e.target.checked)} />
-      <span>{label}</span>
-    </label>
+    <div className="dx-opt dx-opt--check">
+      <Flag label={label} checked={!!page.inputs[name]} disabled={disabled} onChange={(on) => page.setOption(name, on)} />
+    </div>
   );
 }
 
-function Choice({ page, name, label, options }: { page: PageApi; name: string; label: string; options: Array<[string, string]> }) {
+export function Choice({ page, name, label, options }: { page: PageApi; name: string; label: string; options: Array<[string, string]> }) {
   return (
-    <label className="dx-opt">
-      <span>{label}</span>
-      <select className="dx-select" value={String(page.inputs[name] ?? '')} onChange={(e) => page.setOption(name, e.target.value)}>
-        {options.map(([value, text]) => (
-          <option key={value} value={value}>
-            {text}
-          </option>
-        ))}
-      </select>
-    </label>
+    <div className="dx-opt">
+      <Pick label={label} items={options.map(([value, text]) => ({ value, label: text }))} value={String(page.inputs[name] ?? '')} onChange={(next) => next && page.setOption(name, next)} />
+    </div>
   );
 }
 
@@ -140,7 +126,7 @@ interface PageProps {
   valueLabel?: (key: string, value: string | number) => string | undefined;
 }
 
-function Page({ meta, page, define, spec, inactive, inherit = [], provider = false, motion = false, align = 'center', demo, note, file, frame, autoLabel, valueLabel }: PageProps) {
+export function Page({ meta, page, define, spec, inactive, inherit = [], provider = false, motion = false, align = 'center', demo, note, file, frame, autoLabel, valueLabel }: PageProps) {
   const live = <Live define={define} spec={spec} meta={meta} />;
   return (
     <div className="dx-play">
@@ -148,15 +134,13 @@ function Page({ meta, page, define, spec, inactive, inherit = [], provider = fal
         {demo}
         <OptionControls controls={page.controls} options={page.options} setOption={page.setOption} inactive={inactive} inherit={inherit} autoLabel={autoLabel ?? autoFromEnv(page.env)} valueLabel={valueLabel} />
         <EnvControls env={page.env} setEnv={page.setEnv} provider={provider} motion={motion} />
-        <button type="button" className="dx-btn" onClick={page.reset}>
-          Reset
-        </button>
+        <Tool label="Reset" onClick={page.reset} />
       </div>
       <div className="dx-play__preview">
         <Stage env={page.env} align={align}>
           {frame ? frame(live) : align === 'center' ? <div className="dx-center">{live}</div> : live}
         </Stage>
-        {note ? <div className="dx-hint dx-resolved">{note}</div> : null}
+        {note ? <div className="dx-note"><Note description={note} /></div> : null}
         <CodePanel file={file} code={() => exampleCode(meta, spec, page.env)} actions={[{ label: 'Copy CLI command', copy: `npx pinfold add ${meta.name}` }]} />
       </div>
     </div>
@@ -353,9 +337,7 @@ export function AlertPlayground() {
           {page.options.dismissible ? (
             <>
               {' '}
-              <button type="button" className="dx-btn" onClick={() => page.setOption('_shown', Number(page.inputs._shown) + 1)}>
-                Show it again
-              </button>
+              <Tool label="Show it again" onClick={() => page.setOption('_shown', Number(page.inputs._shown) + 1)} />
             </>
           ) : null}
         </>
@@ -464,6 +446,8 @@ export function CardPlayground() {
 
 /* -------------------------------------------------------------- progress */
 
+const Level = defineSlider({ size: 'sm', min: 0, max: 100, showValue: 'label' });
+
 export function ProgressPlayground() {
   const page = usePage(progressMeta, ['size', 'tone'], { _label: 'Uploading report.pdf', _value: 64, _busy: false });
   const busy = !!page.inputs._busy && page.options.kind !== 'meter';
@@ -485,10 +469,7 @@ export function ProgressPlayground() {
         <>
           <Text page={page} name="_label" label="label" hint="the accessible name" />
           <div className="dx-field">
-            <label className="dx-label" htmlFor="demo-value">
-              value <span className="dx-hint">{busy ? 'indeterminate' : `${value} of 100`}</span>
-            </label>
-            <input id="demo-value" type="range" min={0} max={100} value={value ?? 0} disabled={busy} onChange={(e) => page.setOption('_value', Number(e.target.value))} />
+            <Level label="value" value={[value ?? 0]} disabled={busy} onChange={([n]) => page.setOption('_value', n)} />
           </div>
           <div className="dx-opts">
             <Toggle page={page} name="_busy" label="indeterminate (no value)" disabled={page.options.kind === 'meter'} />
@@ -501,51 +482,45 @@ export function ProgressPlayground() {
 
 /* -------------------------------------------------------------- overlays */
 
-const KEEP_NOTE = 'Kept open here so its options show (not in the code). Turn off "keep open" to use it for real.';
-const Keep = ({ page }: { page: PageApi }) => (
-  <div className="dx-opts">
-    <Toggle page={page} name="_keep" label="keep open in this preview" />
-  </div>
-);
+const KEEP_NOTE = 'The preview is kept open so the options can be seen (this is not in the code).';
 
 export function TooltipPlayground() {
-  const page = usePage(tooltipMeta, [], { _content: 'Copies the link to this page', _keep: true });
+  const page = usePage(tooltipMeta, [], { _content: 'Copies the link to this page' });
   const spec: ExampleSpec = {
     name: 'Hint',
     preset: Object.fromEntries(changed(page.options, page.defaults)),
     tree: [{ use: { content: page.inputs._content, trigger: { label: 'Share', variant: 'outline' } } }],
-    previewOnly: page.inputs._keep ? { open: true } : undefined,
+    previewOnly: { open: true },
   };
-  return <Page meta={tooltipMeta} page={page} define={defineTooltip} spec={spec} motion file="components/hint" frame={(live) => <div className="dx-overlay-demo">{live}</div>} note={page.inputs._keep ? KEEP_NOTE : 'Hover or tab to it. Escape closes it; the pointer can move onto it without it closing.'} demo={<><Text page={page} name="_content" label="content" hint="the hint" /><Keep page={page} /></>} />;
+  return <Page meta={tooltipMeta} page={page} define={defineTooltip} spec={spec} motion file="components/hint" frame={(live) => <div className="dx-overlay-demo">{live}</div>} note={KEEP_NOTE + ' ' + 'Hover or tab to it. Escape closes it; the pointer can move onto it without it closing.'} demo={<Text page={page} name="_content" label="content" hint="the hint" />} />;
 }
 
 export function PopoverPlayground() {
-  const page = usePage(popoverMeta, [], { _title: 'Share this page', _keep: true });
+  const page = usePage(popoverMeta, [], { _title: 'Share this page' });
   const inactive = inactivePopoverOptions(page.options);
   const spec: ExampleSpec = {
     name: 'Share',
     preset: Object.fromEntries(changed(page.options, page.defaults, inactive)),
     tree: [{ use: { title: page.inputs._title, description: 'Anyone with the link can view it.', actions: [{ label: 'Copy link', onClick: src(() => {}, 'copy') }, { label: 'Close' }], trigger: { label: 'Share', variant: 'outline' } } }],
-    previewOnly: page.inputs._keep ? { open: true } : undefined,
+    previewOnly: { open: true },
   };
-  return <Page meta={popoverMeta} page={page} define={definePopover} spec={spec} inactive={inactive} motion file="components/share" frame={(live) => <div className="dx-overlay-demo">{live}</div>} note={page.inputs._keep ? KEEP_NOTE : undefined} demo={<><Text page={page} name="_title" label="title" hint="the panel's accessible name" /><Keep page={page} /></>} />;
+  return <Page meta={popoverMeta} page={page} define={definePopover} spec={spec} inactive={inactive} motion file="components/share" frame={(live) => <div className="dx-overlay-demo">{live}</div>} note={KEEP_NOTE} demo={<Text page={page} name="_title" label="title" hint="the panel's accessible name" />} />;
 }
 
 export function DialogPlayground() {
-  const page = usePage(dialogMeta, [], { _title: 'Delete this project?', _keep: true });
+  const page = usePage(dialogMeta, [], { _title: 'Delete this project?' });
   const inactive = inactiveDialogOptions(page.options);
-  const keep = !!page.inputs._keep;
   const spec: ExampleSpec = {
     name: 'Confirm',
     preset: Object.fromEntries(changed(page.options, page.defaults, inactive)),
     tree: [{ use: { title: page.inputs._title, description: 'It will be removed for everyone. This cannot be undone.', trigger: { label: 'Delete project', tone: 'danger', variant: 'soft' }, actions: [{ label: 'Cancel' }, { label: 'Delete', tone: 'danger', onClick: src(() => {}, 'remove') }] } }],
-    previewOnly: keep ? { open: true, modal: false, className: 'dx-dialog-inline' } : undefined,
+    previewOnly: { open: true, modal: false, className: 'dx-dialog-inline' },
   };
-  return <Page meta={dialogMeta} page={page} define={defineDialog} spec={spec} inactive={inactive} motion align="start" file="components/confirm" frame={(live) => (keep ? <div className="dx-dialog-box">{live}</div> : live)} note={keep ? 'Drawn in place here so its options show (not in the code). Turn off "keep open" to open the real modal: focus stays inside, Escape closes it.' : undefined} demo={<><Text page={page} name="_title" label="title" hint="a real heading, and the accessible name" /><Keep page={page} /></>} />;
+  return <Page meta={dialogMeta} page={page} define={defineDialog} spec={spec} inactive={inactive} motion align="start" file="components/confirm" frame={(live) => <div className="dx-dialog-box">{live}</div>} note="The dialog is drawn in place and kept open so the options can be seen (this is not in the code). In your app it is a real modal: focus stays inside and Escape closes it." demo={<><Text page={page} name="_title" label="title" hint="a real heading, and the accessible name" /></>} />;
 }
 
 export function MenuPlayground() {
-  const page = usePage(menuMeta, ['size'], { _keep: true, _wrap: true, _sort: 'name' });
+  const page = usePage(menuMeta, ['size'], { _wrap: true, _sort: 'name' });
   const inactive = inactiveMenuOptions(page.options);
   const context = page.options.mode === 'context';
   const items: MenuItem[] = [
@@ -563,9 +538,9 @@ export function MenuPlayground() {
     name: 'RowActions',
     preset: Object.fromEntries(changed(page.options, page.defaults, inactive)),
     tree: [{ use: { label: context ? 'Row actions' : undefined, items, trigger: context ? src(<div className="dx-menu-area" tabIndex={0}>Right-click here</div>, '<div tabIndex={0}>Right-click here</div>') : { label: 'Actions' } } }],
-    previewOnly: page.inputs._keep ? { open: true } : undefined,
+    previewOnly: { open: true },
   };
-  return <Page meta={menuMeta} page={page} define={defineMenu} spec={spec} inactive={inactive} inherit={['size']} provider={['size']} motion align="start" file="components/row-actions" frame={(live) => <div className="dx-overlay-demo dx-overlay-demo--tall">{live}</div>} note={page.inputs._keep ? KEEP_NOTE : 'Try the arrow keys, Home and End, and typing a letter.'} demo={<Keep page={page} />} />;
+  return <Page meta={menuMeta} page={page} define={defineMenu} spec={spec} inactive={inactive} inherit={['size']} provider={['size']} motion align="start" file="components/row-actions" frame={(live) => <div className="dx-overlay-demo dx-overlay-demo--tall">{live}</div>} note={KEEP_NOTE + ' ' + 'Try the arrow keys, Home and End, and typing a letter.'} />;
 }
 
 const Toasts = defineToast();
@@ -612,9 +587,7 @@ export function ToastPlayground() {
         <Text page={page} name="_visible" label="visible" hint="shown when fanned out; more scroll" />
         <OptionControls controls={page.controls} options={page.options} setOption={page.setOption} />
         <EnvControls env={page.env} setEnv={page.setEnv} />
-        <button type="button" className="dx-btn" onClick={page.reset}>
-          Reset
-        </button>
+        <Tool label="Reset" onClick={page.reset} />
       </div>
       <div className="dx-play__preview">
         <Stage env={page.env}>
@@ -856,7 +829,7 @@ export function SwitchPlayground() {
 
 /* ---------------------------------------------------------------- toggle */
 
-const svg = (d: string) => (
+export const svg = (d: string) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d={d} />
   </svg>
@@ -1746,7 +1719,7 @@ function ProjectForm({ Preset, props }: { Preset: React.ElementType; props: Reco
 }
 
 export function SelectPlayground() {
-  const page = usePage(selectMeta, ['size', 'tone'], { _kind: 'groups', _keep: true });
+  const page = usePage(selectMeta, ['size', 'tone'], { _kind: 'groups' });
   const kind = String(page.inputs._kind);
   const inactive = inactiveSelectOptions({ multiple: kind === 'multiple' });
   const set = Object.fromEntries(changed(page.options, page.defaults, { ...inactive, multiple: 'set by the example' }));
@@ -1768,7 +1741,7 @@ export function SelectPlayground() {
     },
   };
   const shape = shapes[kind];
-  const spec: ExampleSpec = { name: 'Field', preset: set, body: shape.body, tree: [{ app: ProjectForm, use: { ...shape.use, _kind: src(kind, '') }, code: shape.code }], previewOnly: page.inputs._keep ? { open: true } : undefined };
+  const spec: ExampleSpec = { name: 'Field', preset: set, body: shape.body, tree: [{ app: ProjectForm, use: { ...shape.use, _kind: src(kind, '') }, code: shape.code }], previewOnly: { open: true } };
   return (
     <Page
       meta={selectMeta}
@@ -1781,8 +1754,8 @@ export function SelectPlayground() {
       align="start"
       file="components/project-form"
       frame={(live) => <div className="dx-list-demo">{live}</div>}
-      note={page.inputs._keep ? KEEP_NOTE : 'Arrows, Home and End move past disabled rows; letters jump; Enter or Space chooses. A hidden native select submits and validates.'}
-      demo={<><Choice page={page} name="_kind" label="example" options={[['groups', 'a plan: groups and descriptions'], ['strings', 'a region: rows from strings'], ['multiple', 'labels: several values']]} /><Keep page={page} /></>}
+      note={KEEP_NOTE + ' ' + 'Arrows, Home and End move past disabled rows; letters jump; Enter or Space chooses. A hidden native select submits and validates.'}
+      demo={<Choice page={page} name="_kind" label="example" options={[['groups', 'a plan: groups and descriptions'], ['strings', 'a region: rows from strings'], ['multiple', 'labels: several values']]} />}
     />
   );
 }
@@ -1865,7 +1838,7 @@ function Finder({ Preset, props }: { Preset: React.ElementType; props: Record<st
 }
 
 export function ComboboxPlayground() {
-  const page = usePage(comboboxMeta, ['size', 'tone'], { _kind: 'cities', _keep: true });
+  const page = usePage(comboboxMeta, ['size', 'tone'], { _kind: 'cities' });
   const kind = String(page.inputs._kind);
   const inactive = inactiveComboboxOptions({ multiple: kind === 'tags' || kind === 'people' });
   const fixed = { multiple: 'set by the example above.', ...(kind === 'server' || kind === 'people' ? { filter: 'set by the example: the server filters.' } : {}), ...(kind === 'tags' ? { allowCustom: 'set by the example above.', selectedInList: 'what is typed here hides the chosen tag; see the team example.' } : {}), ...(kind === 'people' ? { selectedInList: 'set by the example above.', chipsPlacement: 'set by the example above.' } : {}) };
@@ -1898,7 +1871,7 @@ export function ComboboxPlayground() {
     },
   };
   const shape = shapes[kind];
-  const spec: ExampleSpec = { name: 'Search', preset: set, body: shape.body, tree: [{ app: Finder, use: { ...shape.use, _kind: src(kind, '') }, code: ['$TAG'] }], previewOnly: page.inputs._keep ? { open: true } : undefined };
+  const spec: ExampleSpec = { name: 'Search', preset: set, body: shape.body, tree: [{ app: Finder, use: { ...shape.use, _kind: src(kind, '') }, code: ['$TAG'] }], previewOnly: { open: true } };
   return (
     <Page
       meta={comboboxMeta}
@@ -1912,17 +1885,17 @@ export function ComboboxPlayground() {
       file="components/search"
       frame={(live) => <div className="dx-list-demo">{live}</div>}
       note={
-        page.inputs._keep
-          ? KEEP_NOTE
-          : kind === 'server'
+        KEEP_NOTE +
+        ' ' +
+        (kind === 'server'
           ? 'filter="none": your items are the results; loading shows a row and marks the list busy while the (simulated) request runs.'
           : kind === 'people'
             ? 'loadItems fetches as you type (after a pause, older requests cancelled, results cached per query). Chosen people show as a tag group under the field and stay disabled in the list.'
           : kind === 'tags'
             ? 'Enter adds what you typed; Backspace in an empty field removes the last tag.'
-            : 'The first match is active as you type, so Enter takes it. Escape closes, then clears.'
+            : 'The first match is active as you type, so Enter takes it. Escape closes, then clears.')
       }
-      demo={<><Choice page={page} name="_kind" label="example" options={[['cities', 'cities: filter your rows'], ['server', 'repositories: search a server'], ['people', 'a team: 10,000 people, async, chips'], ['tags', 'tags: several, free text']]} /><Keep page={page} /></>}
+      demo={<Choice page={page} name="_kind" label="example" options={[['cities', 'cities: filter your rows'], ['server', 'repositories: search a server'], ['people', 'a team: 10,000 people, async, chips'], ['tags', 'tags: several, free text']]} />}
     />
   );
 }
@@ -2264,7 +2237,7 @@ function DateDemo({ Preset, props }: { Preset: React.ElementType; props: Record<
 }
 
 export function DatePickerPlayground() {
-  const page = usePage(datepickerMeta, ['size', 'tone'], { _kind: 'single', _keep: true });
+  const page = usePage(datepickerMeta, ['size', 'tone'], { _kind: 'single' });
   const kind = String(page.inputs._kind);
   const inactive = { ...inactiveDatePickerOptions(page.options), mode: 'set by the example above.' };
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
@@ -2303,7 +2276,7 @@ export function DatePickerPlayground() {
     preset: set,
     body: [bodies[kind] ?? bodies.single],
     tree: [{ app: DateDemo, use, code: ['$TAG'] }],
-    previewOnly: page.inputs._keep ? { open: true } : undefined,
+    previewOnly: { open: true },
   };
   return (
     <Page
@@ -2317,7 +2290,7 @@ export function DatePickerPlayground() {
       align="start"
       file="components/date-field"
       frame={(live) => <div className="dx-list-demo dx-list-demo--tall">{live}</div>}
-      note={page.inputs._keep ? KEEP_NOTE : 'Type "24/12/2026" (the UK order here) and press Enter, or ArrowDown to open the calendar on the chosen day.'}
+      note={KEEP_NOTE + ' ' + 'Type "24/12/2026" (the UK order here) and press Enter, or ArrowDown to open the calendar on the chosen day.'}
       demo={
         <>
           <Choice
@@ -2333,7 +2306,6 @@ export function DatePickerPlayground() {
               ['month', 'a billing month'],
             ]}
           />
-          <Keep page={page} />
         </>
       }
     />
@@ -2910,7 +2882,7 @@ export function ResizablePlayground() {
 
 /* --------------------------------------------------------------- sidebar */
 
-const NAV_ITEMS = [
+export const NAV_ITEMS = [
   { label: 'Inbox', href: '/inbox', icon: svg('M4 13h4l2 3h4l2-3h4M5 5h14l2 8v6H3v-6z'), badge: 4 },
   { label: 'Today', href: '/today', icon: CAL_ICON },
   {
@@ -2926,7 +2898,7 @@ const NAV_ITEMS = [
   { label: 'Settings', href: '/settings', icon: svg('M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM4 12h2M18 12h2M12 4v2M12 18v2'), group: 'Account' },
   { label: 'Billing', href: '/billing', icon: svg('M3 6h18v12H3zM3 10h18'), group: 'Account' },
 ];
-const NAV_PAGES: Record<string, { title: string; lead: string }> = {
+export const NAV_PAGES: Record<string, { title: string; lead: string }> = {
   '/inbox': { title: 'Inbox', lead: '4 unread messages, newest first.' },
   '/today': { title: 'Today', lead: 'Three tasks due and one meeting at 15:00.' },
   '/projects/pinfold': { title: 'Pinfold', lead: '41 components, 12 open issues.' },
@@ -3070,7 +3042,7 @@ function SiteHeader({ Preset, props }: { Preset: React.ElementType; props: Recor
 }
 
 export function NavMenuPlayground() {
-  const page = usePage(navmenuMeta, ['size', 'tone'], { _keep: true });
+  const page = usePage(navmenuMeta, ['size', 'tone'], {});
   const inactive = inactiveNavMenuOptions({ items: SITE_ITEMS });
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
   const spec: ExampleSpec = {
@@ -3089,7 +3061,7 @@ export function NavMenuPlayground() {
         code: ['<header>', '  <Logo />', '  $TAG', '</header>'],
       },
     ],
-    previewOnly: page.inputs._keep ? { open: 'Products' } : undefined,
+    previewOnly: { open: 'Products' },
   };
   return (
     <Page
@@ -3102,8 +3074,7 @@ export function NavMenuPlayground() {
       provider
       align="start"
       file="components/site-header"
-      note={page.inputs._keep ? 'Products is kept open here so its options show (not in the code). Turn off "keep open" to use it for real: rest the pointer on an entry, or press it; arrow keys move between entries and into a panel.' : 'Rest the pointer on Products or Resources, or tab to them and press Enter or Arrow Down. Choosing a link routes the page under the header.'}
-      demo={<Keep page={page} />}
+      note={KEEP_NOTE + ' Products is open so its options show; rest the pointer on another entry or press it, and arrow keys move between entries and into a panel. Choosing a link routes the page under the header.'}
     />
   );
 }

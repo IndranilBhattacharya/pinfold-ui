@@ -6,6 +6,9 @@ import { defineSwitch } from '@pinfold/react/switch';
 import { defineSlider } from '@pinfold/react/slider';
 import { defineTabs } from '@pinfold/react/tabs';
 import { defineButton } from '@pinfold/react/button';
+import { defineInput } from '@pinfold/react/input';
+import { defineAlert } from '@pinfold/react/alert';
+import { defineBadge } from '@pinfold/react/badge';
 import type { ComponentMeta, PropMeta } from '@pinfold/core/meta';
 import type { PinfoldSize, PinfoldStylePack, PinfoldTone } from '@pinfold/core';
 
@@ -72,11 +75,14 @@ const typed = (meta: PropMeta, text: string): unknown => meta.values?.find((v) =
 const SILENT_HINT = 'No visual change: these set what assistive tech or the keyboard does.';
 
 /* The playground's own controls are Pinfold components: presets defined once, used as one-liners. */
-const Pick = defineSelect({ size: 'sm', dimensions: { width: '100%' } });
-const Flag = defineSwitch({ size: 'sm' });
-const Width = defineSlider({ size: 'sm', min: 30, max: 100, showValue: 'label' });
-const Lang = defineTabs({ variant: 'pills', size: 'sm' });
-const Tool = defineButton({ variant: 'soft', tone: 'neutral', size: 'sm' });
+export const Pick = defineSelect({ size: 'sm', dimensions: { width: '100%' } });
+export const Flag = defineSwitch({ size: 'sm' });
+export const Width = defineSlider({ size: 'sm', min: 30, max: 100, showValue: 'label' });
+export const Lang = defineTabs({ variant: 'pills', size: 'sm' });
+export const Tool = defineButton({ variant: 'soft', tone: 'neutral', size: 'sm' });
+export const TextField = defineInput({ size: 'sm' });
+export const Note = defineAlert({ variant: 'soft', tone: 'neutral' });
+export const Tag = defineBadge({ variant: 'soft', tone: 'neutral', size: 'sm' });
 
 /** One option as a select: `''` stands for "unset", shown with what it resolves to. */
 function Choice({ label, value, values, unset, disabled, title, onChange }: { label: string; value: string; values: ReadonlyArray<{ value: string; label: string }>; unset?: string; disabled?: boolean; title?: string; onChange: (value: string) => void }) {

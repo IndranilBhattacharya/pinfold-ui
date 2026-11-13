@@ -1,6 +1,12 @@
 import * as React from 'react';
 import { HUES, type Theme } from '@pinfold/core/palette';
+import { defineSlider } from '@pinfold/react/slider';
+import { defineSelect } from '@pinfold/react/select';
 import type { Palette } from './theme';
+
+const Hue = defineSlider({ size: 'sm', min: 0, max: 360 });
+const Chroma = defineSlider({ size: 'sm', min: 0, max: 150, showValue: 'never' });
+const Radius = defineSelect({ size: 'sm' });
 
 const ROLES = ['primary', 'accent', 'neutral', 'success', 'warning', 'danger', 'info'] as const;
 const STEPS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
@@ -28,16 +34,7 @@ export function PaletteStudio({
               <span>{role}</span>
               <b>{hue(role)}°</b>
             </div>
-            <input
-              type="range"
-              min={0}
-              max={360}
-              value={hue(role)}
-              onChange={(e) => set(role, +e.target.value)}
-              aria-label={`${role} hue`}
-              className="dx-hue__slider"
-              style={{ background: HUE_TRACK }}
-            />
+            <Hue label={`${role} hue`} hideLabel value={[hue(role)]} onChange={([n]) => set(role, n)} />
             <div className="dx-hue__presets">
               {Object.entries(HUES).map(([name, value]) => (
                 <button
@@ -56,32 +53,15 @@ export function PaletteStudio({
         ))}
 
         <div className="dx-studio__row">
-          <label className="dx-dim">
+          <div className="dx-dim">
             <span>
               chroma <b>{(palette.intensity ?? 1).toFixed(2)}×</b>
             </span>
-            <input
-              type="range"
-              min={0}
-              max={150}
-              value={(palette.intensity ?? 1) * 100}
-              onChange={(e) => set('intensity', +e.target.value / 100)}
-            />
-          </label>
-          <label className="dx-opt">
-            <span>radius</span>
-            <select
-              className="dx-select"
-              value={palette.radius ?? 'md'}
-              onChange={(e) => set('radius', e.target.value)}
-            >
-              {RADII.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-          </label>
+            <Chroma label="chroma" hideLabel value={[(palette.intensity ?? 1) * 100]} onChange={([n]) => set('intensity', n / 100)} />
+          </div>
+          <div className="dx-opt">
+            <Radius label="radius" items={[...RADII]} value={palette.radius ?? 'md'} onChange={(r) => r && set('radius', r)} />
+          </div>
         </div>
 
         <div className="dx-code dx-code--accent">
@@ -178,7 +158,3 @@ function swatch(theme: Theme, role: string, hue: number) {
   return `oklch(0.606 ${role === 'neutral' ? 0.019 : 0.201} ${hue})`;
 }
 
-const HUE_TRACK =
-  'linear-gradient(to right,' +
-  Array.from({ length: 13 }, (_, i) => `oklch(0.7 0.16 ${i * 30})`).join(',') +
-  ')';

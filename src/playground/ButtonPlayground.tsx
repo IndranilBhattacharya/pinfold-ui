@@ -3,7 +3,7 @@ import { useButton, type ButtonConfig } from '@pinfold/react/button';
 import { Spinner, useSpinner, type SpinnerConfig } from '@pinfold/react/spinner';
 import { buttonMeta, spinnerMeta } from '@pinfold/core/meta';
 import { inactiveButtonOptions } from '@pinfold/core';
-import { changed, CodePanel, controlsOf, defaultsOf, ENV, EnvControls, Glyph, literal, OptionControls, reviveEnv, Stage, useUrlState, appSetup, type Env } from './shared';
+import { changed, CodePanel, controlsOf, defaultsOf, ENV, EnvControls, Flag, Glyph, literal, Note, OptionControls, Pick, reviveEnv, Stage, TextField, Tool, useUrlState, appSetup, type Env } from './shared';
 
 const TONES = ['primary', 'neutral', 'success', 'warning', 'danger', 'info'] as const;
 const VARIANTS = ['solid', 'soft', 'outline', 'ghost', 'link'] as const;
@@ -128,27 +128,17 @@ export function ButtonPlayground() {
   return (
     <div className="dx-play">
       <div className="dx-play__editor">
-        <label className="dx-label" htmlFor="btn-label">
-          label <span className="dx-hint">required; the accessible name when iconOnly</span>
-        </label>
-        <input id="btn-label" className="dx-input" value={state.label} onChange={(e) => setState((s) => ({ ...s, label: e.target.value }))} />
+        <TextField label="label" description="required; the accessible name when iconOnly" value={state.label} onChange={(label) => setState((s) => ({ ...s, label }))} />
         <div className="dx-opts">
-          <label className="dx-opt">
-            <span>icons</span>
-            <select className="dx-select" value={state.icons} onChange={(e) => setState((s) => ({ ...s, icons: e.target.value as Icons }))}>
-              {['none', 'start', 'end', 'both'].map((v) => (
-                <option key={v}>{v}</option>
-              ))}
-            </select>
-          </label>
-          <label className="dx-opt">
-            <span>loadingText</span>
-            <input className="dx-input" placeholder="e.g. Saving…" value={state.loadingText} onChange={(e) => setState((s) => ({ ...s, loadingText: e.target.value }))} />
-          </label>
-          <label className="dx-opt dx-opt--check" title="onClick returns a promise: the button shows its loading state by itself">
-            <input type="checkbox" checked={state.asyncClick} onChange={(e) => setState((s) => ({ ...s, asyncClick: e.target.checked }))} />
-            <span>async onClick (1.5 s)</span>
-          </label>
+          <div className="dx-opt">
+            <Pick label="icons" items={['none', 'start', 'end', 'both']} value={state.icons} onChange={(icons) => icons && setState((s) => ({ ...s, icons: icons as Icons }))} />
+          </div>
+          <div className="dx-opt">
+            <TextField label="loadingText" placeholder="e.g. Saving…" value={state.loadingText} onChange={(loadingText) => setState((s) => ({ ...s, loadingText }))} />
+          </div>
+          <div className="dx-opt dx-opt--check" title="onClick returns a promise: the button shows its loading state by itself">
+            <Flag label="async onClick (1.5 s)" checked={state.asyncClick} onChange={(asyncClick) => setState((s) => ({ ...s, asyncClick }))} />
+          </div>
         </div>
         <OptionControls
           controls={B_CONTROLS}
@@ -159,9 +149,7 @@ export function ButtonPlayground() {
           autoLabel={(key, meta) => (key === 'radius' ? 'theme radius (md by default)' : `unset (${env[key as 'size' | 'tone'] || meta.default})`)}
         />
         <EnvControls env={env} setEnv={setEnv} provider motion={false} />
-        <button type="button" className="dx-btn" onClick={() => setState(B_INITIAL)}>
-          Reset
-        </button>
+        <Tool label="Reset" onClick={() => setState(B_INITIAL)} />
       </div>
 
       <div className="dx-play__preview">
@@ -173,10 +161,13 @@ export function ButtonPlayground() {
             </p>
           </div>
         </Stage>
-        <p className="dx-hint dx-resolved">
-          Resolved: size {source('size', options, env, buttonMeta.props.size.default)} · tone {source('tone', options, env, buttonMeta.props.tone.default)}. Precedence:
-          config, then <code>defaults.button</code>, then the provider, then the library default.
-        </p>
+        <Note
+          description={
+            <>
+              Resolved: size {source('size', options, env, buttonMeta.props.size.default)} · tone {source('tone', options, env, buttonMeta.props.tone.default)}. Precedence: config, then <code>defaults.button</code>, then the provider, then the library default.
+            </>
+          }
+        />
         <CodePanel file="components/save-button" code={() => buttonCode(state)} actions={[{ label: 'Copy CLI command', copy: 'npx pinfold add button' }]} />
 
         <h3 className="dx-subhead">Every variant and tone</h3>
@@ -263,10 +254,7 @@ export function SpinnerPlayground() {
   return (
     <div className="dx-play">
       <div className="dx-play__editor">
-        <label className="dx-label" htmlFor="spn-label">
-          label <span className="dx-hint">empty = decorative</span>
-        </label>
-        <input id="spn-label" className="dx-input" value={state.label} onChange={(e) => setState((s) => ({ ...s, label: e.target.value }))} />
+        <TextField label="label" description="empty = decorative" value={state.label} onChange={(label) => setState((s) => ({ ...s, label }))} />
         <OptionControls
           controls={S_CONTROLS}
           options={options}
@@ -275,17 +263,13 @@ export function SpinnerPlayground() {
           autoLabel={(key, meta) => `unset (${env[key as 'size' | 'tone'] || meta.default})`}
         />
         <EnvControls env={env} setEnv={setEnv} provider />
-        <button type="button" className="dx-btn" onClick={() => setState(S_INITIAL)}>
-          Reset
-        </button>
+        <Tool label="Reset" onClick={() => setState(S_INITIAL)} />
       </div>
       <div className="dx-play__preview">
         <Stage env={env}>
           <SpinnerPreview state={state} />
         </Stage>
-        <p className="dx-hint dx-resolved">
-          Resolved: size {source('size', options, env, spinnerMeta.props.size.default)} · tone {source('tone', options, env, spinnerMeta.props.tone.default)}.
-        </p>
+        <Note description={`Resolved: size ${source('size', options, env, spinnerMeta.props.size.default)} · tone ${source('tone', options, env, spinnerMeta.props.tone.default)}.`} />
         <CodePanel file="components/loading" code={() => spinnerCode(state)} actions={[{ label: 'Copy CLI command', copy: 'npx pinfold add spinner' }]} />
 
         <h3 className="dx-subhead">Every animation</h3>

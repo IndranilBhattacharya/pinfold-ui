@@ -3,7 +3,7 @@ import { useAccordion } from '@pinfold/react/accordion';
 import type { AccordionConfig, AccordionItemConfig } from '@pinfold/react/accordion';
 import { accordionMeta, type PropMeta } from '@pinfold/core/meta';
 import { accordionRowsJoined, inactiveAccordionOptions, type AccordionAppearanceInput, type AccordionVariantName } from '@pinfold/core';
-import { changed, CodePanel, controlsOf, defaultsOf, ENV, EnvControls, Glyph, OptionControls, reviveEnv, Stage, useUrlState, appSetup, type Env } from './shared';
+import { changed, CodePanel, controlsOf, defaultsOf, ENV, EnvControls, Glyph, OptionControls, Pick, reviveEnv, Stage, TextField, Tool, useUrlState, appSetup, type Env } from './shared';
 
 const START_ITEMS: AccordionItemConfig[] = [
   { id: 'plan', title: 'Choose a plan', description: 'Monthly or yearly, cancel anytime', badge: 'Step 1', content: 'Yearly saves two months. Both plans include every component.' },
@@ -194,41 +194,26 @@ export function AccordionPlayground() {
   return (
     <div className="dx-play">
       <div className="dx-play__editor">
-        <label className="dx-label" htmlFor="cfg">
-          items <span className="dx-hint">JSON, the only required option</span>
-        </label>
-        <textarea
-          id="cfg"
-          className={`dx-textarea${parsed.error ? ' is-invalid' : ''}`}
-          spellCheck={false}
+        <TextField
+          label="items"
+          description="JSON, the only required option"
+          multiline
           rows={14}
+          className="dx-code-input"
           value={source}
-          onChange={(e) => setState((s) => ({ ...s, source: e.target.value }))}
-          aria-describedby={parsed.error ? 'cfg-error' : undefined}
-          aria-invalid={!!parsed.error}
+          error={parsed.error || undefined}
+          onChange={(next) => setState((s) => ({ ...s, source: next }))}
         />
-        {parsed.error ? (
-          <p className="dx-error" id="cfg-error" role="alert">
-            {parsed.error}
-          </p>
-        ) : null}
 
         <OptionControls controls={CONTROLS} options={options} setOption={setOption} inactive={inactiveFor(options)} autoLabel={autoLabel(options)} />
 
         <EnvControls env={env} setEnv={setEnv}>
-          <label className="dx-opt" title='A row&apos;s own icon (e.g. "icon": "🚀" in the JSON) always wins.'>
-            <span>icons</span>
-            <select className="dx-select" value={icons} onChange={(e) => setState((s) => ({ ...s, icons: e.target.value as Icons }))}>
-              <option>none</option>
-              <option>every row</option>
-              <option>per row</option>
-            </select>
-          </label>
+          <div className="dx-opt" title='A row&apos;s own icon (e.g. "icon": "🚀" in the JSON) always wins.'>
+            <Pick label="icons" items={['none', 'every row', 'per row']} value={icons} onChange={(next) => next && setState((s) => ({ ...s, icons: next as Icons }))} />
+          </div>
         </EnvControls>
 
-        <button type="button" className="dx-btn" onClick={() => setState(INITIAL)}>
-          Reset
-        </button>
+        <Tool label="Reset" onClick={() => setState(INITIAL)} />
       </div>
 
       <div className="dx-play__preview">

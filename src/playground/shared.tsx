@@ -1,6 +1,11 @@
 import * as React from 'react';
 import { reflow } from './example';
 import { PinfoldProvider } from '@pinfold/react';
+import { defineSelect } from '@pinfold/react/select';
+import { defineSwitch } from '@pinfold/react/switch';
+import { defineSlider } from '@pinfold/react/slider';
+import { defineTabs } from '@pinfold/react/tabs';
+import { defineButton } from '@pinfold/react/button';
 import type { ComponentMeta, PropMeta } from '@pinfold/core/meta';
 import type { PinfoldSize, PinfoldStylePack, PinfoldTone } from '@pinfold/core';
 
@@ -66,6 +71,25 @@ export const reviveEnv = (env: unknown): Env => ({ ...ENV, ...(env as object) })
 const typed = (meta: PropMeta, text: string): unknown => meta.values?.find((v) => String(v) === text) ?? text;
 const SILENT_HINT = 'No visual change: these set what assistive tech or the keyboard does.';
 
+/* The playground's own controls are Pinfold components: presets defined once, used as one-liners. */
+const Pick = defineSelect({ size: 'sm', dimensions: { width: '100%' } });
+const Flag = defineSwitch({ size: 'sm' });
+const Width = defineSlider({ size: 'sm', min: 30, max: 100, showValue: 'label' });
+const Lang = defineTabs({ variant: 'pills', size: 'sm' });
+const Tool = defineButton({ variant: 'soft', tone: 'neutral', size: 'sm' });
+
+/** One option as a select: `''` stands for "unset", shown with what it resolves to. */
+function Choice({ label, value, values, unset, disabled, title, onChange }: { label: string; value: string; values: ReadonlyArray<{ value: string; label: string }>; unset?: string; disabled?: boolean; title?: string; onChange: (value: string) => void }) {
+  // A select reads an empty value as "nothing chosen": "unset" is a real row with a value of its own.
+  const UNSET = '(unset)';
+  const items = [...(unset !== undefined ? [{ value: UNSET, label: unset }] : []), ...values];
+  return (
+    <div className="dx-opt" title={title}>
+      <Pick label={label} items={items} value={value === '' ? UNSET : value} disabled={disabled} onChange={(next) => onChange(!next || next === UNSET ? '' : next)} />
+    </div>
+  );
+}
+
 /** The meta-driven option controls, with the inactive ones disabled and explained. */
 export function OptionControls({
   controls,
@@ -90,58 +114,31 @@ export function OptionControls({
   const shown = Object.entries(inactive).filter(([k]) => controls.some(([c]) => c === k));
   const visual = controls.filter(([, meta]) => !meta.silent);
   const silent = controls.filter(([, meta]) => meta.silent);
+  const control = ([key, meta]: [string, PropMeta], explain: boolean) =>
+    meta.type === 'boolean' ? (
+      <div key={key} className="dx-opt dx-opt--check" title={(explain && inactive[key]) || meta.description}>
+        <Flag label={key} checked={!!options[key]} disabled={explain && key in inactive} onChange={(on) => setOption(key, on)} />
+      </div>
+    ) : (
+      <Choice
+        key={key}
+        label={key}
+        title={(explain && inactive[key]) || meta.description}
+        disabled={explain && key in inactive}
+        value={options[key] === undefined ? '' : String(options[key])}
+        // No library default means "inherit": offer that instead of a fixed value.
+        unset={meta.default === undefined || inherit.includes(key) ? autoLabel(key, meta) : undefined}
+        values={meta.values!.map((v) => ({ value: String(v), label: valueLabel?.(key, v) ?? String(v) }))}
+        onChange={(text) => setOption(key, text === '' ? undefined : typed(meta, text))}
+      />
+    );
   return (
     <fieldset className="dx-fieldset">
       <legend className="dx-label">Component</legend>
-      <div className="dx-opts">
-        {visual.map(([key, meta]) =>
-          meta.type === 'boolean' ? (
-            <label key={key} className="dx-opt dx-opt--check" title={inactive[key] ?? meta.description} aria-disabled={key in inactive}>
-              <input type="checkbox" checked={!!options[key]} disabled={key in inactive} onChange={(e) => setOption(key, e.target.checked)} />
-              <span>{key}</span>
-            </label>
-          ) : (
-            <label key={key} className="dx-opt" title={inactive[key] ?? meta.description} aria-disabled={key in inactive}>
-              <span>{key}</span>
-              <select
-                className="dx-select"
-                disabled={key in inactive}
-                value={options[key] === undefined ? '' : String(options[key])}
-                onChange={(e) => setOption(key, e.target.value === '' ? undefined : typed(meta, e.target.value))}
-              >
-                {/* No library default means "inherit": offer that instead of a fixed value. */}
-                {meta.default === undefined || inherit.includes(key) ? <option value="">{autoLabel(key, meta)}</option> : null}
-                {meta.values!.map((v) => (
-                  <option key={String(v)} value={String(v)}>
-                    {valueLabel?.(key, v) ?? String(v)}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ),
-        )}
-      </div>
+      <div className="dx-opts">{visual.map((entry) => control(entry, true))}</div>
       {silent.length ? (
         <div className="dx-opts dx-silent" title={SILENT_HINT}>
-          {silent.map(([key, meta]) =>
-            meta.type === 'boolean' ? (
-              <label key={key} className="dx-opt dx-opt--check" title={meta.description}>
-                <input type="checkbox" checked={!!options[key]} onChange={(e) => setOption(key, e.target.checked)} />
-                <span>{key}</span>
-              </label>
-            ) : (
-              <label key={key} className="dx-opt" title={meta.description}>
-                <span>{key}</span>
-                <select className="dx-select" value={String(options[key] ?? '')} onChange={(e) => setOption(key, typed(meta, e.target.value))}>
-                  {meta.values!.map((v) => (
-                    <option key={String(v)} value={String(v)}>
-                      {String(v)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ),
-          )}
+          {silent.map((entry) => control(entry, false))}
           <span className="dx-hint">{SILENT_HINT}</span>
         </div>
       ) : null}
@@ -176,67 +173,31 @@ export function EnvControls({
 }) {
   const site = React.useContext(SiteMode);
   const follows = providerProp === true ? ['size', 'tone'] : providerProp || [];
-  const provider = follows.length > 0;
+  const same = (list: readonly string[]) => list.map((v) => ({ value: v, label: v }));
   return (
     <fieldset className="dx-fieldset">
       <legend className="dx-label">Environment</legend>
       <div className="dx-opts">
-        <label className="dx-opt">
-          <span>style pack</span>
-          <select className="dx-select" value={env.stylePack} onChange={(e) => setEnv('stylePack', e.target.value as PinfoldStylePack)}>
-            {PACKS.map((p) => (
-              <option key={p}>{p}</option>
-            ))}
-          </select>
-        </label>
-        <label className="dx-opt">
-          <span>colour mode</span>
-          <select className="dx-select" value={env.theme} onChange={(e) => setEnv('theme', e.target.value as Env['theme'])}>
-            <option value="">{`follow the site (${site})`}</option>
-            <option>light</option>
-            <option>dark</option>
-          </select>
-        </label>
-        {provider ? (
-          <>
-            {follows.includes('size') ? (
-              <label className="dx-opt" title="PinfoldProvider size: what an unset size inherits">
-                <span>provider size</span>
-                <select className="dx-select" value={env.size} onChange={(e) => setEnv('size', e.target.value as Env['size'])}>
-                  <option value="">md (default)</option>
-                  <option>sm</option>
-                  <option>lg</option>
-                </select>
-              </label>
-            ) : null}
-            {follows.includes('tone') ? <label className="dx-opt" title="PinfoldProvider tone: what an unset tone inherits">
-              <span>provider tone</span>
-              <select className="dx-select" value={env.tone} onChange={(e) => setEnv('tone', e.target.value as Env['tone'])}>
-                <option value="">primary (default)</option>
-                {['neutral', 'success', 'warning', 'danger', 'info'].map((t) => (
-                  <option key={t}>{t}</option>
-                ))}
-              </select>
-            </label> : null}
-          </>
+        <Choice label="style pack" value={env.stylePack} values={same(PACKS)} onChange={(v) => setEnv('stylePack', v as PinfoldStylePack)} />
+        <Choice label="colour mode" value={env.theme} unset={`follow the site (${site})`} values={same(['light', 'dark'])} onChange={(v) => setEnv('theme', v as Env['theme'])} />
+        {follows.includes('size') ? (
+          <Choice label="provider size" title="PinfoldProvider size: what an unset size inherits" value={env.size} unset="md (default)" values={same(['sm', 'lg'])} onChange={(v) => setEnv('size', v as Env['size'])} />
         ) : null}
-        <label className="dx-opt dx-opt--check">
-          <input type="checkbox" checked={env.rtl} onChange={(e) => setEnv('rtl', e.target.checked)} />
-          <span>right-to-left</span>
-        </label>
+        {follows.includes('tone') ? (
+          <Choice label="provider tone" title="PinfoldProvider tone: what an unset tone inherits" value={env.tone} unset="primary (default)" values={same(['neutral', 'success', 'warning', 'danger', 'info'])} onChange={(v) => setEnv('tone', v as Env['tone'])} />
+        ) : null}
+        <div className="dx-opt dx-opt--check">
+          <Flag label="right-to-left" checked={env.rtl} onChange={(on) => setEnv('rtl', on)} />
+        </div>
         {motion ? (
-          <label className="dx-opt dx-opt--check">
-            <input type="checkbox" checked={env.reducedMotion} onChange={(e) => setEnv('reducedMotion', e.target.checked)} />
-            <span>reduced motion</span>
-          </label>
+          <div className="dx-opt dx-opt--check">
+            <Flag label="reduced motion" checked={env.reducedMotion} onChange={(on) => setEnv('reducedMotion', on)} />
+          </div>
         ) : null}
         {children}
-        <label className="dx-opt dx-opt--wide">
-          <span>
-            container width <b>{env.width}%</b>
-          </span>
-          <input type="range" min={30} max={100} value={env.width} onChange={(e) => setEnv('width', Number(e.target.value))} />
-        </label>
+        <div className="dx-opt dx-opt--wide">
+          <Width label="container width (%)" value={[env.width]} onChange={([n]) => setEnv('width', n)} />
+        </div>
       </div>
     </fieldset>
   );
@@ -286,13 +247,7 @@ export function CodePanel({ file, code, actions, note }: { file: string; code: (
   };
   return (
     <>
-      <div className="dx-tabs" role="tablist" aria-label="Code language">
-        {(['ts', 'js'] as const).map((l) => (
-          <button key={l} type="button" role="tab" aria-selected={lang === l} className="dx-tab" onClick={() => setLang(l)}>
-            {l === 'ts' ? 'TypeScript' : 'JavaScript'}
-          </button>
-        ))}
-      </div>
+      <Lang label="Code language" items={[{ id: 'ts', label: 'TypeScript' }, { id: 'js', label: 'JavaScript' }]} value={lang} onChange={(id) => setLang(id as 'ts' | 'js')} />
       <div className="dx-code dx-code--accent">
         <span className="dx-code__label">
           {file}.{lang}x
@@ -302,17 +257,11 @@ export function CodePanel({ file, code, actions, note }: { file: string; code: (
         </pre>
       </div>
       <div className="dx-actions">
-        <button type="button" className="dx-btn" onClick={() => copy('Code', snippet)}>
-          Copy code
-        </button>
+        <Tool label="Copy code" tone="primary" onClick={() => copy('Code', snippet)} />
         {actions.map((a) => (
-          <button key={a.label} type="button" className="dx-btn" title={a.title} onClick={() => (a.run ? a.run() : copy(a.label.replace(/^Copy /, ''), a.copy ?? ''))}>
-            {a.label}
-          </button>
+          <Tool key={a.label} label={a.label} title={a.title} onClick={() => (a.run ? a.run() : copy(a.label.replace(/^Copy /, ''), a.copy ?? ''))} />
         ))}
-        <button type="button" className="dx-btn" onClick={() => copy('Link', location.href)}>
-          Copy link
-        </button>
+        <Tool label="Copy link" onClick={() => copy('Link', location.href)} />
         <span className="dx-hint" role="status" aria-live="polite">
           {status}
         </span>

@@ -47,6 +47,10 @@ import '@pinfold/css/slider.css';
 import '@pinfold/css/number.css';
 import '@pinfold/css/otp.css';
 import '@pinfold/css/field.css';
+import '@pinfold/css/scrollarea.css';
+import '@pinfold/css/appshell.css';
+import '@pinfold/css/navbar.css';
+import '@pinfold/css/cursor.css';
 import '@pinfold/css/packs.css';
 import './docs.css';
 

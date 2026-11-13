@@ -631,3 +631,13 @@ a { color: inherit; text-decoration: none; }
 .dx-custom-chip { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.125rem 0.375rem 0.125rem 0.125rem; border-radius: 999px; background: color-mix(in oklab, var(--pinfold-color-accent) 14%, transparent); }
 .dx-custom-chip button { padding: 0 0.25rem; font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
 .dx-custom-dot { display: inline-block; inline-size: 0.5rem; block-size: 0.5rem; margin-inline-end: 0.375rem; border-radius: 50%; }
+
+
+/* ---- the shell is Pinfold's: app shell, navbar, sidebar. Only what is the site's own stays here. ---- */
+.dx-logo { display: inline; font-weight: 600; letter-spacing: -0.01em; }
+.dx-logo b { color: var(--pinfold-color-accent); font-weight: 600; }
+.dx-version { margin-inline-start: 0.25rem; }
+.pinfold-appshell { background-color: transparent; }
+.pinfold-appshell__sidebar { padding: 0.75rem 0.5rem 2rem; }
+.dx-footer { margin: 0; padding: 1.5rem 0; }
+.dx-checks { margin: 0; }

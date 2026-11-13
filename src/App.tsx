@@ -10,10 +10,11 @@ import { defineBadge } from '@pinfold/react/badge';
 import { defineButton } from '@pinfold/react/button';
 import { resolveNode, version } from '@pinfold/core';
 import type { AccordionConfig, AccordionVariant } from '@pinfold/react/accordion';
-import { accordionMeta, alertMeta, avatarMeta, badgeMeta, buttonMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, menuMeta, radioMeta, switchMeta, popoverMeta, progressMeta, toastMeta, tooltipMeta, kbdMeta, separatorMeta, skeletonMeta, spinnerMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta, selectMeta, comboboxMeta, tagsMeta, commandMeta, calendarMeta, datepickerMeta, tableMeta, ratingMeta, timelineMeta, emptyMeta, carouselMeta, resizableMeta, sidebarMeta, navmenuMeta, colorpickerMeta, scrollareaMeta, appshellMeta, navbarMeta, cursorMeta, type ComponentMeta, type PropMeta } from '@pinfold/core/meta';
+import { accordionMeta, alertMeta, avatarMeta, badgeMeta, buttonMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, menuMeta, radioMeta, switchMeta, popoverMeta, progressMeta, toastMeta, tooltipMeta, kbdMeta, separatorMeta, skeletonMeta, spinnerMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta, selectMeta, comboboxMeta, tagsMeta, commandMeta, calendarMeta, datepickerMeta, tableMeta, ratingMeta, timelineMeta, emptyMeta, carouselMeta, resizableMeta, sidebarMeta, navmenuMeta, colorpickerMeta, scrollareaMeta, appshellMeta, navbarMeta, cursorMeta, treeviewMeta, fileuploadMeta, tourMeta, type ComponentMeta, type PropMeta } from '@pinfold/core/meta';
 import { AccordionPlayground } from './playground/AccordionPlayground';
 import { ButtonPlayground, SpinnerPlayground } from './playground/ButtonPlayground';
 import { AlertPlayground, AvatarPlayground, BadgePlayground, CardPlayground, CheckboxPlayground, DialogPlayground, InputPlayground, KbdPlayground, MenuPlayground, PopoverPlayground, ProgressPlayground, RadioPlayground, SeparatorPlayground, SkeletonPlayground, SwitchPlayground, ToastPlayground, TooltipPlayground, TogglePlayground, ToolbarPlayground, SliderPlayground, NumberPlayground, OtpPlayground, TabsPlayground, BreadcrumbPlayground, PaginationPlayground, StepperPlayground, SelectPlayground, ComboboxPlayground, TagsPlayground, CommandPlayground, CalendarPlayground, DatePickerPlayground, TablePlayground, RatingPlayground, TimelinePlayground, EmptyPlayground, CarouselPlayground, ResizablePlayground, SidebarPlayground, NavMenuPlayground, ColorPickerPlayground } from './playground/Playgrounds';
+import { FileUploadPlayground, TourPlayground, TreeViewPlayground } from './playground/NewPlaygrounds';
 import { ScrollAreaPlayground, AppShellPlayground, NavbarPlayground, CursorPlayground } from './playground/LayoutPlaygrounds';
 import { SiteMode } from './playground/shared';
 import { reflow } from './playground/example';
@@ -54,9 +55,9 @@ interface ApiRow {
 /** Where each component sits in the side navigation. */
 const GROUPS: Array<[string, string[]]> = [
   ['Layout', ['appshell', 'navbar', 'sidebar', 'navmenu', 'tabs', 'breadcrumb', 'pagination', 'stepper', 'resizable', 'scrollarea']],
-  ['Data', ['table', 'card', 'accordion', 'timeline', 'carousel', 'avatar', 'badge', 'tags', 'kbd', 'empty', 'skeleton']],
-  ['Forms', ['input', 'number', 'otp', 'checkbox', 'radio', 'switch', 'toggle', 'toolbar', 'slider', 'select', 'combobox', 'calendar', 'datepicker', 'colorpicker', 'rating']],
-  ['Overlays', ['dialog', 'popover', 'tooltip', 'menu', 'command', 'toast']],
+  ['Data', ['table', 'card', 'accordion', 'treeview', 'timeline', 'carousel', 'avatar', 'badge', 'tags', 'kbd', 'empty', 'skeleton']],
+  ['Forms', ['input', 'number', 'otp', 'checkbox', 'radio', 'switch', 'toggle', 'toolbar', 'slider', 'select', 'combobox', 'calendar', 'datepicker', 'colorpicker', 'rating', 'fileupload']],
+  ['Overlays', ['dialog', 'popover', 'tooltip', 'menu', 'command', 'toast', 'tour']],
   ['Feedback', ['alert', 'progress', 'spinner']],
   ['Actions and effects', ['button', 'separator', 'cursor']],
 ];
@@ -110,6 +111,9 @@ const COMPONENTS: ComponentRoute[] = [
   { meta: appshellMeta, status: 'new', Playground: AppShellPlayground },
   { meta: navbarMeta, status: 'new', Playground: NavbarPlayground },
   { meta: cursorMeta, status: 'new', Playground: CursorPlayground },
+  { meta: treeviewMeta, status: 'new', Playground: TreeViewPlayground },
+  { meta: fileuploadMeta, status: 'new', Playground: FileUploadPlayground },
+  { meta: tourMeta, status: 'new', Playground: TourPlayground },
 ];
 
 function useRoute(): string {

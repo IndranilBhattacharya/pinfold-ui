@@ -51,6 +51,9 @@ import '@pinfold/css/scrollarea.css';
 import '@pinfold/css/appshell.css';
 import '@pinfold/css/navbar.css';
 import '@pinfold/css/cursor.css';
+import '@pinfold/css/treeview.css';
+import '@pinfold/css/fileupload.css';
+import '@pinfold/css/tour.css';
 import '@pinfold/css/packs.css';
 import './docs.css';
 

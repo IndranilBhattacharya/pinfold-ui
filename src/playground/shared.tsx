@@ -121,7 +121,7 @@ export function OptionControls({
   const visual = controls.filter(([, meta]) => !meta.silent);
   const silent = controls.filter(([, meta]) => meta.silent);
   const control = ([key, meta]: [string, PropMeta], explain: boolean) =>
-    meta.type === 'boolean' ? (
+    meta.type === 'boolean' || (meta.orBoolean && !meta.values) ? (
       <div key={key} className="dx-opt dx-opt--check" title={(explain && inactive[key]) || meta.description}>
         <Flag label={key} checked={!!options[key]} disabled={explain && key in inactive} onChange={(on) => setOption(key, on)} />
       </div>

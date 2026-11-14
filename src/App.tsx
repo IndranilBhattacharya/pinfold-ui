@@ -11,13 +11,10 @@ import { defineButton } from '@pinfold/react/button';
 import { resolveNode, version } from '@pinfold/core';
 import type { AccordionConfig, AccordionVariant } from '@pinfold/react/accordion';
 import { accordionMeta, alertMeta, avatarMeta, badgeMeta, buttonMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, menuMeta, radioMeta, switchMeta, popoverMeta, progressMeta, toastMeta, tooltipMeta, kbdMeta, separatorMeta, skeletonMeta, spinnerMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta, selectMeta, comboboxMeta, tagsMeta, commandMeta, calendarMeta, datepickerMeta, tableMeta, ratingMeta, timelineMeta, emptyMeta, carouselMeta, resizableMeta, sidebarMeta, navmenuMeta, colorpickerMeta, scrollareaMeta, appshellMeta, navbarMeta, cursorMeta, treeviewMeta, fileuploadMeta, tourMeta, type ComponentMeta, type PropMeta } from '@pinfold/core/meta';
-import { AccordionPlayground } from './playground/AccordionPlayground';
-import { ButtonPlayground, SpinnerPlayground } from './playground/ButtonPlayground';
-import { AlertPlayground, AvatarPlayground, BadgePlayground, CardPlayground, CheckboxPlayground, DialogPlayground, InputPlayground, KbdPlayground, MenuPlayground, PopoverPlayground, ProgressPlayground, RadioPlayground, SeparatorPlayground, SkeletonPlayground, SwitchPlayground, ToastPlayground, TooltipPlayground, TogglePlayground, ToolbarPlayground, SliderPlayground, NumberPlayground, OtpPlayground, TabsPlayground, BreadcrumbPlayground, PaginationPlayground, StepperPlayground, SelectPlayground, ComboboxPlayground, TagsPlayground, CommandPlayground, CalendarPlayground, DatePickerPlayground, TablePlayground, RatingPlayground, TimelinePlayground, EmptyPlayground, CarouselPlayground, ResizablePlayground, SidebarPlayground, NavMenuPlayground, ColorPickerPlayground } from './playground/Playgrounds';
-import { FileUploadPlayground, TourPlayground, TreeViewPlayground } from './playground/NewPlaygrounds';
-import { ScrollAreaPlayground, AppShellPlayground, NavbarPlayground, CursorPlayground } from './playground/LayoutPlaygrounds';
 import { SiteMode } from './playground/shared';
 import { reflow } from './playground/example';
+import { PAGES } from './examples';
+import { PageBoundary, PageLoading } from './playground/boundary';
 import { MakeItYours } from './playground/customize';
 
 /**
@@ -27,10 +24,15 @@ import { MakeItYours } from './playground/customize';
 
 interface ComponentRoute {
   meta: ComponentMeta;
-  status: 'stable' | 'new';
-  /** A page without one shows the component's examples and API. */
-  Playground?: () => React.ReactElement;
   extra?: () => React.ReactElement;
+}
+
+/** One lazy page component per route, made once. */
+const LAZY = new Map<string, React.LazyExoticComponent<React.ComponentType>>();
+function playgroundFor(name: string) {
+  if (!PAGES[name]) return null;
+  if (!LAZY.has(name)) LAZY.set(name, React.lazy(PAGES[name]));
+  return LAZY.get(name)!;
 }
 
 /* The site is built from the library: the shell, the bar, the side navigation, the API tables and the
@@ -39,7 +41,7 @@ const Shell = defineAppShell({ dimensions: { maxWidth: 1180, padding: '0 clamp(1
 const TopBar = defineNavbar({ variant: 'glass', indicator: 'none', dimensions: { paddingX: 'clamp(1rem, 3vw, 2rem)' } });
 const SiteNav = defineSidebar({ surface: 'transparent', variant: 'soft', size: 'sm' });
 const Api = defineTable<ApiRow>({ variant: 'outline', density: 'compact', sortable: true, toolbar: { search: true, columns: false }, columnMenu: false, lines: 'rows' });
-const NewTag = defineBadge({ variant: 'soft', size: 'sm' });
+const Required = defineBadge({ variant: 'soft', size: 'sm', tone: 'warning' });
 const Checks = defineAccordion({ variant: 'ghost', mode: 'multiple' });
 const Ghost = defineButton({ variant: 'ghost', size: 'sm' });
 
@@ -62,58 +64,59 @@ const GROUPS: Array<[string, string[]]> = [
   ['Actions and effects', ['button', 'separator', 'cursor']],
 ];
 
+/** Every component, in no particular order (the side nav groups them). Its page loads on demand. */
 const COMPONENTS: ComponentRoute[] = [
-  { meta: accordionMeta, status: 'stable', Playground: AccordionPlayground, extra: AccordionExtras },
-  { meta: buttonMeta, status: 'stable', Playground: ButtonPlayground },
-  { meta: spinnerMeta, status: 'stable', Playground: SpinnerPlayground },
-  { meta: separatorMeta, status: 'stable', Playground: SeparatorPlayground },
-  { meta: kbdMeta, status: 'stable', Playground: KbdPlayground },
-  { meta: skeletonMeta, status: 'stable', Playground: SkeletonPlayground },
-  { meta: badgeMeta, status: 'stable', Playground: BadgePlayground },
-  { meta: alertMeta, status: 'stable', Playground: AlertPlayground },
-  { meta: avatarMeta, status: 'stable', Playground: AvatarPlayground },
-  { meta: cardMeta, status: 'stable', Playground: CardPlayground },
-  { meta: progressMeta, status: 'stable', Playground: ProgressPlayground },
-  { meta: tooltipMeta, status: 'stable', Playground: TooltipPlayground },
-  { meta: popoverMeta, status: 'stable', Playground: PopoverPlayground },
-  { meta: dialogMeta, status: 'stable', Playground: DialogPlayground },
-  { meta: menuMeta, status: 'stable', Playground: MenuPlayground },
-  { meta: toastMeta, status: 'stable', Playground: ToastPlayground },
-  { meta: inputMeta, status: 'stable', Playground: InputPlayground },
-  { meta: checkboxMeta, status: 'stable', Playground: CheckboxPlayground },
-  { meta: radioMeta, status: 'stable', Playground: RadioPlayground },
-  { meta: switchMeta, status: 'stable', Playground: SwitchPlayground },
-  { meta: toggleMeta, status: 'stable', Playground: TogglePlayground },
-  { meta: toolbarMeta, status: 'stable', Playground: ToolbarPlayground },
-  { meta: sliderMeta, status: 'stable', Playground: SliderPlayground },
-  { meta: numberMeta, status: 'stable', Playground: NumberPlayground },
-  { meta: otpMeta, status: 'stable', Playground: OtpPlayground },
-  { meta: tabsMeta, status: 'stable', Playground: TabsPlayground },
-  { meta: breadcrumbMeta, status: 'stable', Playground: BreadcrumbPlayground },
-  { meta: paginationMeta, status: 'stable', Playground: PaginationPlayground },
-  { meta: stepperMeta, status: 'stable', Playground: StepperPlayground },
-  { meta: selectMeta, status: 'stable', Playground: SelectPlayground },
-  { meta: comboboxMeta, status: 'stable', Playground: ComboboxPlayground },
-  { meta: tagsMeta, status: 'stable', Playground: TagsPlayground },
-  { meta: commandMeta, status: 'stable', Playground: CommandPlayground },
-  { meta: calendarMeta, status: 'stable', Playground: CalendarPlayground },
-  { meta: datepickerMeta, status: 'stable', Playground: DatePickerPlayground },
-  { meta: tableMeta, status: 'stable', Playground: TablePlayground },
-  { meta: ratingMeta, status: 'stable', Playground: RatingPlayground },
-  { meta: timelineMeta, status: 'stable', Playground: TimelinePlayground },
-  { meta: emptyMeta, status: 'stable', Playground: EmptyPlayground },
-  { meta: carouselMeta, status: 'stable', Playground: CarouselPlayground },
-  { meta: resizableMeta, status: 'stable', Playground: ResizablePlayground },
-  { meta: sidebarMeta, status: 'stable', Playground: SidebarPlayground },
-  { meta: navmenuMeta, status: 'stable', Playground: NavMenuPlayground },
-  { meta: colorpickerMeta, status: 'stable', Playground: ColorPickerPlayground },
-  { meta: scrollareaMeta, status: 'new', Playground: ScrollAreaPlayground },
-  { meta: appshellMeta, status: 'new', Playground: AppShellPlayground },
-  { meta: navbarMeta, status: 'new', Playground: NavbarPlayground },
-  { meta: cursorMeta, status: 'new', Playground: CursorPlayground },
-  { meta: treeviewMeta, status: 'new', Playground: TreeViewPlayground },
-  { meta: fileuploadMeta, status: 'new', Playground: FileUploadPlayground },
-  { meta: tourMeta, status: 'new', Playground: TourPlayground },
+  { meta: accordionMeta, extra: AccordionExtras },
+  { meta: buttonMeta },
+  { meta: spinnerMeta },
+  { meta: separatorMeta },
+  { meta: kbdMeta },
+  { meta: skeletonMeta },
+  { meta: badgeMeta },
+  { meta: alertMeta },
+  { meta: avatarMeta },
+  { meta: cardMeta },
+  { meta: progressMeta },
+  { meta: tooltipMeta },
+  { meta: popoverMeta },
+  { meta: dialogMeta },
+  { meta: menuMeta },
+  { meta: toastMeta },
+  { meta: inputMeta },
+  { meta: checkboxMeta },
+  { meta: radioMeta },
+  { meta: switchMeta },
+  { meta: toggleMeta },
+  { meta: toolbarMeta },
+  { meta: sliderMeta },
+  { meta: numberMeta },
+  { meta: otpMeta },
+  { meta: tabsMeta },
+  { meta: breadcrumbMeta },
+  { meta: paginationMeta },
+  { meta: stepperMeta },
+  { meta: selectMeta },
+  { meta: comboboxMeta },
+  { meta: tagsMeta },
+  { meta: commandMeta },
+  { meta: calendarMeta },
+  { meta: datepickerMeta },
+  { meta: tableMeta },
+  { meta: ratingMeta },
+  { meta: timelineMeta },
+  { meta: emptyMeta },
+  { meta: carouselMeta },
+  { meta: resizableMeta },
+  { meta: sidebarMeta },
+  { meta: navmenuMeta },
+  { meta: colorpickerMeta },
+  { meta: scrollareaMeta },
+  { meta: appshellMeta },
+  { meta: navbarMeta },
+  { meta: cursorMeta },
+  { meta: treeviewMeta },
+  { meta: fileuploadMeta },
+  { meta: tourMeta },
 ];
 
 function useRoute(): string {
@@ -149,7 +152,7 @@ export function App() {
 
   const byName = new Map(COMPONENTS.map((c) => [c.meta.name, c]));
   const placed = new Set(GROUPS.flatMap(([, names]) => names));
-  const entry = (c: ComponentRoute, group: string) => ({ id: c.meta.name, label: c.meta.displayName, href: `#/${c.meta.name}`, group, badge: c.status === 'new' ? <NewTag label="new" /> : undefined });
+  const entry = (c: ComponentRoute, group: string) => ({ id: c.meta.name, label: c.meta.displayName, href: `#/${c.meta.name}`, group });
   const nav = [
     { id: 'overview', label: 'Overview', href: '#/overview', group: 'Get started' },
     { id: 'palette', label: 'Palette studio', href: '#/palette', group: 'Get started' },
@@ -209,7 +212,8 @@ function Page({ title, lede, children }: { title: string; lede: string; children
 
 /** Every component page: generated from meta, so the site never hand-copies an API. */
 function ComponentPage({ route }: { route: ComponentRoute }) {
-  const { meta, Playground, extra: Extra } = route;
+  const { meta, extra: Extra } = route;
+  const Playground = playgroundFor(meta.name);
   const pascal = meta.pascal ?? meta.displayName.split(' ')[0];
   return (
     <article key={meta.name}>
@@ -224,7 +228,11 @@ function ComponentPage({ route }: { route: ComponentRoute }) {
 
       {Playground ? (
         <Section id="playground" title="Playground" lede="Every control comes from the component's metadata and opens on the library defaults; the link keeps your state.">
-          <Playground />
+          <PageBoundary name={meta.displayName}>
+            <React.Suspense fallback={<PageLoading />}>
+              <Playground />
+            </React.Suspense>
+          </PageBoundary>
         </Section>
       ) : null}
 
@@ -503,7 +511,7 @@ function ApiTable({ meta }: { meta: ComponentMeta }) {
       rowKey="option"
       labels={{ search: 'Search options' }}
       columns={[
-        { key: 'option', header: 'Option', width: 190, cell: ({ row }) => <><code>{row.option}</code>{row.required ? <NewTag label="required" tone="warning" /> : null}</> },
+        { key: 'option', header: 'Option', width: 190, cell: ({ row }) => <><code>{row.option}</code>{row.required ? <Required label="required" /> : null}</> },
         { key: 'type', header: 'Type', width: 240, cell: ({ row }) => <code className="dx-type">{row.type}</code> },
         { key: 'default', header: 'Default', width: 130, cell: ({ row }) => (row.default ? <code>{row.default}</code> : null) },
         { key: 'notes', header: 'Notes', sortable: false },

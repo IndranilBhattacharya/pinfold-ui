@@ -1,0 +1,125 @@
+import * as React from 'react';
+import { navbarMeta } from '@pinfold/core/meta';
+import { Avatar } from '@pinfold/react/avatar';
+import { defineTabs } from '@pinfold/react/tabs';
+import { changed, Pick } from '../playground/shared';
+import { src, type ExampleSpec } from '../playground/example';
+import { defineNavbar } from '@pinfold/react/navbar';
+import { BELL, Page, Toggle, usePage } from '../playground/kit';
+import { DEVICES, MARK, MOON, SEARCH } from './app-shell';
+
+/** The navbar page. */
+
+const BAR_ITEMS = [
+  { label: 'Overview', href: '/overview' },
+  {
+    label: 'Projects',
+    items: [
+      { label: 'Pinfold', href: '/projects/pinfold' },
+      { label: 'Atlas', href: '/projects/atlas' },
+      { label: 'Archive', href: '/projects/archive' },
+    ],
+  },
+  { label: 'Reports', href: '/reports' },
+  { label: 'Pricing', href: '/pricing', badge: 'New' },
+];
+const BAR_PAGES: Record<string, string> = {
+  '/': 'Home: the product in one page.',
+  '/overview': 'Overview: this week at a glance.',
+  '/projects/pinfold': 'Pinfold: 41 components, 12 open issues.',
+  '/projects/atlas': 'Atlas: started this week, two members.',
+  '/projects/archive': 'Archive: finished projects, read only.',
+  '/reports': 'Reports: weekly activity and time spent.',
+  '/pricing': 'Pricing: free, team and enterprise.',
+};
+const NOTIFICATIONS = ['Mara commented on Atlas', 'Jonas invited you to Pinfold', 'Your report is ready'];
+const SectionTabs = defineTabs({ size: 'sm' });
+
+function BarDemo({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
+  const { _layout: custom, _secondary: secondary, _width: width, ...rest } = props;
+  const [path, setPath] = React.useState('/overview');
+  const [unread, setUnread] = React.useState(3);
+  const [dark, setDark] = React.useState(false);
+  const [last, setLast] = React.useState('');
+  const tools = [
+    { id: 'search', label: 'Search', icon: SEARCH, onClick: () => setLast('Search opened') },
+    { id: 'bell', label: 'Notifications', icon: BELL, badge: unread || undefined, menu: NOTIFICATIONS.map((n) => ({ label: n, onSelect: () => { setUnread((u) => Math.max(0, u - 1)); setLast(n); } })) },
+    { id: 'theme', label: 'Dark mode', icon: MOON, active: dark, onClick: () => setDark((d) => !d) },
+  ];
+  return (
+    <div className="dx-site dx-device" style={{ maxWidth: width || undefined }}>
+      <Preset
+        {...rest}
+        value={path}
+        onNavigate={setPath}
+        tools={tools}
+        actions={[{ label: 'Start free', onClick: () => setLast('Start free pressed') }]}
+        end={<Avatar name="Mara Lind" size="sm" />}
+        secondary={secondary ? <SectionTabs label="Section" items={['Overview', 'Activity', 'Members']} /> : undefined}
+        layout={custom ? { start: ['brand'], center: ['links'], end: ['tool:search', 'tool:bell', 'tool:theme', 'separator', 'actions', 'end', 'toggle'] } : undefined}
+      />
+      <div className="dx-site__page">
+        <p className="dx-hint">{path}</p>
+        <p className="dx-panel__lead">Current page: {BAR_PAGES[path] ?? path}</p>
+        <p className="dx-hint">
+          Dark mode {dark ? 'on' : 'off'} · {unread} unread{last ? ` · last: ${last}` : ''}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export function NavbarPlayground() {
+  const page = usePage(navbarMeta, ['size', 'tone'], { _layout: false, _secondary: false, _device: 'desktop' });
+  const device = DEVICES.find(([id]) => id === page.inputs._device) ?? DEVICES[0];
+  const inactive = {};
+  const set = { ...Object.fromEntries(changed(page.options, page.defaults, inactive)), collapseAt: 480 };
+  const custom = !!page.inputs._layout;
+  const secondary = !!page.inputs._secondary;
+  const use: Record<string, unknown> = {
+    label: 'Main',
+    value: src('/overview', 'pathname'),
+    onNavigate: src(undefined, 'router.push'),
+    brand: { label: 'Acme', logo: src(MARK, '<Logo />'), href: '/' },
+    items: src(BAR_ITEMS, "[{ label: 'Overview', href: '/overview' }, { label: 'Projects', items: [{ label: 'Pinfold', href: '/projects/pinfold' }, { label: 'Atlas', href: '/projects/atlas' }, { label: 'Archive', href: '/projects/archive' }] }, { label: 'Reports', href: '/reports' }, { label: 'Pricing', href: '/pricing', badge: 'New' }]"),
+    tools: src([], "[{ id: 'search', label: 'Search', icon: <SearchIcon />, onClick: openSearch }, { id: 'bell', label: 'Notifications', icon: <BellIcon />, badge: unread, menu: notifications }, { id: 'theme', label: 'Dark mode', icon: <MoonIcon />, active: dark, onClick: toggleTheme }]"),
+    actions: src([], "[{ label: 'Start free', onClick: startTrial }]"),
+    end: src(null, '<Avatar name="Mara Lind" size="sm" />'),
+    layout: custom ? { start: ['brand'], center: ['links'], end: ['tool:search', 'tool:bell', 'tool:theme', 'separator', 'actions', 'end', 'toggle'] } : undefined,
+    secondary: secondary ? src(null, '<SectionTabs />') : undefined,
+    _layout: src(custom, ''),
+    _secondary: src(secondary, ''),
+    _width: src(device[2], ''),
+  };
+  const spec: ExampleSpec = {
+    name: 'TopBar',
+    preset: set,
+    body: ['const pathname = usePathname();', 'const router = useRouter();'],
+    tree: [{ app: BarDemo, use, code: ['$TAG'] }],
+  };
+  return (
+    <Page
+      wide
+      meta={navbarMeta}
+      page={page}
+      define={defineNavbar}
+      spec={spec}
+      inactive={inactive}
+      inherit={['size', 'tone']}
+      provider
+      motion
+      align="start"
+      file="components/top-bar"
+      note="Choose a link and the text under the bar says which page is current. Projects is a dropdown; the bell is a menu and its badge counts what is unread; the moon is a toggle. Preview as a tablet and the links that do not fit go under More (or scroll, with overflow: scroll: drag the row or use the wheel); as a phone they fold into a menu button; the ones that do not fit go under More."
+      demo={
+        <>
+          <div className="dx-opt">
+            <Pick label="preview as" items={DEVICES.map(([value, label]) => ({ value, label }))} value={device[0]} onChange={(next) => next && page.setOption('_device', next)} />
+          </div>
+          <Toggle page={page} name="_layout" label="custom layout (links centred, tools by name)" />
+          <Toggle page={page} name="_secondary" label="secondary row (tabs under the bar)" />
+        </>
+      }
+    />
+  );
+}

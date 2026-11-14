@@ -240,26 +240,26 @@ function MockApp() {
   );
 }
 
-// A change of option mounts the preview afresh (as a new build would). A tour that was running keeps
-// running on the same step, so the option's effect shows without pressing Start again.
-const tourRun = { open: false, step: 0, left: 0 };
+/**
+ * A change of option mounts the preview afresh (as a new build would). The page, which stays mounted,
+ * holds whether the tour runs and on which step (`_run`), so a running tour keeps running on the same
+ * step and the option's effect shows without pressing Start again. Leaving the page drops it.
+ */
+type TourRun = { open: boolean; step: number };
 
 function TourDemo({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
-  // Only a remount (unmounted a moment ago) resumes; coming back to the page later starts closed.
-  const [resume] = React.useState(() => tourRun.open && Date.now() - tourRun.left < 800);
-  const [open, setOpen] = React.useState(resume);
-  const [step, setStep] = React.useState(resume ? tourRun.step : 0);
-  const [last, setLast] = React.useState(resume ? 'Tour running.' : 'The tour has not run yet.');
-  React.useEffect(() => {
-    tourRun.open = open;
-    tourRun.step = step;
-  }, [open, step]);
-  React.useEffect(
-    () => () => {
-      tourRun.left = Date.now();
-    },
-    [],
-  );
+  const { _run: run, ...rest } = props as { _run: TourRun } & Record<string, unknown>;
+  const [open, setOpenState] = React.useState(run.open);
+  const [step, setStepState] = React.useState(run.step);
+  const [last, setLast] = React.useState(run.open ? 'Tour running.' : 'The tour has not run yet.');
+  const setOpen = (next: boolean) => {
+    run.open = next;
+    setOpenState(next);
+  };
+  const setStep = (next: number) => {
+    run.step = next;
+    setStepState(next);
+  };
   const steps = [
     { id: 'search', target: '[data-tour-demo] [data-tour=search]', title: 'Search anything', content: 'Find a project, an issue or a person from here.' },
     { id: 'create', target: '[data-tour-demo] [data-tour=create]', title: 'Start something new', content: 'New project sets up a workspace in a few seconds.', placement: 'bottom-end' },
@@ -280,7 +280,7 @@ function TourDemo({ Preset, props }: { Preset: React.ElementType; props: Record<
       </div>
       <MockApp />
       <Preset
-        {...props}
+        {...rest}
         steps={steps}
         open={open}
         step={step}
@@ -304,6 +304,7 @@ function TourDemo({ Preset, props }: { Preset: React.ElementType; props: Record<
 
 export function TourPlayground() {
   const page = usePage(tourMeta, ['size', 'tone'], {});
+  const run = React.useRef<TourRun>({ open: false, step: 0 }).current;
   const inactive = inactiveTourOptions({ ...(page.options as any), steps: [{}, {}, {}, {}] });
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
   const spec: ExampleSpec = {
@@ -320,6 +321,7 @@ export function TourPlayground() {
           onOpenChange: src(undefined, 'setOpen'),
           onComplete: src(undefined, 'markSeen'),
           onSkip: src(undefined, '(index) => track("tour-skipped", index)'),
+          _run: src(run, ''),
         },
         code: ['<Button label="Start the tour" onClick={() => setOpen(true)} />', '{/* AppHeader marks its search field, button, stats and activity with data-tour. */}', '<AppHeader />', '$TAG'],
       },

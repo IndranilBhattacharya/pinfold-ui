@@ -71,9 +71,9 @@ function BarDemo({ Preset, props }: { Preset: React.ElementType; props: Record<s
 }
 
 export function NavbarPlayground() {
-  const page = usePage(navbarMeta, ['size', 'tone'], { _layout: false, _secondary: false });
+  const page = usePage(navbarMeta, ['size', 'tone'], { _layout: false, _secondary: false, collapseAt: 480 });
   const inactive = {};
-  const set = { ...Object.fromEntries(changed(page.options, page.defaults, inactive)), collapseAt: 480 };
+  const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
   const custom = !!page.inputs._layout;
   const secondary = !!page.inputs._secondary;
   const use: Record<string, unknown> = {

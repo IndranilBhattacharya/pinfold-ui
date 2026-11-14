@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { defineToggle } from '@pinfold/react/toggle';
 import { type ComponentMeta } from '@pinfold/core/meta';
-import { CodePanel, controlsOf, defaultsOf, ENV, EnvControls, Flag, Note, OptionControls, Pick, reviveEnv, Stage, TextField, Tool, useUrlState, type Env } from './shared';
+import { ObjectOptions, CodePanel, controlsOf, defaultsOf, ENV, EnvControls, Flag, Note, OptionControls, Pick, reviveEnv, Stage, TextField, Tool, useUrlState, type Env } from './shared';
 import { exampleCode, Live, src, type ExampleSpec } from './example';
 import { IN_PREVIEW } from './preview-mode';
 
@@ -136,6 +136,8 @@ export function Page({ meta, page, define, spec: given, inactive, inherit = [], 
     <div className={wide ? 'dx-play dx-play--wide' : 'dx-play'}>
       <div className="dx-play__editor">
         {demo}
+        <ObjectOptions meta={meta} options={page.options} setOption={page.setOption} />
+        <SetInCode meta={meta} inputs={page.inputs} />
         <OptionControls controls={page.controls} options={page.options} setOption={page.setOption} inactive={inactive} inherit={inherit} autoLabel={autoLabel ?? autoFromEnv(page.env)} valueLabel={valueLabel} />
         <EnvControls env={page.env} setEnv={page.setEnv} provider={provider} motion={motion} />
         <Tool label="Reset" onClick={page.reset} />
@@ -200,4 +202,29 @@ function withDefaultOpen(spec: ExampleSpec, value: true | string): ExampleSpec {
     return { ...node, use: { ...node.use, defaultOpen: value } };
   });
   return { ...spec, tree };
+}
+
+/** Never controls: data, events, the escape hatches, and the object groups shown above. */
+const NOT_A_CONTROL = new Set(['className', 'style', 'unstyled', 'classNames', 'styles', 'slotProps', 'render', 'dimensions', 'labels', 'id', 'name', 'radius', 'size', 'tone']);
+
+/**
+ * The appearance and behaviour options this page has no control for, so a visitor knows they exist and
+ * where they are explained (the API table under the playground).
+ */
+function SetInCode({ meta, inputs }: { meta: ComponentMeta; inputs: Record<string, unknown> }) {
+  const names = Object.entries(meta.props)
+    .filter(([key, p]) => !p.control && !NOT_A_CONTROL.has(key) && (p.group === 'appearance' || p.group === 'behaviour') && p.type !== 'function' && !(key in inputs))
+    .map(([key]) => key);
+  if (!names.length) return null;
+  return (
+    <p className="dx-hint dx-set-in-code">
+      Also set in code: {names.map((n, i) => (
+        <React.Fragment key={n}>
+          {i ? ', ' : ''}
+          <code>{n}</code>
+        </React.Fragment>
+      ))}
+      . See the API table below.
+    </p>
+  );
 }

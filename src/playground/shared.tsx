@@ -8,6 +8,8 @@ import { defineTabs } from '@pinfold/react/tabs';
 import { defineButton } from '@pinfold/react/button';
 import { defineInput } from '@pinfold/react/input';
 import { defineAlert } from '@pinfold/react/alert';
+import { defineNumberField } from '@pinfold/react/number';
+import { defineAccordion } from '@pinfold/react/accordion';
 import { defineBadge } from '@pinfold/react/badge';
 import type { ComponentMeta, PropMeta } from '@pinfold/core/meta';
 import type { PinfoldSize, PinfoldStylePack, PinfoldTone } from '@pinfold/core';
@@ -128,6 +130,60 @@ export const Width = defineSlider({ size: 'sm', min: 30, max: 100, showValue: 'l
 export const Lang = defineTabs({ variant: 'pills', size: 'sm' });
 export const Tool = defineButton({ variant: 'soft', tone: 'neutral', size: 'sm' });
 export const TextField = defineInput({ size: 'sm' });
+/** A number option: its range and step from the metadata; empty means unset (the default). */
+export const Amount = defineNumberField({ size: 'sm', dimensions: { width: '9rem' } });
+const Fold = defineAccordion({ variant: 'ghost', size: 'sm', mode: 'multiple' });
+
+/** A length as typed: a bare number is px, anything else is a CSS length (`1.5rem`, `40%`). */
+const asLength = (text: string): number | string | undefined => (text.trim() === '' ? undefined : /^-?\d+(\.\d+)?$/.test(text.trim()) ? Number(text) : text.trim());
+
+/**
+ * An option that is an object of named values (`dimensions`, `labels`): one field per key, folded away
+ * under a heading. Empty keys are left out; an object with no keys left is unset.
+ */
+function ObjectOption({ name, meta, value, onChange, length }: { name: string; meta: PropMeta; value: unknown; onChange: (next: unknown) => void; length: boolean }) {
+  const current = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
+  const set = (key: string, text: string) => {
+    const next: Record<string, unknown> = { ...current, [key]: length ? asLength(text) : text === '' ? undefined : text };
+    for (const k of Object.keys(next)) if (next[k] === undefined) delete next[k];
+    onChange(Object.keys(next).length ? next : undefined);
+  };
+  return (
+    <div className="dx-opts dx-opts--object">
+      {Object.entries(meta.keys ?? {}).map(([key, k]) => (
+        <div key={key} className="dx-opt" title={k.description}>
+          <TextField
+            label={`${name}.${key}`}
+            description={length ? 'px, or a CSS length' : undefined}
+            placeholder={length ? 'default' : (k.description.match(/Default "([^"]+)"/)?.[1] ?? 'default')}
+            value={current[key] === undefined ? '' : String(current[key])}
+            onChange={(text) => set(key, text)}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** `dimensions` (exact measurements) and `labels` (text read and shown), from the component's metadata. */
+export function ObjectOptions({ meta, options, setOption }: { meta: ComponentMeta; options: Record<string, unknown>; setOption: (key: string, value: unknown) => void }) {
+  const groups = [
+    ['dimensions', 'Dimensions', true],
+    ['labels', 'Text', false],
+  ].filter(([key]) => meta.props[key as string]?.keys) as Array<[string, string, boolean]>;
+  if (!groups.length) return null;
+  return (
+    <Fold
+      className="dx-object-options"
+      items={groups.map(([key, title, length]) => ({
+        id: key,
+        title,
+        description: length ? 'Exact measurements' : 'What it reads and shows: translate it here',
+        content: <ObjectOption name={key} meta={meta.props[key]} value={options[key]} length={length} onChange={(next) => setOption(key, next)} />,
+      }))}
+    />
+  );
+}
 export const Note = defineAlert({ variant: 'soft', tone: 'neutral' });
 export const Tag = defineBadge({ variant: 'soft', tone: 'neutral', size: 'sm' });
 
@@ -168,7 +224,30 @@ export function OptionControls({
   const visual = controls.filter(([, meta]) => !meta.silent);
   const silent = controls.filter(([, meta]) => meta.silent);
   const control = ([key, meta]: [string, PropMeta], explain: boolean) =>
-    meta.type === 'boolean' || (meta.orBoolean && !meta.values) ? (
+    meta.type === 'number' ? (
+      <div key={key} className="dx-opt" title={(explain && inactive[key]) || meta.description}>
+        <Amount
+          label={meta.unit ? `${key} (${meta.unit})` : key}
+          value={typeof options[key] === 'number' ? (options[key] as number) : null}
+          placeholder={meta.default === undefined ? autoLabel(key, meta) : String(meta.default)}
+          min={meta.min}
+          max={meta.max}
+          step={meta.step}
+          disabled={explain && key in inactive}
+          onChange={(next) => setOption(key, next === null ? undefined : next)}
+        />
+      </div>
+    ) : meta.type === 'string' ? (
+      <div key={key} className="dx-opt" title={(explain && inactive[key]) || meta.description}>
+        <TextField
+          label={key}
+          value={typeof options[key] === 'string' ? (options[key] as string) : ''}
+          placeholder={meta.default === undefined ? autoLabel(key, meta) : String(meta.default)}
+          disabled={explain && key in inactive}
+          onChange={(next) => setOption(key, next === '' ? undefined : next)}
+        />
+      </div>
+    ) : meta.type === 'boolean' || (meta.orBoolean && !meta.values) ? (
       <div key={key} className="dx-opt dx-opt--check" title={(explain && inactive[key]) || meta.description}>
         <Flag label={key} checked={!!options[key]} disabled={explain && key in inactive} onChange={(on) => setOption(key, on)} />
       </div>

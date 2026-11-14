@@ -109,7 +109,7 @@ export function ScrollAreaPlayground() {
   const kind = String(page.inputs._kind);
   const inactive = inactiveScrollAreaOptions(page.options);
   const dimensions = kind === 'chips' ? { maxWidth: 360 } : { height: 300 };
-  const set = { ...Object.fromEntries(changed(page.options, page.defaults, inactive)), dimensions };
+  const set = { ...Object.fromEntries(changed(page.options, page.defaults, inactive)), dimensions: { ...dimensions, ...(page.options.dimensions as object | undefined) } };
   const names: Record<string, string> = { changelog: 'Changelog', chat: 'Messages', chips: 'Topics' };
   const name = names[kind] ?? 'Changelog';
   const code: Record<string, string[]> = {

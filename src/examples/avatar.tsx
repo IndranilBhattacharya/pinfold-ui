@@ -9,7 +9,7 @@ import { Choice, Page, Text, Toggle, autoFromEnv, usePage } from '../playground/
 /** The avatar page. */
 
 export function AvatarPlayground() {
-  const page = usePage(avatarMeta, ['size'], { _kind: 'one', _photo: true, _name: PEOPLE[0].name, _max: '4' });
+  const page = usePage(avatarMeta, ['size'], { _kind: 'one', _photo: true, _name: PEOPLE[0].name });
   const group = page.inputs._kind === 'group';
   const photo = !!page.inputs._photo;
   const inactive = inactiveAvatarOptions({ items: group ? [] : undefined, src: photo || undefined });
@@ -19,7 +19,7 @@ export function AvatarPlayground() {
   const picture = photo ? src(person?.photo ?? PEOPLE[0].photo, `'${person?.file ?? PEOPLE[0].file}'`) : undefined;
   const items = PEOPLE.map((p, i) => ({ name: p.name, src: photo ? src(p.photo, `'${p.file}'`) : undefined, status: i === 0 ? set.status ?? 'online' : undefined }));
   const spec: ExampleSpec = group
-    ? { name: 'Team', preset: { ...set, max: Number(page.inputs._max) || 4, label: 'Project members' }, tree: [{ use: { items } }] }
+    ? { name: 'Team', preset: { ...set, label: 'Project members' }, tree: [{ use: { items } }] }
     : { name: 'Person', preset: set, tree: [{ use: { name, src: picture, status: set.status } }] };
   return (
     <Page
@@ -39,7 +39,7 @@ export function AvatarPlayground() {
             <Choice page={page} name="_kind" label="show" options={[['one', 'one person'], ['group', 'a group (items)']]} />
             <Toggle page={page} name="_photo" label="photo" />
           </div>
-          {group ? <Text page={page} name="_max" label="max" hint="faces before +N" /> : <Text page={page} name="_name" label="name" hint="initials, colour and the accessible name" />}
+          {group ? null : <Text page={page} name="_name" label="name" hint="initials, colour and the accessible name" />}
         </>
       }
     />

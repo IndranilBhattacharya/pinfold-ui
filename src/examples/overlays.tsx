@@ -7,7 +7,7 @@ import { defineDialog } from '@pinfold/react/dialog';
 import { defineMenu, type MenuItem } from '@pinfold/react/menu';
 import { defineToast } from '@pinfold/react/toast';
 import { useButton } from '@pinfold/react/button';
-import { changed, CodePanel, EnvControls, OptionControls, Stage, Tool } from '../playground/shared';
+import { ObjectOptions, changed, CodePanel, EnvControls, OptionControls, Stage, Tool } from '../playground/shared';
 import { exampleCode, src, type ExampleSpec } from '../playground/example';
 import { Page, Text, usePage } from '../playground/kit';
 import { reportEvent } from '../playground/preview-mode';
@@ -95,9 +95,8 @@ function ToastRegion(props: Record<string, unknown>) {
 let burst = 0;
 
 export function ToastPlayground() {
-  const page = usePage(toastMeta, [], { _visible: '3' });
-  const visible = Number(page.inputs._visible) || 3;
-  const set = { ...Object.fromEntries(changed(page.options, page.defaults)), visible: visible === 3 ? undefined : visible };
+  const page = usePage(toastMeta, []);
+  const set = Object.fromEntries(changed(page.options, page.defaults));
   const Many = useButton({
     label: 'Show four more',
     variant: 'outline',
@@ -116,7 +115,7 @@ export function ToastPlayground() {
   return (
     <div className="dx-play">
       <div className="dx-play__editor">
-        <Text page={page} name="_visible" label="visible" hint="shown when fanned out; more scroll" />
+        <ObjectOptions meta={toastMeta} options={page.options} setOption={page.setOption} />
         <OptionControls controls={page.controls} options={page.options} setOption={page.setOption} />
         <EnvControls env={page.env} setEnv={page.setEnv} />
         <Tool label="Reset" onClick={page.reset} />

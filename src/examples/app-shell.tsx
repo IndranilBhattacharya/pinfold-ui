@@ -126,7 +126,7 @@ export function AppShellPlayground() {
   const behavior = (page.options.sidebarBehavior as string | undefined) ?? 'auto';
   const drawer = behavior === 'drawer' || (behavior === 'auto' && shellWidth < 768);
   const inactive = inactiveAppShellOptions({ sidebar: true, navbar: true, sidebarBehavior: behavior, scroll: page.options.scroll as string }, drawer);
-  const set = { ...Object.fromEntries(changed(page.options, page.defaults, inactive)), dimensions: { height: 560 } };
+  const set = { ...Object.fromEntries(changed(page.options, page.defaults, inactive)), dimensions: { height: 560, ...(page.options.dimensions as object | undefined) } };
   const attrs = ['navbar={<TopBar />}', "sidebar={<AppNav label=\"Main\" value={pathname} onNavigate={router.push} items={nav} />}", 'aside={<Activity />}', 'footer={<Legal />}'];
   const spec: ExampleSpec = {
     name: 'Shell',

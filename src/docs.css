@@ -581,3 +581,9 @@ a { color: inherit; text-decoration: none; }
 /* The page's examples, over its preview. */
 .dx-play--wide > .dx-play__preview > .dx-examples { order: -1; }
 .dx-examples { margin-bottom: 0.75rem; max-inline-size: 100%; overflow-x: auto; scrollbar-width: none; }
+
+/* Object options (dimensions, labels): folded under the controls. */
+.dx-object-options { margin-top: 0.75rem; }
+.dx-opts--object { margin-top: 0; }
+
+.dx-set-in-code { margin: 0.75rem 0 0; line-height: 1.7; }

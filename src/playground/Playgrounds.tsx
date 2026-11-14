@@ -124,12 +124,14 @@ interface PageProps {
   frame?: (preview: React.ReactNode) => React.ReactNode;
   autoLabel?: (key: string, meta: { default?: unknown; auto?: string }) => string;
   valueLabel?: (key: string, value: string | number) => string | undefined;
+  /** The preview takes the full width, with the controls under it: for components that are a layout (a shell, a bar, a grid). */
+  wide?: boolean;
 }
 
-export function Page({ meta, page, define, spec, inactive, inherit = [], provider = false, motion = false, align = 'center', demo, note, file, frame, autoLabel, valueLabel }: PageProps) {
+export function Page({ meta, page, define, spec, inactive, inherit = [], provider = false, motion = false, align = 'center', demo, note, file, frame, autoLabel, valueLabel, wide = false }: PageProps) {
   const live = <Live define={define} spec={spec} meta={meta} />;
   return (
-    <div className="dx-play">
+    <div className={wide ? 'dx-play dx-play--wide' : 'dx-play'}>
       <div className="dx-play__editor">
         {demo}
         <OptionControls controls={page.controls} options={page.options} setOption={page.setOption} inactive={inactive} inherit={inherit} autoLabel={autoLabel ?? autoFromEnv(page.env)} valueLabel={valueLabel} />
@@ -2612,6 +2614,7 @@ export function TablePlayground() {
   };
   return (
     <Page
+      wide
       meta={tableMeta}
       page={page}
       define={defineTable}
@@ -2843,6 +2846,7 @@ export function CarouselPlayground() {
   const spec: ExampleSpec = { name: 'Gallery', preset: set, body: ['const { cart, addToCart } = useCart();'], tree: [{ app: Shelf, use, code: ['$TAG', '<CartSummary cart={cart} />'] }] };
   return (
     <Page
+      wide
       meta={carouselMeta}
       page={page}
       define={defineCarousel}
@@ -2923,6 +2927,7 @@ export function ResizablePlayground() {
   };
   return (
     <Page
+      wide
       meta={resizableMeta}
       page={page}
       define={defineResizable}
@@ -3122,6 +3127,7 @@ export function NavMenuPlayground() {
   };
   return (
     <Page
+      wide
       meta={navmenuMeta}
       page={page}
       define={defineNavMenu}

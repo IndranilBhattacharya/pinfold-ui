@@ -108,7 +108,7 @@ export function exampleCode(meta: ComponentMeta, spec: ExampleSpec, env: Env): s
     ...(spec.body ?? []).map((l) => '  ' + l),
     ...(spec.body?.length ? [''] : []),
     '  return (',
-    ...(spec.tree.length > 1 || spec.tree.some((n) => typeof n === 'string' || (isApp(n) && n.code.length > 1)) ? ['    <>', ...body.map((l) => '  ' + l), '    </>'] : body),
+    ...(body.filter((l) => /^ {4}[<{]/.test(l) && !l.startsWith('    </')).length > 1 ? ['    <>', ...body.map((l) => '  ' + l), '    </>'] : body),
     '  );',
     '}',
     ...(spec.after?.length ? ['', ...spec.after] : []),
@@ -133,7 +133,13 @@ function renderTree(nodes: ExampleNode[], Preset: React.ElementType, previewOnly
 export function Live({ define, spec, meta }: { define: (preset: any) => React.ElementType; spec: ExampleSpec; meta: ComponentMeta }) {
   const key = exampleCode(meta, spec, ENV_FOR_KEY);
   const Preset = React.useMemo(() => define(plain(spec.preset)), [key]); // eslint-disable-line react-hooks/exhaustive-deps
-  return <React.Fragment key={key}>{renderTree(spec.tree, Preset, spec.previewOnly)}</React.Fragment>;
+  return <React.Fragment key={key}>{renderTree(spec.tree, Preset, startOpen(spec.previewOnly))}</React.Fragment>;
+}
+/** The preview starts open but is never held open: `open` would freeze it (no handler), `defaultOpen` leaves it live. */
+function startOpen(previewOnly?: Record<string, unknown>): Record<string, unknown> | undefined {
+  if (!previewOnly || !("open" in previewOnly)) return previewOnly;
+  const { open, ...rest } = previewOnly;
+  return { ...rest, defaultOpen: open };
 }
 const ENV_FOR_KEY = { stylePack: 'default', theme: '', rtl: false, reducedMotion: false, width: 100, size: '', tone: '' } as Env;
 

@@ -240,10 +240,26 @@ function MockApp() {
   );
 }
 
+// A change of option mounts the preview afresh (as a new build would). A tour that was running keeps
+// running on the same step, so the option's effect shows without pressing Start again.
+const tourRun = { open: false, step: 0, left: 0 };
+
 function TourDemo({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
-  const [open, setOpen] = React.useState(false);
-  const [step, setStep] = React.useState(0);
-  const [last, setLast] = React.useState('The tour has not run yet.');
+  // Only a remount (unmounted a moment ago) resumes; coming back to the page later starts closed.
+  const [resume] = React.useState(() => tourRun.open && Date.now() - tourRun.left < 800);
+  const [open, setOpen] = React.useState(resume);
+  const [step, setStep] = React.useState(resume ? tourRun.step : 0);
+  const [last, setLast] = React.useState(resume ? 'Tour running.' : 'The tour has not run yet.');
+  React.useEffect(() => {
+    tourRun.open = open;
+    tourRun.step = step;
+  }, [open, step]);
+  React.useEffect(
+    () => () => {
+      tourRun.left = Date.now();
+    },
+    [],
+  );
   const steps = [
     { id: 'search', target: '[data-tour-demo] [data-tour=search]', title: 'Search anything', content: 'Find a project, an issue or a person from here.' },
     { id: 'create', target: '[data-tour-demo] [data-tour=create]', title: 'Start something new', content: 'New project sets up a workspace in a few seconds.', placement: 'bottom-end' },
@@ -293,28 +309,25 @@ export function TourPlayground() {
   const spec: ExampleSpec = {
     name: 'Onboarding',
     preset: set,
-    body: [
-      'const [open, setOpen] = useState(false);',
-    ],
+    imports: ["","const steps = [","  { target: '[data-tour=search]', title: 'Search anything', content: 'Find a project, an issue or a person from here.' },","  { target: '[data-tour=create]', title: 'Start something new', content: 'New project sets up a workspace.', placement: 'bottom-end' },","  { target: '[data-tour=stats]', title: 'Your numbers', content: 'Projects, open issues and deploys.', placement: 'top' },","  { target: '[data-tour=activity]', title: 'What just happened', content: 'The latest activity lands here.' },","];"],
+    body: ['const [open, setOpen] = useState(false);'],
     tree: [
       {
         app: TourDemo,
         use: {
-          steps: src(
-            [],
-            "[\n      { target: '[data-tour=search]', title: 'Search anything', content: 'Find a project, an issue or a person from here.' },\n      { target: '[data-tour=create]', title: 'Start something new', content: 'New project sets up a workspace.', placement: 'bottom-end' },\n      { target: '[data-tour=stats]', title: 'Your numbers', content: 'Projects, open issues and deploys.', placement: 'top' },\n      { target: '[data-tour=activity]', title: 'What just happened', content: 'The latest activity lands here.' },\n    ]",
-          ),
+          steps: src([], 'steps'),
           open: src(false, 'open'),
           onOpenChange: src(undefined, 'setOpen'),
           onComplete: src(undefined, 'markSeen'),
           onSkip: src(undefined, '(index) => track("tour-skipped", index)'),
         },
-        code: ['<Button label="Start the tour" onClick={() => setOpen(true)} />', '<AppHeader /> {/* marks its search field, button, stats and activity with data-tour */}', '$TAG'],
+        code: ['<Button label="Start the tour" onClick={() => setOpen(true)} />', '{/* AppHeader marks its search field, button, stats and activity with data-tour. */}', '<AppHeader />', '$TAG'],
       },
     ],
   };
   return (
     <Page
+      wide
       meta={tourMeta}
       page={page}
       define={defineTour}
@@ -325,7 +338,7 @@ export function TourPlayground() {
       motion
       align="start"
       file="components/onboarding"
-      note="Press Start the tour. The four steps point at the search field, the New project button and the stat cards of the small app above; Next, Back, the arrow keys, Skip and Escape all work, and the line under the preview shows onComplete or onSkip. With the dim or blur mask the rest of the page is covered while the tour runs; mask none leaves it usable."
+      note="Press Start the tour. A running tour keeps running when you change an option, so the effect shows at once (with mask: none the controls stay in reach). The four steps point at the search field, the New project button and the stat cards of the small app above; Next, Back, the arrow keys, Skip and Escape all work, and the line under the preview shows onComplete or onSkip. With the dim or blur mask the rest of the page is covered while the tour runs; mask none leaves it usable."
     />
   );
 }

@@ -543,3 +543,18 @@ a { color: inherit; text-decoration: none; }
 .dx-log2 li { color: var(--pinfold-color-text-muted); }
 .dx-log2 li:first-child { color: var(--pinfold-color-text); }
 .dx-folder__head { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: var(--pinfold-color-text-muted); }
+
+/* Wide playground: the preview first, across the page; the controls under it in columns; then the code. */
+.dx-play--wide { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+.dx-play--wide > .dx-play__preview { display: contents; }
+.dx-play--wide > .dx-play__preview > * { order: 3; }
+.dx-play--wide > .dx-play__preview > .dx-stage { order: 0; margin-bottom: 0; padding: 1.25rem; }
+.dx-play--wide > .dx-play__preview > .dx-note { order: 1; }
+.dx-play--wide > .dx-play__editor { order: 2; display: grid; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); gap: 0 2.5rem; align-items: start; padding: 0.25rem 0 0.75rem; }
+.dx-play--wide > .dx-play__editor > .dx-fieldset { margin-top: 0.75rem; }
+/* Loose controls (the page's own inputs, Reset) keep their natural width instead of filling a column. */
+.dx-play--wide > .dx-play__editor > :not(.dx-fieldset) { justify-self: start; max-inline-size: 100%; }
+.dx-play--wide > .dx-play__editor > .dx-opt { min-inline-size: 14rem; margin-top: 0.75rem; }
+
+/* A device-width frame in a wide preview: centred, and it animates between sizes. */
+.dx-device { margin-inline: auto; overflow: hidden; border: 1px solid var(--pinfold-color-border); border-radius: var(--pinfold-radius-lg); background: var(--pinfold-color-bg); box-shadow: var(--pinfold-shadow-md); transition: max-width var(--pinfold-duration-slow) var(--pinfold-ease); }

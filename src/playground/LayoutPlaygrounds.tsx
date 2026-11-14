@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { appshellMeta, cursorMeta, navbarMeta, scrollareaMeta } from '@pinfold/core/meta';
-import { inactiveScrollAreaOptions } from '@pinfold/core';
+import { inactiveAppShellOptions, inactiveScrollAreaOptions } from '@pinfold/core';
 import { defineScrollArea } from '@pinfold/react/scrollarea';
 import { defineAppShell } from '@pinfold/react/appshell';
 import { defineNavbar } from '@pinfold/react/navbar';
@@ -210,14 +210,37 @@ function Page_({ path }: { path: string }) {
 }
 
 function ShellDemo({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
-  const { _narrow: narrow, ...rest } = props;
+  const { _width: width, ...rest } = props;
   const [path, setPath] = React.useState('/projects/atlas');
+  const [unread, setUnread] = React.useState(3);
+  const [said, setSaid] = React.useState('Nothing pressed yet.');
   return (
-    <div style={{ maxWidth: narrow ? 520 : undefined }}>
+    <div className="dx-device" style={{ maxWidth: width || undefined }}>
       <Preset
         {...rest}
-        navbar={<AppBar label="App" brand={{ label: 'Acme', logo: MARK }} tools={[{ id: 'search', label: 'Search', icon: SEARCH }, { id: 'bell', label: 'Notifications', icon: BELL, badge: true }]} end={<Avatar name="Mara Lind" size="sm" />} />}
-        sidebar={<AppNav label="Main" items={NAV_ITEMS} value={path} onNavigate={setPath} />}
+        navbar={
+          <AppBar
+            label="App"
+            brand={{ label: 'Acme', logo: MARK }}
+            tools={[
+              { id: 'search', label: 'Search', icon: SEARCH, onClick: () => setSaid('Search pressed: open your command palette here.') },
+              {
+                id: 'bell',
+                label: 'Notifications',
+                icon: BELL,
+                badge: unread || undefined,
+                menu: [
+                  { label: 'Mara closed Atlas #41', onSelect: () => setSaid('Opened: Mara closed Atlas #41.') },
+                  { label: 'Nina deployed 2.4.0', onSelect: () => setSaid('Opened: Nina deployed 2.4.0.') },
+                  { type: 'separator' },
+                  { label: 'Mark all as read', disabled: !unread, onSelect: () => (setUnread(0), setSaid('All notifications read.')) },
+                ],
+              },
+            ]}
+            end={<Avatar name="Mara Lind" size="sm" />}
+          />
+        }
+        sidebar={<AppNav label="Main" items={NAV_ITEMS} value={path} onNavigate={(next: string) => (setPath(next), setSaid(`Went to ${next}.`))} />}
         aside={
           <div className="dx-aside">
             <strong>Activity</strong>
@@ -228,7 +251,11 @@ function ShellDemo({ Preset, props }: { Preset: React.ElementType; props: Record
             </ul>
           </div>
         }
-        footer={<span className="dx-hint">© 2026 Acme · All systems normal</span>}
+        footer={
+          <span className="dx-hint" role="status">
+            © 2026 Acme · {said}
+          </span>
+        }
       >
         <Page_ path={path} />
       </Preset>
@@ -236,29 +263,64 @@ function ShellDemo({ Preset, props }: { Preset: React.ElementType; props: Record
   );
 }
 
+const DEVICES: Array<[string, string, number]> = [
+  ['desktop', 'desktop (full width)', 0],
+  ['tablet', 'tablet (700 px)', 700],
+  ['phone', 'phone (390 px)', 390],
+];
+
 export function AppShellPlayground() {
-  const page = usePage(appshellMeta, [], { scroll: 'content', navbarPosition: 'static', _narrow: false });
-  const narrow = !!page.inputs._narrow;
-  const set = { ...Object.fromEntries(changed(page.options, page.defaults)), dimensions: { height: 460, sidebarWidth: 190, asideWidth: 150 }, breakpoint: 520 };
+  const page = usePage(appshellMeta, [], { scroll: 'content', _device: 'desktop' });
+  const device = DEVICES.find(([id]) => id === page.inputs._device) ?? DEVICES[0];
+  // The shell measures itself, so the page measures the room it gives the shell: what is a drawer here is known, and
+  // the options that only apply to a drawer are disabled (with the reason) while it is not one.
+  const box = React.useRef<HTMLDivElement | null>(null);
+  const [room, setRoom] = React.useState(1000);
+  React.useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const measure = () => setRoom(el.clientWidth - 42);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  const shellWidth = Math.min(device[2] || Infinity, (room * page.env.width) / 100);
+  const behavior = (page.options.sidebarBehavior as string | undefined) ?? 'auto';
+  const drawer = behavior === 'drawer' || (behavior === 'auto' && shellWidth < 768);
+  const inactive = inactiveAppShellOptions({ sidebar: true, navbar: true, sidebarBehavior: behavior, scroll: page.options.scroll as string }, drawer);
+  const set = { ...Object.fromEntries(changed(page.options, page.defaults, inactive)), dimensions: { height: 560 } };
   const attrs = ['navbar={<TopBar />}', "sidebar={<AppNav label=\"Main\" value={pathname} onNavigate={router.push} items={nav} />}", 'aside={<Activity />}', 'footer={<Legal />}'];
   const spec: ExampleSpec = {
     name: 'Shell',
     preset: set,
     body: ['const pathname = usePathname();', 'const router = useRouter();'],
-    tree: [{ app: ShellDemo, use: { _narrow: src(narrow, '') }, code: ['<Shell', ...attrs.map((a) => '  ' + a), '>', '  {children}', '</Shell>'] }],
+    tree: [{ app: ShellDemo, use: { _width: src(device[2], '') }, code: ['<Shell', ...attrs.map((a) => '  ' + a), '>', '  {children}', '</Shell>'] }],
   };
   return (
-    <Page
-      meta={appshellMeta}
-      page={page}
-      define={defineAppShell}
-      spec={spec}
-      motion
-      align="start"
-      file="app/layout"
-      note="The shell has a fixed height and only the page region scrolls (scroll: 'content'). Choosing an entry in the sidebar changes the page (a small in-page router stands in for yours). It measures its own width: below the breakpoint the sidebar becomes a drawer behind the menu button in the bar, closes on Escape, on its backdrop and when a link is followed."
-      demo={<Toggle page={page} name="_narrow" label="narrow container (the sidebar becomes a drawer)" />}
-    />
+    <div ref={box}>
+      <Page
+        wide
+        meta={appshellMeta}
+        page={page}
+        define={defineAppShell}
+        spec={spec}
+        inactive={inactive}
+        motion
+        align="start"
+        file="app/layout"
+        note={
+          drawer
+            ? 'The shell is narrower than its breakpoint (768 px), so the sidebar is a drawer: press the menu button in the bar. It closes on Escape, on its backdrop and when a link is followed. Everything in the preview works: the sidebar changes the page, the bell opens a menu, and the footer says what you pressed.'
+            : 'The shell is wider than its breakpoint (768 px), so the sidebar sits beside the page; choose tablet or phone (or sidebarBehavior: drawer) to get the drawer and its menu button. Everything in the preview works: the sidebar changes the page, the bell opens a menu, and the footer says what you pressed.'
+        }
+        demo={
+          <div className="dx-opt">
+            <Pick label="preview as" items={DEVICES.map(([value, label]) => ({ value, label }))} value={device[0]} onChange={(next) => next && page.setOption('_device', next)} />
+          </div>
+        }
+      />
+    </div>
   );
 }
 
@@ -290,7 +352,7 @@ const NOTIFICATIONS = ['Mara commented on Atlas', 'Jonas invited you to Pinfold'
 const SectionTabs = defineTabs({ size: 'sm' });
 
 function BarDemo({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
-  const { _layout: custom, _secondary: secondary, ...rest } = props;
+  const { _layout: custom, _secondary: secondary, _width: width, ...rest } = props;
   const [path, setPath] = React.useState('/overview');
   const [unread, setUnread] = React.useState(3);
   const [dark, setDark] = React.useState(false);
@@ -301,12 +363,13 @@ function BarDemo({ Preset, props }: { Preset: React.ElementType; props: Record<s
     { id: 'theme', label: 'Dark mode', icon: MOON, active: dark, onClick: () => setDark((d) => !d) },
   ];
   return (
-    <div className="dx-site">
+    <div className="dx-site dx-device" style={{ maxWidth: width || undefined }}>
       <Preset
         {...rest}
         value={path}
         onNavigate={setPath}
         tools={tools}
+        actions={[{ label: 'Start free', onClick: () => setLast('Start free pressed') }]}
         end={<Avatar name="Mara Lind" size="sm" />}
         secondary={secondary ? <SectionTabs label="Section" items={['Overview', 'Activity', 'Members']} /> : undefined}
         layout={custom ? { start: ['brand'], center: ['links'], end: ['tool:search', 'tool:bell', 'tool:theme', 'separator', 'actions', 'end', 'toggle'] } : undefined}
@@ -323,7 +386,8 @@ function BarDemo({ Preset, props }: { Preset: React.ElementType; props: Record<s
 }
 
 export function NavbarPlayground() {
-  const page = usePage(navbarMeta, ['size', 'tone'], { _layout: false, _secondary: false });
+  const page = usePage(navbarMeta, ['size', 'tone'], { _layout: false, _secondary: false, _device: 'desktop' });
+  const device = DEVICES.find(([id]) => id === page.inputs._device) ?? DEVICES[0];
   const inactive = {};
   const set = { ...Object.fromEntries(changed(page.options, page.defaults, inactive)), collapseAt: 480 };
   const custom = !!page.inputs._layout;
@@ -335,12 +399,13 @@ export function NavbarPlayground() {
     brand: { label: 'Acme', logo: src(MARK, '<Logo />'), href: '/' },
     items: src(BAR_ITEMS, "[{ label: 'Overview', href: '/overview' }, { label: 'Projects', items: [{ label: 'Pinfold', href: '/projects/pinfold' }, { label: 'Atlas', href: '/projects/atlas' }, { label: 'Archive', href: '/projects/archive' }] }, { label: 'Reports', href: '/reports' }, { label: 'Pricing', href: '/pricing', badge: 'New' }]"),
     tools: src([], "[{ id: 'search', label: 'Search', icon: <SearchIcon />, onClick: openSearch }, { id: 'bell', label: 'Notifications', icon: <BellIcon />, badge: unread, menu: notifications }, { id: 'theme', label: 'Dark mode', icon: <MoonIcon />, active: dark, onClick: toggleTheme }]"),
-    actions: [{ label: 'Start free' }],
+    actions: src([], "[{ label: 'Start free', onClick: startTrial }]"),
     end: src(null, '<Avatar name="Mara Lind" size="sm" />'),
     layout: custom ? { start: ['brand'], center: ['links'], end: ['tool:search', 'tool:bell', 'tool:theme', 'separator', 'actions', 'end', 'toggle'] } : undefined,
     secondary: secondary ? src(null, '<SectionTabs />') : undefined,
     _layout: src(custom, ''),
     _secondary: src(secondary, ''),
+    _width: src(device[2], ''),
   };
   const spec: ExampleSpec = {
     name: 'TopBar',
@@ -350,6 +415,7 @@ export function NavbarPlayground() {
   };
   return (
     <Page
+      wide
       meta={navbarMeta}
       page={page}
       define={defineNavbar}
@@ -360,9 +426,12 @@ export function NavbarPlayground() {
       motion
       align="start"
       file="components/top-bar"
-      note="Choose a link and the text under the bar says which page is current. Projects is a dropdown; the bell is a menu and its badge counts what is unread; the moon is a toggle. Narrow the container and the links fold into a menu button; the ones that do not fit go under More."
+      note="Choose a link and the text under the bar says which page is current. Projects is a dropdown; the bell is a menu and its badge counts what is unread; the moon is a toggle. Preview as a tablet and the links that do not fit go under More (or scroll, with overflow: scroll: drag the row or use the wheel); as a phone they fold into a menu button; the ones that do not fit go under More."
       demo={
         <>
+          <div className="dx-opt">
+            <Pick label="preview as" items={DEVICES.map(([value, label]) => ({ value, label }))} value={device[0]} onChange={(next) => next && page.setOption('_device', next)} />
+          </div>
           <Toggle page={page} name="_layout" label="custom layout (links centred, tools by name)" />
           <Toggle page={page} name="_secondary" label="secondary row (tabs under the bar)" />
         </>

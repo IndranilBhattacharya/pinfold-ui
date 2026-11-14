@@ -68,4 +68,6 @@ export default defineConfig(({ mode }) => ({
   // The library reads process.env.NODE_ENV (dev-only validation); Vite replaces it.
   define: { 'process.env.NODE_ENV': JSON.stringify(mode === 'production' ? 'production' : 'development') },
   server: { port: 5180 },
+  // Two pages: the site, and the frame each live preview runs in.
+  build: { rollupOptions: { input: { main: resolve(import.meta.dirname, 'index.html'), preview: resolve(import.meta.dirname, 'preview.html') } } },
 }));

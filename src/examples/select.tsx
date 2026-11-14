@@ -73,7 +73,7 @@ export function SelectPlayground() {
     },
   };
   const shape = shapes[kind];
-  const spec: ExampleSpec = { name: 'Field', preset: set, body: shape.body, tree: [{ app: ProjectForm, use: { ...shape.use, _kind: src(kind, '') }, code: shape.code }], previewOnly: { open: true } };
+  const spec: ExampleSpec = { name: 'Field', preset: set, body: shape.body, tree: [{ app: ProjectForm, use: { ...shape.use, _kind: src(kind, '') }, code: shape.code }], openOnLoad: true };
   return (
     <Page
       meta={selectMeta}

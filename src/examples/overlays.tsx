@@ -13,7 +13,7 @@ import { Page, Text, usePage } from '../playground/kit';
 
 /** The overlays page. */
 
-export const KEEP_NOTE = 'The preview is kept open so the options can be seen (this is not in the code).';
+export const KEEP_NOTE = 'It opens as the preview loads (defaultOpen), so a change of option shows at once; switch Open on load off to start closed.';
 
 export function TooltipPlayground() {
   const page = usePage(tooltipMeta, [], { _content: 'Copies the link to this page' });
@@ -21,7 +21,7 @@ export function TooltipPlayground() {
     name: 'Hint',
     preset: Object.fromEntries(changed(page.options, page.defaults)),
     tree: [{ use: { content: page.inputs._content, trigger: { label: 'Share', variant: 'outline' } } }],
-    previewOnly: { open: true },
+    openOnLoad: true,
   };
   return <Page meta={tooltipMeta} page={page} define={defineTooltip} spec={spec} motion file="components/hint" frame={(live) => <div className="dx-overlay-demo">{live}</div>} note={KEEP_NOTE + ' ' + 'Hover or tab to it. Escape closes it; the pointer can move onto it without it closing.'} demo={<Text page={page} name="_content" label="content" hint="the hint" />} />;
 }
@@ -33,7 +33,7 @@ export function PopoverPlayground() {
     name: 'Share',
     preset: Object.fromEntries(changed(page.options, page.defaults, inactive)),
     tree: [{ use: { title: page.inputs._title, description: 'Anyone with the link can view it.', actions: [{ label: 'Copy link', onClick: src(() => {}, 'copy') }, { label: 'Close' }], trigger: { label: 'Share', variant: 'outline' } } }],
-    previewOnly: { open: true },
+    openOnLoad: true,
   };
   return <Page meta={popoverMeta} page={page} define={definePopover} spec={spec} inactive={inactive} motion file="components/share" frame={(live) => <div className="dx-overlay-demo">{live}</div>} note={KEEP_NOTE} demo={<Text page={page} name="_title" label="title" hint="the panel's accessible name" />} />;
 }
@@ -45,9 +45,9 @@ export function DialogPlayground() {
     name: 'Confirm',
     preset: Object.fromEntries(changed(page.options, page.defaults, inactive)),
     tree: [{ use: { title: page.inputs._title, description: 'It will be removed for everyone. This cannot be undone.', trigger: { label: 'Delete project', tone: 'danger', variant: 'soft' }, actions: [{ label: 'Cancel' }, { label: 'Delete', tone: 'danger', onClick: src(() => {}, 'remove') }] } }],
-    previewOnly: { open: true, modal: false, className: 'dx-dialog-inline' },
+    openOnLoad: true,
   };
-  return <Page meta={dialogMeta} page={page} define={defineDialog} spec={spec} inactive={inactive} motion align="start" file="components/confirm" frame={(live) => <div className="dx-dialog-box">{live}</div>} note="The dialog is drawn in place and kept open so the options can be seen (this is not in the code). In your app it is a real modal: focus stays inside and Escape closes it." demo={<><Text page={page} name="_title" label="title" hint="a real heading, and the accessible name" /></>} />;
+  return <Page meta={dialogMeta} page={page} define={defineDialog} spec={spec} inactive={inactive} motion align="start" file="components/confirm" note={KEEP_NOTE + ' It is a real modal in its own frame: focus stays inside, Escape and the backdrop close it, and Delete project opens it again.'} demo={<><Text page={page} name="_title" label="title" hint="a real heading, and the accessible name" /></>} />;
 }
 
 export function MenuPlayground() {
@@ -69,7 +69,7 @@ export function MenuPlayground() {
     name: 'RowActions',
     preset: Object.fromEntries(changed(page.options, page.defaults, inactive)),
     tree: [{ use: { label: context ? 'Row actions' : undefined, items, trigger: context ? src(<div className="dx-menu-area" tabIndex={0}>Right-click here</div>, '<div tabIndex={0}>Right-click here</div>') : { label: 'Actions' } } }],
-    previewOnly: { open: true },
+    openOnLoad: true,
   };
   return <Page meta={menuMeta} page={page} define={defineMenu} spec={spec} inactive={inactive} inherit={['size']} provider={['size']} motion align="start" file="components/row-actions" frame={(live) => <div className="dx-overlay-demo dx-overlay-demo--tall">{live}</div>} note={KEEP_NOTE + ' ' + 'Try the arrow keys, Home and End, and typing a letter.'} />;
 }
@@ -121,17 +121,18 @@ export function ToastPlayground() {
         <Tool label="Reset" onClick={page.reset} />
       </div>
       <div className="dx-play__preview">
-        <Stage env={page.env}>
+        <Stage env={page.env} setEnv={page.setEnv}>
           <p className="dx-demo-text">Toasts appear in the corner set by placement. Hover or tab into the pile to fan it out. The three samples stay so the options show.</p>
+          {/* The buttons live with the region, in the preview's own document. */}
+          <div className="dx-gallery__row dx-resolved">
+            <Saved />
+            <Error_ />
+            <Many />
+          </div>
+          <p className="dx-hint">Hovering pauses every timer. Errors and toasts with an action stay until dismissed.</p>
           {/* Every option the code shows reaches the region. */}
           <ToastRegion {...set} />
         </Stage>
-        <div className="dx-gallery__row dx-resolved">
-          <Saved />
-          <Error_ />
-          <Many />
-          <span className="dx-hint">Hovering pauses every timer. Errors and toasts with an action stay until dismissed.</span>
-        </div>
         <CodePanel file="components/toasts" code={() => exampleCode(toastMeta, spec, page.env)} actions={[{ label: 'Copy CLI command', copy: 'npx pinfold add toast' }]} />
       </div>
     </div>

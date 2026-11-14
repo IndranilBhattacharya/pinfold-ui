@@ -2,6 +2,7 @@ import * as React from 'react';
 import { type ComponentMeta } from '@pinfold/core/meta';
 import { CodePanel, controlsOf, defaultsOf, ENV, EnvControls, Flag, Note, OptionControls, Pick, reviveEnv, Stage, TextField, Tool, useUrlState, type Env } from './shared';
 import { exampleCode, Live, src, type ExampleSpec } from './example';
+import { IN_PREVIEW } from './preview-mode';
 
 /**
  * Shared parts of every component page: page state (URL), the demo inputs, and the page layout
@@ -38,10 +39,10 @@ export function Text({ page, name, label, hint, multiline }: { page: PageApi; na
   );
 }
 
-export function Toggle({ page, name, label, disabled }: { page: PageApi; name: string; label: string; disabled?: boolean }) {
+export function Toggle({ page, name, label, disabled, checked }: { page: PageApi; name: string; label: string; disabled?: boolean; checked?: boolean }) {
   return (
     <div className="dx-opt dx-opt--check">
-      <Flag label={label} checked={!!page.inputs[name]} disabled={disabled} onChange={(on) => page.setOption(name, on)} />
+      <Flag label={label} checked={checked ?? !!page.inputs[name]} disabled={disabled} onChange={(on) => page.setOption(name, on)} />
     </div>
   );
 }
@@ -77,8 +78,28 @@ interface PageProps {
   wide?: boolean;
 }
 
-export function Page({ meta, page, define, spec, inactive, inherit = [], provider = false, motion = false, align = 'center', demo, note, file, frame, autoLabel, valueLabel, wide = false }: PageProps) {
+export function Page({ meta, page, define, spec: given, inactive, inherit = [], provider = false, motion = false, align = 'center', demo: ownDemo, note, file, frame, autoLabel, valueLabel, wide = false }: PageProps) {
+  // An overlay opens as the page loads (unless switched off): the option is real and in the code.
+  const opens = given.openOnLoad !== undefined && page.inputs._open !== false;
+  const spec = opens ? withDefaultOpen(given, given.openOnLoad!) : given;
+  const demo =
+    given.openOnLoad !== undefined ? (
+      <>
+        {ownDemo}
+        <Toggle page={page} name="_open" label="Open on load (defaultOpen)" checked={page.inputs._open !== false} />
+      </>
+    ) : (
+      ownDemo
+    );
   const live = <Live define={define} spec={spec} meta={meta} />;
+  // In a preview frame the page is only its preview: no controls, no code.
+  if (IN_PREVIEW) {
+    return (
+      <Stage env={page.env} align={align}>
+        {frame ? frame(live) : align === 'center' ? <div className="dx-center">{live}</div> : live}
+      </Stage>
+    );
+  }
   return (
     <div className={wide ? 'dx-play dx-play--wide' : 'dx-play'}>
       <div className="dx-play__editor">
@@ -88,7 +109,7 @@ export function Page({ meta, page, define, spec, inactive, inherit = [], provide
         <Tool label="Reset" onClick={page.reset} />
       </div>
       <div className="dx-play__preview">
-        <Stage env={page.env} align={align}>
+        <Stage env={page.env} setEnv={page.setEnv} align={align}>
           {frame ? frame(live) : align === 'center' ? <div className="dx-center">{live}</div> : live}
         </Stage>
         {note ? <div className="dx-note"><Note description={note} /></div> : null}
@@ -136,3 +157,14 @@ export const wait = (ms: number, signal?: AbortSignal) =>
       reject(new DOMException('Aborted', 'AbortError'));
     });
   });
+
+/** The example with `defaultOpen` on its component (the first node that uses the preset). */
+function withDefaultOpen(spec: ExampleSpec, value: true | string): ExampleSpec {
+  let done = false;
+  const tree = spec.tree.map((node) => {
+    if (done || typeof node === 'string' || !('use' in node)) return node;
+    done = true;
+    return { ...node, use: { ...node.use, defaultOpen: value } };
+  });
+  return { ...spec, tree };
+}

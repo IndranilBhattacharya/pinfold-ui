@@ -5,8 +5,7 @@ import { appSetup, type Env } from './shared';
 /**
  * One source for a preview and its code. A spec says what the page shows; `Live` renders it through
  * the component's real `define<Name>(preset)`, and `exampleCode` prints the same objects. Nothing
- * else reaches the preview (`previewOnly` is the one exception, and the page says so), so what the
- * code panel shows is what is on screen.
+ * else reaches the preview, so what the code panel shows is what is on screen.
  */
 
 /** A value that renders as `value` and prints as `code`: an icon, a picture, a handler. */
@@ -48,7 +47,12 @@ export interface ExampleSpec {
   /** Lines after the component, e.g. how to call its controller. */
   after?: string[];
   /** Applied in the preview only, never printed: keeps an overlay open so its options show. */
-  previewOnly?: Record<string, unknown>;
+  /**
+   * The example is an overlay that opens as the page loads (`defaultOpen`), so option changes show at
+   * once: the value is what `defaultOpen` takes (`true`, or an entry's key). The page has an "Open on
+   * load" switch, and the option is in the code like any other.
+   */
+  openOnLoad?: true | string;
 }
 
 /** The runtime value of a config: sources resolved, recursively. */
@@ -116,13 +120,13 @@ export function exampleCode(meta: ComponentMeta, spec: ExampleSpec, env: Env): s
   ].join('\n');
 }
 
-function renderTree(nodes: ExampleNode[], Preset: React.ElementType, previewOnly?: Record<string, unknown>): React.ReactNode {
+function renderTree(nodes: ExampleNode[], Preset: React.ElementType): React.ReactNode {
   return nodes.map((node, i) => {
     if (typeof node === 'string') return <React.Fragment key={i}>{node}</React.Fragment>;
     if ('element' in node) return <React.Fragment key={i}>{node.element}</React.Fragment>;
-    if (isApp(node)) return <node.app key={i} Preset={Preset} props={{ ...plain(node.use), ...previewOnly }} />;
-    if ('use' in node) return <Preset key={i} {...plain(node.use)} {...previewOnly} />;
-    return React.createElement(node.tag, { key: i, ...plain(node.props ?? {}) }, renderTree(node.children, Preset, previewOnly));
+    if (isApp(node)) return <node.app key={i} Preset={Preset} props={plain(node.use)} />;
+    if ('use' in node) return <Preset key={i} {...plain(node.use)} />;
+    return React.createElement(node.tag, { key: i, ...plain(node.props ?? {}) }, renderTree(node.children, Preset));
   });
 }
 
@@ -133,13 +137,7 @@ function renderTree(nodes: ExampleNode[], Preset: React.ElementType, previewOnly
 export function Live({ define, spec, meta }: { define: (preset: any) => React.ElementType; spec: ExampleSpec; meta: ComponentMeta }) {
   const key = exampleCode(meta, spec, ENV_FOR_KEY);
   const Preset = React.useMemo(() => define(plain(spec.preset)), [key]); // eslint-disable-line react-hooks/exhaustive-deps
-  return <React.Fragment key={key}>{renderTree(spec.tree, Preset, startOpen(spec.previewOnly))}</React.Fragment>;
-}
-/** The preview starts open but is never held open: `open` would freeze it (no handler), `defaultOpen` leaves it live. */
-function startOpen(previewOnly?: Record<string, unknown>): Record<string, unknown> | undefined {
-  if (!previewOnly || !("open" in previewOnly)) return previewOnly;
-  const { open, ...rest } = previewOnly;
-  return { ...rest, defaultOpen: open };
+  return <React.Fragment key={key}>{renderTree(spec.tree, Preset)}</React.Fragment>;
 }
 const ENV_FOR_KEY = { stylePack: 'default', theme: '', rtl: false, reducedMotion: false, width: 100, size: '', tone: '' } as Env;
 

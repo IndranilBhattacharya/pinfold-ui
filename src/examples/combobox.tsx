@@ -118,7 +118,7 @@ export function ComboboxPlayground() {
     },
   };
   const shape = shapes[kind];
-  const spec: ExampleSpec = { name: 'Search', preset: set, body: shape.body, tree: [{ app: Finder, use: { ...shape.use, _kind: src(kind, '') }, code: ['$TAG'] }], previewOnly: { open: true } };
+  const spec: ExampleSpec = { name: 'Search', preset: set, body: shape.body, tree: [{ app: Finder, use: { ...shape.use, _kind: src(kind, '') }, code: ['$TAG'] }], openOnLoad: true };
   return (
     <Page
       meta={comboboxMeta}

@@ -89,7 +89,7 @@ export function NavMenuPlayground() {
         code: ['<header>', '  <Logo />', '  $TAG', '</header>'],
       },
     ],
-    previewOnly: { open: 'Products' },
+    openOnLoad: 'Products',
   };
   return (
     <Page
@@ -103,7 +103,7 @@ export function NavMenuPlayground() {
       provider
       align="start"
       file="components/site-header"
-      note={KEEP_NOTE + ' Products is open so its options show; rest the pointer on another entry or press it, and arrow keys move between entries and into a panel. Choosing a link routes the page under the header.'}
+      note={KEEP_NOTE + ' Products opens first; rest the pointer on another entry or press it, and arrow keys move between entries and into a panel. Choosing a link routes the page under the header.'}
     />
   );
 }

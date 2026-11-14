@@ -153,7 +153,7 @@ export function ButtonPlayground() {
       </div>
 
       <div className="dx-play__preview">
-        <Stage env={env}>
+        <Stage env={env} setEnv={setEnv}>
           <div className="dx-demo-col">
             <ButtonPreview state={state} onClicked={() => setClicks((n) => n + 1)} />
             <p className="dx-hint" aria-live="polite">
@@ -172,7 +172,7 @@ export function ButtonPlayground() {
 
         <h3 className="dx-subhead">Every variant and tone</h3>
         <p className="dx-hint">Uses the size and radius above and the environment, so you can check contrast at a glance.</p>
-        <Stage env={env} align="start">
+        <Stage env={env} setEnv={setEnv} align="start" name="gallery">
           <Gallery options={options} />
         </Stage>
       </div>
@@ -266,7 +266,7 @@ export function SpinnerPlayground() {
         <Tool label="Reset" onClick={() => setState(S_INITIAL)} />
       </div>
       <div className="dx-play__preview">
-        <Stage env={env}>
+        <Stage env={env} setEnv={setEnv}>
           <SpinnerPreview state={state} />
         </Stage>
         <Note description={`Resolved: size ${source('size', options, env, spinnerMeta.props.size.default)} · tone ${source('tone', options, env, spinnerMeta.props.tone.default)}.`} />
@@ -274,7 +274,7 @@ export function SpinnerPlayground() {
 
         <h3 className="dx-subhead">Every animation</h3>
         <p className="dx-hint">In the size, tone and environment above. Click one to use it.</p>
-        <Stage env={env} align="start">
+        <Stage env={env} setEnv={setEnv} align="start" name="gallery">
           <SpinnerGallery options={options} onPick={(variant) => setOption('variant', variant)} />
         </Stage>
       </div>

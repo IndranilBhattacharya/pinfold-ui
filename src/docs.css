@@ -408,8 +408,6 @@ a { color: inherit; text-decoration: none; }
 .dx-overlay-demo--tall { align-items: flex-start; min-block-size: 26rem; }
 .dx-menu-area { display: grid; place-items: center; inline-size: 12rem; block-size: 5rem; border: 1px dashed var(--pinfold-color-border-strong); border-radius: var(--pinfold-radius-md); color: var(--pinfold-color-text-muted); }
 .dx-dialog-demo { display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; inline-size: 100%; }
-.dx-dialog-box { position: relative; inline-size: 100%; block-size: 19rem; overflow: hidden; border: 1px dashed var(--pinfold-color-border); border-radius: var(--pinfold-radius-md); background: var(--pinfold-color-overlay); }
-.dx-dialog-inline.pinfold-dialog { position: absolute; }
 
 /* Navigation demos: the content a tab, a crumb, a page or a step is linked to. */
 .dx-stack { display: flex; flex-direction: column; gap: 1rem; inline-size: 100%; min-inline-size: 0; }
@@ -548,7 +546,7 @@ a { color: inherit; text-decoration: none; }
 .dx-play--wide { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
 .dx-play--wide > .dx-play__preview { display: contents; }
 .dx-play--wide > .dx-play__preview > * { order: 3; }
-.dx-play--wide > .dx-play__preview > .dx-stage { order: 0; margin-bottom: 0; padding: 1.25rem; }
+.dx-play--wide > .dx-play__preview > .dx-frame { order: 0; margin-bottom: 0; }
 .dx-play--wide > .dx-play__preview > .dx-note { order: 1; }
 .dx-play--wide > .dx-play__editor { order: 2; display: grid; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); gap: 0 2.5rem; align-items: start; padding: 0.25rem 0 0.75rem; }
 .dx-play--wide > .dx-play__editor > .dx-fieldset { margin-top: 0.75rem; }
@@ -556,5 +554,26 @@ a { color: inherit; text-decoration: none; }
 .dx-play--wide > .dx-play__editor > :not(.dx-fieldset) { justify-self: start; max-inline-size: 100%; }
 .dx-play--wide > .dx-play__editor > .dx-opt { min-inline-size: 14rem; margin-top: 0.75rem; }
 
-/* A device-width frame in a wide preview: centred, and it animates between sizes. */
-.dx-device { margin-inline: auto; overflow: hidden; border: 1px solid var(--pinfold-color-border); border-radius: var(--pinfold-radius-lg); background: var(--pinfold-color-bg); box-shadow: var(--pinfold-shadow-md); transition: max-width var(--pinfold-duration-slow) var(--pinfold-ease); }
+
+/* ----------------------------------------------------------- preview frame */
+/* On the page: the toolbar, the frame (a device width or the column), a handle to resize it. */
+.dx-frame { margin-bottom: 1rem; }
+.dx-frame__bar { display: flex; flex-wrap: wrap; align-items: end; gap: 0.5rem; margin-bottom: 0.5rem; }
+.dx-frame__spacer { flex: 1 1 auto; }
+.dx-frame__box { position: relative; margin-inline: auto; transition: width var(--pinfold-duration-md) var(--pinfold-ease); }
+.dx-frame__view { display: block; inline-size: 100%; border: 1px solid var(--pinfold-color-border); border-radius: var(--pinfold-radius-xl); background: var(--pinfold-color-bg); }
+.dx-frame__loading { position: absolute; inset: 0; border-radius: var(--pinfold-radius-xl); }
+.dx-frame__handle { position: absolute; inset-block: 0; inset-inline-end: -0.75rem; inline-size: 0.75rem; cursor: ew-resize; touch-action: none; }
+.dx-frame__handle::after { content: ''; position: absolute; inset-block: calc(50% - 1.25rem); inset-inline-start: 0.25rem; inline-size: 0.25rem; border-radius: 1rem; background: var(--pinfold-color-border-strong); }
+.dx-frame__handle:hover::after { background: var(--pinfold-color-accent); }
+.dx-frame__event { margin: 0.5rem 0 0; font-size: 0.8125rem; color: var(--pinfold-color-text-muted); }
+
+/* In the frame: only the live preview, edge to edge. */
+.dx-preview-doc { background-image: none; }
+.dx-preview-doc .dx-play { display: block; }
+.dx-preview-doc .dx-play__editor,
+.dx-preview-doc .dx-play__preview > :not(.dx-stage) { display: none !important; }
+.dx-preview-doc .dx-stage { margin: 0; border: 0; border-radius: 0; }
+/* A full-height preview (a shell, a bar, a modal) fills its frame. */
+.dx-preview-fixed .dx-stage { min-block-size: 100vh; padding: 1rem; }
+.dx-preview-crash { padding: 1rem; }

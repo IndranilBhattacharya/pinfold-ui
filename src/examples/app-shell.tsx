@@ -3,7 +3,7 @@ import { appshellMeta } from '@pinfold/core/meta';
 import { inactiveAppShellOptions } from '@pinfold/core';
 import { Avatar } from '@pinfold/react/avatar';
 import { defineSidebar } from '@pinfold/react/sidebar';
-import { changed, Pick } from '../playground/shared';
+import { changed } from '../playground/shared';
 import { src, type ExampleSpec } from '../playground/example';
 import { defineAppShell } from '@pinfold/react/appshell';
 import { defineNavbar } from '@pinfold/react/navbar';
@@ -48,12 +48,12 @@ function Page_({ path }: { path: string }) {
 }
 
 function ShellDemo({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
-  const { _width: width, ...rest } = props;
+  const rest = props;
   const [path, setPath] = React.useState('/projects/atlas');
   const [unread, setUnread] = React.useState(3);
   const [said, setSaid] = React.useState('Nothing pressed yet.');
   return (
-    <div className="dx-device" style={{ maxWidth: width || undefined }}>
+    <div>
       <Preset
         {...rest}
         navbar={
@@ -101,15 +101,10 @@ function ShellDemo({ Preset, props }: { Preset: React.ElementType; props: Record
   );
 }
 
-export const DEVICES: Array<[string, string, number]> = [
-  ['desktop', 'desktop (full width)', 0],
-  ['tablet', 'tablet (700 px)', 700],
-  ['phone', 'phone (390 px)', 390],
-];
-
 export function AppShellPlayground() {
-  const page = usePage(appshellMeta, [], { scroll: 'content', _device: 'desktop' });
-  const device = DEVICES.find(([id]) => id === page.inputs._device) ?? DEVICES[0];
+  const page = usePage(appshellMeta, [], { scroll: 'content' });
+  // The preview's width (the switch above the preview) decides whether the sidebar is a drawer.
+  const device = page.env.device === 'full' ? Infinity : Number(page.env.device);
   // The shell measures itself, so the page measures the room it gives the shell: what is a drawer here is known, and
   // the options that only apply to a drawer are disabled (with the reason) while it is not one.
   const box = React.useRef<HTMLDivElement | null>(null);
@@ -123,7 +118,7 @@ export function AppShellPlayground() {
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
-  const shellWidth = Math.min(device[2] || Infinity, (room * page.env.width) / 100);
+  const shellWidth = Math.min(device, (room * page.env.width) / 100);
   const behavior = (page.options.sidebarBehavior as string | undefined) ?? 'auto';
   const drawer = behavior === 'drawer' || (behavior === 'auto' && shellWidth < 768);
   const inactive = inactiveAppShellOptions({ sidebar: true, navbar: true, sidebarBehavior: behavior, scroll: page.options.scroll as string }, drawer);
@@ -133,7 +128,7 @@ export function AppShellPlayground() {
     name: 'Shell',
     preset: set,
     body: ['const pathname = usePathname();', 'const router = useRouter();'],
-    tree: [{ app: ShellDemo, use: { _width: src(device[2], '') }, code: ['<Shell', ...attrs.map((a) => '  ' + a), '>', '  {children}', '</Shell>'] }],
+    tree: [{ app: ShellDemo, use: {}, code: ['<Shell', ...attrs.map((a) => '  ' + a), '>', '  {children}', '</Shell>'] }],
   };
   return (
     <div ref={box}>
@@ -150,12 +145,7 @@ export function AppShellPlayground() {
         note={
           drawer
             ? 'The shell is narrower than its breakpoint (768 px), so the sidebar is a drawer: press the menu button in the bar. It closes on Escape, on its backdrop and when a link is followed. Everything in the preview works: the sidebar changes the page, the bell opens a menu, and the footer says what you pressed.'
-            : 'The shell is wider than its breakpoint (768 px), so the sidebar sits beside the page; choose tablet or phone (or sidebarBehavior: drawer) to get the drawer and its menu button. Everything in the preview works: the sidebar changes the page, the bell opens a menu, and the footer says what you pressed.'
-        }
-        demo={
-          <div className="dx-opt">
-            <Pick label="preview as" items={DEVICES.map(([value, label]) => ({ value, label }))} value={device[0]} onChange={(next) => next && page.setOption('_device', next)} />
-          </div>
+            : 'The shell is wider than its breakpoint (768 px), so the sidebar sits beside the page; choose a tablet or phone width above the preview (or sidebarBehavior: drawer) to get the drawer and its menu button. Everything in the preview works: the sidebar changes the page, the bell opens a menu, and the footer says what you pressed.'
         }
       />
     </div>

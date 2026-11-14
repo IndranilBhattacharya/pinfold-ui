@@ -11,6 +11,8 @@ import { defineAlert } from '@pinfold/react/alert';
 import { defineBadge } from '@pinfold/react/badge';
 import type { ComponentMeta, PropMeta } from '@pinfold/core/meta';
 import type { PinfoldSize, PinfoldStylePack, PinfoldTone } from '@pinfold/core';
+import { IN_PREVIEW, PREVIEW_NAME, postToPage, reportEvent } from './preview-mode';
+import { PreviewFrame } from './frame';
 
 /**
  * Pieces every component playground shares. Controls come from the component's
@@ -27,15 +29,17 @@ export interface Env {
   rtl: boolean;
   reducedMotion: boolean;
   width: number;
+  /** The width the preview frame is shown at: the full column, or a device's width in px. */
+  device: 'full' | '700' | '390' | '320';
   /** Provider size / tone around the preview: what a component uses when its config and the global defaults leave them unset. */
   size: PinfoldSize | '';
   tone: PinfoldTone | '';
 }
 
-/** The site's own colour mode, set by the toggle in the header. */
-export const SiteMode = React.createContext<'light' | 'dark'>('dark');
+export { SiteMode } from './site-context';
+import { SiteMode } from './site-context';
 
-export const ENV: Env = { stylePack: 'default', theme: '', rtl: false, reducedMotion: false, width: 100, size: '', tone: '' };
+export const ENV: Env = { stylePack: 'default', theme: '', rtl: false, reducedMotion: false, width: 100, device: 'full', size: '', tone: '' };
 
 export const controlsOf = (meta: ComponentMeta) => Object.entries(meta.props).filter(([, p]) => p.control) as Array<[string, PropMeta]>;
 export const defaultsOf = (controls: Array<[string, PropMeta]>) => Object.fromEntries(controls.map(([k, p]) => [k, p.default])) as Record<string, unknown>;
@@ -55,21 +59,64 @@ function decode(raw: string | null): any {
   }
 }
 
-/** Playground state in the URL under `key`; `revive` merges a stored value over the initial one. */
+/**
+ * Playground state in the URL under `key`; `revive` merges a stored value over the initial one.
+ * The page announces every change (`pinfold:state`), and the preview frame, which runs the same page
+ * in its own document, takes the change from a message: both always show the same state.
+ */
 export function useUrlState<S>(key: string, initial: S, revive: (stored: any) => S): [S, React.Dispatch<React.SetStateAction<S>>] {
   const [state, setState] = React.useState<S>(() => {
     const stored = decode(new URLSearchParams(location.search).get(key));
     return stored ? revive(stored) : initial;
   });
+  // The last value sent. A frame never sends back what the page just sent it; the page always passes a
+  // change on, so a pick in one frame reaches every other frame on the page (the first ignores its own).
+  const agreed = React.useRef<string | null>(null);
   React.useEffect(() => {
+    const raw = encode(state);
     const url = new URL(location.href);
-    url.searchParams.set(key, encode(state));
+    url.searchParams.set(key, raw);
     history.replaceState(history.state, '', url);
+    if (raw === agreed.current) return;
+    agreed.current = raw;
+    if (IN_PREVIEW) postToPage({ type: 'state', key, raw });
+    else window.dispatchEvent(new CustomEvent('pinfold:state', { detail: { key, raw } }));
   }, [key, state]);
+  React.useEffect(() => {
+    const take = (raw: string | undefined) => {
+      const stored = decode(raw ?? null);
+      if (!stored || raw === agreed.current) return;
+      if (IN_PREVIEW) agreed.current = raw!;
+      setState(revive(stored));
+    };
+    if (IN_PREVIEW) {
+      // The page changed a control.
+      const onMessage = (event: MessageEvent) => {
+        if (event.origin !== location.origin || event.source !== window.parent) return;
+        const data = event.data as { type?: string; key?: string; raw?: string };
+        if (data?.type === 'state' && data.key === key) take(data.raw);
+      };
+      window.addEventListener('message', onMessage);
+      return () => window.removeEventListener('message', onMessage);
+    }
+    // Something in a preview changed the state (a gallery pick): the frame relays it as an event.
+    const onFrame = (event: Event) => {
+      const detail = (event as CustomEvent<{ key: string; raw: string }>).detail;
+      if (detail.key === key) take(detail.raw);
+    };
+    window.addEventListener('pinfold:frame-state', onFrame);
+    return () => window.removeEventListener('pinfold:frame-state', onFrame);
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
   return [state, setState];
 }
 
 export const reviveEnv = (env: unknown): Env => ({ ...ENV, ...(env as object) });
+export const DEVICES: ReadonlyArray<{ value: Env['device']; label: string }> = [
+  { value: 'full', label: 'Full width' },
+  { value: '700', label: 'Tablet (700 px)' },
+  { value: '390', label: 'Phone (390 px)' },
+  { value: '320', label: 'Small phone (320 px)' },
+];
 /** A select hands back text; an enum of numbers (`months`, `headingLevel`) wants the number back. */
 const typed = (meta: PropMeta, text: string): unknown => meta.values?.find((v) => String(v) === text) ?? text;
 const SILENT_HINT = 'No visual change: these set what assistive tech or the keyboard does.';
@@ -209,9 +256,37 @@ export function EnvControls({
   );
 }
 
-/** The live preview, inside its own provider so the environment applies. */
-export function Stage({ env, children, align = 'center' }: { env: Env; children: React.ReactNode; align?: 'center' | 'start' }) {
+/**
+ * The live preview. On the page it is an isolated frame (`preview.html`) that runs this same page; in
+ * that frame it is the preview itself, inside its own provider so the environment applies. Links in a
+ * preview never leave it: they are reported to the page as an event.
+ */
+export function Stage({
+  env,
+  children,
+  align = 'center',
+  setEnv,
+  name = 'main',
+}: {
+  env: Env;
+  children: React.ReactNode;
+  align?: 'center' | 'start';
+  setEnv?: <K extends keyof Env>(key: K, value: Env[K]) => void;
+  /** A page with more than one preview names the others (`gallery`); each runs in its own frame. */
+  name?: string;
+}) {
   const site = React.useContext(SiteMode);
+  if (!IN_PREVIEW) return <PreviewFrame env={env} setEnv={setEnv} name={name} />;
+  if (name !== PREVIEW_NAME) return null;
+  return <LiveStage env={env} align={align} site={site}>{children}</LiveStage>;
+}
+
+/** The preview inside its frame: tells the page once it has painted (in the site's theme, with content). */
+function LiveStage({ env, children, align, site }: { env: Env; children: React.ReactNode; align: 'center' | 'start'; site: 'light' | 'dark' }) {
+  React.useEffect(() => {
+    const frame = requestAnimationFrame(() => requestAnimationFrame(() => postToPage({ type: 'painted' })));
+    return () => cancelAnimationFrame(frame);
+  }, []);
   return (
     <PinfoldProvider
       theme={env.theme || site}
@@ -220,6 +295,7 @@ export function Stage({ env, children, align = 'center' }: { env: Env; children:
       disableAnimation={env.reducedMotion}
       size={env.size || undefined}
       tone={env.tone || undefined}
+      navigate={(href: string) => reportEvent(`Followed a link to ${href}`)}
       className={`dx-stage dx-stage--live${align === 'start' ? ' dx-stage--start' : ''}`}
     >
       <div className="dx-stage__frame" style={{ width: `${env.width}%` }}>

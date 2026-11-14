@@ -11,7 +11,7 @@ import { defineButton } from '@pinfold/react/button';
 import { resolveNode, version } from '@pinfold/core';
 import type { AccordionConfig, AccordionVariant } from '@pinfold/react/accordion';
 import { accordionMeta, alertMeta, avatarMeta, badgeMeta, buttonMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, menuMeta, radioMeta, switchMeta, popoverMeta, progressMeta, toastMeta, tooltipMeta, kbdMeta, separatorMeta, skeletonMeta, spinnerMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta, selectMeta, comboboxMeta, tagsMeta, commandMeta, calendarMeta, datepickerMeta, tableMeta, ratingMeta, timelineMeta, emptyMeta, carouselMeta, resizableMeta, sidebarMeta, navmenuMeta, colorpickerMeta, scrollareaMeta, appshellMeta, navbarMeta, cursorMeta, treeviewMeta, fileuploadMeta, tourMeta, type ComponentMeta, type PropMeta } from '@pinfold/core/meta';
-import { SiteMode } from './playground/shared';
+import { SiteMode, SitePalette } from './playground/site-context';
 import { reflow } from './playground/example';
 import { PAGES } from './examples';
 import { PageBoundary, PageLoading } from './playground/boundary';
@@ -162,6 +162,7 @@ export function App() {
 
   return (
     <SiteMode.Provider value={mode}>
+      <SitePalette.Provider value={palette}>
       <PinfoldProvider theme={mode} radius={radius}>
         <Shell
           navbar={
@@ -194,6 +195,7 @@ export function App() {
           )}
         </Shell>
       </PinfoldProvider>
+      </SitePalette.Provider>
     </SiteMode.Provider>
   );
 }

@@ -7,7 +7,7 @@ import { Button } from '@pinfold/react/button';
 import { changed } from '../playground/shared';
 import { src, type ExampleSpec } from '../playground/example';
 import { defineTour } from '@pinfold/react/tour';
-import { Page, usePage } from '../playground/kit';
+import { Page, Toggle, usePage } from '../playground/kit';
 import { svg } from './toggle';
 
 /** The tour page. */
@@ -44,25 +44,15 @@ function MockApp() {
 }
 
 /**
- * A change of option mounts the preview afresh (as a new build would). The page, which stays mounted,
- * holds whether the tour runs and on which step (`_run`), so a running tour keeps running on the same
- * step and the option's effect shows without pressing Start again. Leaving the page drops it.
+ * The tour opens as the preview loads (Open on load), so a change of option shows at once: a change
+ * mounts the preview afresh, as a new build would, and the tour starts again on its first step.
  */
-type TourRun = { open: boolean; step: number };
 
 function TourDemo({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
-  const { _run: run, ...rest } = props as { _run: TourRun } & Record<string, unknown>;
-  const [open, setOpenState] = React.useState(run.open);
-  const [step, setStepState] = React.useState(run.step);
-  const [last, setLast] = React.useState(run.open ? 'Tour running.' : 'The tour has not run yet.');
-  const setOpen = (next: boolean) => {
-    run.open = next;
-    setOpenState(next);
-  };
-  const setStep = (next: number) => {
-    run.step = next;
-    setStepState(next);
-  };
+  const { _open: openOnLoad, ...rest } = props as { _open?: boolean } & Record<string, unknown>;
+  const [open, setOpen] = React.useState(openOnLoad !== false);
+  const [step, setStep] = React.useState(0);
+  const [last, setLast] = React.useState(openOnLoad !== false ? 'Tour started.' : 'The tour has not run yet.');
   const steps = [
     { id: 'search', target: '[data-tour-demo] [data-tour=search]', title: 'Search anything', content: 'Find a project, an issue or a person from here.' },
     { id: 'create', target: '[data-tour-demo] [data-tour=create]', title: 'Start something new', content: 'New project sets up a workspace in a few seconds.', placement: 'bottom-end' },
@@ -107,14 +97,14 @@ function TourDemo({ Preset, props }: { Preset: React.ElementType; props: Record<
 
 export function TourPlayground() {
   const page = usePage(tourMeta, ['size', 'tone'], {});
-  const run = React.useRef<TourRun>({ open: false, step: 0 }).current;
+  const openOnLoad = page.inputs._open !== false;
   const inactive = inactiveTourOptions({ ...(page.options as any), steps: [{}, {}, {}, {}] });
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
   const spec: ExampleSpec = {
     name: 'Onboarding',
     preset: set,
     imports: ["","const steps = [","  { target: '[data-tour=search]', title: 'Search anything', content: 'Find a project, an issue or a person from here.' },","  { target: '[data-tour=create]', title: 'Start something new', content: 'New project sets up a workspace.', placement: 'bottom-end' },","  { target: '[data-tour=stats]', title: 'Your numbers', content: 'Projects, open issues and deploys.', placement: 'top' },","  { target: '[data-tour=activity]', title: 'What just happened', content: 'The latest activity lands here.' },","];"],
-    body: ['const [open, setOpen] = useState(false);'],
+    body: [`const [open, setOpen] = useState(${openOnLoad});`],
     tree: [
       {
         app: TourDemo,
@@ -124,7 +114,7 @@ export function TourPlayground() {
           onOpenChange: src(undefined, 'setOpen'),
           onComplete: src(undefined, 'markSeen'),
           onSkip: src(undefined, '(index) => track("tour-skipped", index)'),
-          _run: src(run, ''),
+          _open: src(openOnLoad, ''),
         },
         code: ['<Button label="Start the tour" onClick={() => setOpen(true)} />', '{/* AppHeader marks its search field, button, stats and activity with data-tour. */}', '<AppHeader />', '$TAG'],
       },
@@ -143,7 +133,8 @@ export function TourPlayground() {
       motion
       align="start"
       file="components/onboarding"
-      note="Press Start the tour. A running tour keeps running when you change an option, so the effect shows at once (with mask: none the controls stay in reach). The four steps point at the search field, the New project button and the stat cards of the small app above; Next, Back, the arrow keys, Skip and Escape all work, and the line under the preview shows onComplete or onSkip. With the dim or blur mask the rest of the page is covered while the tour runs; mask none leaves it usable."
+      demo={<Toggle page={page} name="_open" label="Open on load" checked={openOnLoad} />}
+      note="Press Start the tour. The tour opens as the preview loads (switch Open on load off to start closed), so a change of option shows at once. The four steps point at the search field, the New project button and the stat cards of the small app above; Next, Back, the arrow keys, Skip and Escape all work, and the line under the preview shows onComplete or onSkip. With the dim or blur mask the rest of the page is covered while the tour runs; mask none leaves it usable."
     />
   );
 }

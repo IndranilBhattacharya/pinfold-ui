@@ -109,7 +109,7 @@ export function DatePickerPlayground() {
     preset: set,
     body: [bodies[kind] ?? bodies.single],
     tree: [{ app: DateDemo, use, code: ['$TAG'] }],
-    previewOnly: { open: true },
+    openOnLoad: true,
   };
   return (
     <Page

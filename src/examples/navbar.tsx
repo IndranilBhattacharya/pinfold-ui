@@ -2,11 +2,11 @@ import * as React from 'react';
 import { navbarMeta } from '@pinfold/core/meta';
 import { Avatar } from '@pinfold/react/avatar';
 import { defineTabs } from '@pinfold/react/tabs';
-import { changed, Pick } from '../playground/shared';
+import { changed } from '../playground/shared';
 import { src, type ExampleSpec } from '../playground/example';
 import { defineNavbar } from '@pinfold/react/navbar';
 import { BELL, Page, Toggle, usePage } from '../playground/kit';
-import { DEVICES, MARK, MOON, SEARCH } from './app-shell';
+import { MARK, MOON, SEARCH } from './app-shell';
 
 /** The navbar page. */
 
@@ -36,7 +36,7 @@ const NOTIFICATIONS = ['Mara commented on Atlas', 'Jonas invited you to Pinfold'
 const SectionTabs = defineTabs({ size: 'sm' });
 
 function BarDemo({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
-  const { _layout: custom, _secondary: secondary, _width: width, ...rest } = props;
+  const { _layout: custom, _secondary: secondary, ...rest } = props;
   const [path, setPath] = React.useState('/overview');
   const [unread, setUnread] = React.useState(3);
   const [dark, setDark] = React.useState(false);
@@ -47,7 +47,7 @@ function BarDemo({ Preset, props }: { Preset: React.ElementType; props: Record<s
     { id: 'theme', label: 'Dark mode', icon: MOON, active: dark, onClick: () => setDark((d) => !d) },
   ];
   return (
-    <div className="dx-site dx-device" style={{ maxWidth: width || undefined }}>
+    <div className="dx-site">
       <Preset
         {...rest}
         value={path}
@@ -70,8 +70,7 @@ function BarDemo({ Preset, props }: { Preset: React.ElementType; props: Record<s
 }
 
 export function NavbarPlayground() {
-  const page = usePage(navbarMeta, ['size', 'tone'], { _layout: false, _secondary: false, _device: 'desktop' });
-  const device = DEVICES.find(([id]) => id === page.inputs._device) ?? DEVICES[0];
+  const page = usePage(navbarMeta, ['size', 'tone'], { _layout: false, _secondary: false });
   const inactive = {};
   const set = { ...Object.fromEntries(changed(page.options, page.defaults, inactive)), collapseAt: 480 };
   const custom = !!page.inputs._layout;
@@ -89,7 +88,6 @@ export function NavbarPlayground() {
     secondary: secondary ? src(null, '<SectionTabs />') : undefined,
     _layout: src(custom, ''),
     _secondary: src(secondary, ''),
-    _width: src(device[2], ''),
   };
   const spec: ExampleSpec = {
     name: 'TopBar',
@@ -110,12 +108,9 @@ export function NavbarPlayground() {
       motion
       align="start"
       file="components/top-bar"
-      note="Choose a link and the text under the bar says which page is current. Projects is a dropdown; the bell is a menu and its badge counts what is unread; the moon is a toggle. Preview as a tablet and the links that do not fit go under More (or scroll, with overflow: scroll: drag the row or use the wheel); as a phone they fold into a menu button; the ones that do not fit go under More."
+      note="Choose a link and the text under the bar says which page is current. Projects is a dropdown; the bell is a menu and its badge counts what is unread; the moon is a toggle. Preview at tablet width (the switch above the preview) and the links that do not fit go under More (or scroll, with overflow: scroll: drag the row or use the wheel); as a phone they fold into a menu button; the ones that do not fit go under More."
       demo={
         <>
-          <div className="dx-opt">
-            <Pick label="preview as" items={DEVICES.map(([value, label]) => ({ value, label }))} value={device[0]} onChange={(next) => next && page.setOption('_device', next)} />
-          </div>
           <Toggle page={page} name="_layout" label="custom layout (links centred, tools by name)" />
           <Toggle page={page} name="_secondary" label="secondary row (tabs under the bar)" />
         </>

@@ -69,6 +69,7 @@ export function CommandPlayground() {
     name: 'Palette',
     preset,
     body: kind === 'dialog' ? ['const [open, setOpen] = useState(false); // ⌘K / Ctrl+K toggles it too'] : undefined,
+    imports: kind === 'dialog' ? ["import { Button } from '@pinfold/react/button';"] : undefined,
     tree: [{ app: CommandDemo, use, code: kind === 'dialog' ? ["<Button label=\"Open the palette\" onClick={() => setOpen(true)} />", '$TAG'] : ['$TAG'] }],
     after: ['// Each command can carry its own onSelect, or an href that goes through the provider\'s navigate.'],
   };

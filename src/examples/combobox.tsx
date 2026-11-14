@@ -93,7 +93,7 @@ export function ComboboxPlayground() {
   const set = Object.fromEntries(changed(page.options, page.defaults, { ...inactive, ...fixed }));
   const shapes: Record<string, { body: string[]; use: Record<string, unknown> }> = {
     cities: {
-      body: ['const [city, setCity] = useState(null);'],
+      body: ['const [city, setCity] = useState<string | null>(null);'],
       use: { label: 'City', placeholder: 'Search cities', items: CITIES, defaultInputValue: 'o', value: src(null, 'city'), onChange: src(() => reportEvent('Called: ' + "setCity"), 'setCity') },
     },
     server: {

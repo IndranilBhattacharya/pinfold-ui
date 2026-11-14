@@ -57,7 +57,7 @@ export function ResizablePlayground() {
         use: {
           label: 'Editor',
           autoSaveId: 'editor',
-          panels: src([], "[{ id: 'files', label: 'Files', defaultSize: 28, min: 18, max: 50, content: <FileList current={file} onOpen={setFile} /> }, { id: 'code', label: 'Code', min: 30, content: <Code file={file} /> }]"),
+          panels: src([], "[{ id: 'files', label: 'Files', defaultSize: 28, min: 18, max: 50, content: <FileTree current={file} onOpen={setFile} /> }, { id: 'code', label: 'Code', min: 30, content: <Code file={file} /> }]"),
         },
         code: ['$TAG'],
       },

@@ -98,15 +98,16 @@ export function DatePickerPlayground() {
   const use: Record<string, unknown> = { ...(uses[kind] ?? uses.single), _kind: src(kind, '') };
   if (page.options.granularity && page.options.granularity !== 'day') delete use.months;
   const bodies: Record<string, string> = {
-    range: "const [stay, setStay] = useState({ start: '2026-12-22', end: '2026-12-27' });",
-    report: "const [period, setPeriod] = useState({ start: '2026-11-01', end: '2026-11-09' });",
-    booking: 'const [stay, setStay] = useState(null);',
-    meeting: "const [meeting, setMeeting] = useState('2026-11-20T14:30');",
-    month: "const [month, setMonth] = useState('2026-11-01');",
-    single: "const [due, setDue] = useState('2026-11-20');",
+    range: "const [stay, setStay] = useState<CalendarRange | null>({ start: '2026-12-22', end: '2026-12-27' });",
+    report: "const [period, setPeriod] = useState<CalendarRange | null>({ start: '2026-11-01', end: '2026-11-09' });",
+    booking: 'const [stay, setStay] = useState<CalendarRange | null>(null);',
+    meeting: "const [meeting, setMeeting] = useState<string | null>('2026-11-20T14:30');",
+    month: "const [month, setMonth] = useState<string | null>('2026-11-01');",
+    single: "const [due, setDue] = useState<string | null>('2026-11-20');",
   };
   const spec: ExampleSpec = {
     name: 'DateField',
+    imports: ['range', 'report', 'booking'].includes(kind) ? ["import type { CalendarRange } from '@pinfold/react/calendar';"] : undefined,
     preset: set,
     body: [bodies[kind] ?? bodies.single],
     tree: [{ app: DateDemo, use, code: ['$TAG'] }],

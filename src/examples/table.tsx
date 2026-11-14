@@ -201,7 +201,7 @@ export function TablePlayground() {
       onCellEdit: src(() => reportEvent('Called: ' + "({ rowKey, key, value }) => saveOrder(rowKey, { [key]: value })"), '({ rowKey, key, value }) => saveOrder(rowKey, { [key]: value })'),
       ...(page.inputs._detail ? { renderDetail: src(() => null, '(order) => <OrderDetail order={order} />') } : null),
     };
-    spec = { name: 'Grid', preset: set, tree: [{ app: OrdersGrid, use, code: ['$TAG'] }] };
+    spec = { name: 'Grid', preset: set, imports: ["import { Badge } from '@pinfold/react/badge';"], tree: [{ app: OrdersGrid, use, code: ['$TAG'] }] };
   } else if (billion) {
     spec = {
       name: 'Grid',
@@ -226,10 +226,11 @@ export function TablePlayground() {
       kind === 'server'
         ? {
             name: 'Grid',
+            imports: ["import type { TableSort } from '@pinfold/react/table';"],
             preset: set,
             body: [
               'const [page, setPage] = useState(1);',
-              'const [sort, setSort] = useState([]);',
+              'const [sort, setSort] = useState<TableSort[]>([]);',
               "const { data, isFetching } = useQuery({ queryKey: ['team', page, sort], queryFn: () => fetchTeam({ page, sort }), placeholderData: keepPreviousData });",
             ],
             tree: [{ app: Directory, use: { ...use, rows: src([], 'data.rows'), total: src(TEAM.length, 'data.total'), manualSort: true, sort: src(null, 'sort'), onSortChange: src(() => reportEvent('Called: ' + "setSort"), 'setSort'), page: src(1, 'page'), onPageChange: src(() => reportEvent('Called: ' + "setPage"), 'setPage'), loading: src(false, 'isFetching') }, code: ['$TAG'] }],
@@ -237,7 +238,7 @@ export function TablePlayground() {
         : {
             name: 'Grid',
             preset: set,
-            body: ["const [query, setQuery] = useState('');", 'const [chosen, setChosen] = useState([]);', 'const rows = team.filter((p) => matches(p, query));'],
+            body: ["const [query, setQuery] = useState('');", 'const [chosen, setChosen] = useState<string[]>([]);', 'const rows = team.filter((p) => matches(p, query));'],
             tree: [
               {
                 app: Directory,

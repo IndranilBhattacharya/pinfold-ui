@@ -8,6 +8,8 @@ import { defineSidebar } from '@pinfold/react/sidebar';
 import { defineTable } from '@pinfold/react/table';
 import { defineBadge } from '@pinfold/react/badge';
 import { defineButton } from '@pinfold/react/button';
+import { defineCommand } from '@pinfold/react/command';
+import { SiteToasts } from './playground/site-toast';
 import { resolveNode, version } from '@pinfold/core';
 import type { AccordionConfig, AccordionVariant } from '@pinfold/react/accordion';
 import { accordionMeta, alertMeta, avatarMeta, badgeMeta, buttonMeta, cardMeta, checkboxMeta, dialogMeta, inputMeta, menuMeta, radioMeta, switchMeta, popoverMeta, progressMeta, toastMeta, tooltipMeta, kbdMeta, separatorMeta, skeletonMeta, spinnerMeta, toggleMeta, toolbarMeta, sliderMeta, numberMeta, otpMeta, tabsMeta, breadcrumbMeta, paginationMeta, stepperMeta, selectMeta, comboboxMeta, tagsMeta, commandMeta, calendarMeta, datepickerMeta, tableMeta, ratingMeta, timelineMeta, emptyMeta, carouselMeta, resizableMeta, sidebarMeta, navmenuMeta, colorpickerMeta, scrollareaMeta, appshellMeta, navbarMeta, cursorMeta, treeviewMeta, fileuploadMeta, tourMeta, type ComponentMeta, type PropMeta } from '@pinfold/core/meta';
@@ -44,6 +46,8 @@ const Api = defineTable<ApiRow>({ variant: 'outline', density: 'compact', sortab
 const Required = defineBadge({ variant: 'soft', size: 'sm', tone: 'warning' });
 const Checks = defineAccordion({ variant: 'ghost', mode: 'multiple' });
 const Ghost = defineButton({ variant: 'ghost', size: 'sm' });
+/** Jump to any page: ⌘K / Ctrl+K, or the search button in the bar. */
+const Search = defineCommand({ mode: 'dialog', placeholder: 'Go to a component…' });
 
 interface ApiRow {
   option: string;
@@ -141,6 +145,25 @@ const ICON = (d: string) => (
 const SUN = ICON('M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z');
 const MOON = ICON('M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z');
 const CODE = ICON('m8 7-5 5 5 5M16 7l5 5-5 5');
+const FIND = ICON('M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM16.5 16.5 21 21');
+
+/** The side navigation keeps the current page in view: its own list scrolls, never the page. */
+function useCurrentInView(route: string) {
+  React.useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const current = document.querySelector<HTMLElement>('.pinfold-appshell__sidebar [aria-current="page"]');
+      // The nearest box that really scrolls (the Sidebar's own list, inside the shell's region).
+      let box = current?.parentElement ?? null;
+      while (box && !(/auto|scroll/.test(getComputedStyle(box).overflowY) && box.scrollHeight > box.clientHeight)) box = box.parentElement;
+      if (!current || !box) return;
+      const r = current.getBoundingClientRect();
+      const b = box.getBoundingClientRect();
+      if (r.top < b.top + 8) box.scrollTop -= b.top + 8 - r.top;
+      else if (r.bottom > b.bottom - 8) box.scrollTop += r.bottom - (b.bottom - 8);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [route]);
+}
 
 export function App() {
   const [mode, setMode] = React.useState<'light' | 'dark'>('dark');
@@ -149,6 +172,8 @@ export function App() {
   const radius = (palette.radius ?? 'md') as 'none' | 'sm' | 'md' | 'lg' | 'full';
   const route = useRoute();
   const component = COMPONENTS.find((c) => c.meta.name === route);
+  const [searching, setSearching] = React.useState(false);
+  useCurrentInView(route);
 
   const byName = new Map(COMPONENTS.map((c) => [c.meta.name, c]));
   const placed = new Set(GROUPS.flatMap(([, names]) => names));
@@ -171,6 +196,7 @@ export function App() {
               brand={{ label: <span className="dx-logo">Pinfold<b>UI</b></span>, logo: <PinfoldMark />, href: '#/overview' }}
               start={<span className="dx-hint dx-version">v{version}</span>}
               tools={[
+                { id: 'search', label: 'Search components (Ctrl K)', icon: FIND, onClick: () => setSearching(true) },
                 { id: 'github', label: 'GitHub', icon: CODE, showLabel: true, href: 'https://github.com/IndranilBhattacharya/pinfold', target: '_blank', whenCollapsed: 'panel' },
                 { id: 'theme', label: `Switch to ${mode === 'dark' ? 'light' : 'dark'} theme`, icon: mode === 'dark' ? MOON : SUN, onClick: () => setMode((t) => (t === 'dark' ? 'light' : 'dark')) },
               ]}
@@ -194,6 +220,14 @@ export function App() {
             <Overview />
           )}
         </Shell>
+        <Search
+          label="Search the components"
+          open={searching}
+          onOpenChange={setSearching}
+          items={nav.map((n) => ({ value: n.id, label: n.label, group: n.group, href: n.href, keywords: [n.id] }))}
+          onSelect={() => setSearching(false)}
+        />
+        <SiteToasts />
       </PinfoldProvider>
       </SitePalette.Provider>
     </SiteMode.Provider>

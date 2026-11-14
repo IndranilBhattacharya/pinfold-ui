@@ -70,7 +70,7 @@ function print(v: unknown): string {
   if (isSource(v)) return v.$code;
   if (typeof v === 'string') return `'${v.replace(/'/g, "\\'")}'`;
   if (Array.isArray(v)) return `[${v.map(print).join(', ')}]`;
-  if (v && typeof v === 'object') return `{ ${clean(v as Record<string, unknown>).map(([k, x]) => `${k}: ${print(x)}`).join(', ')} }`;
+  if (v && typeof v === 'object') return `{ ${clean(v as Record<string, unknown>).map(([k, x]) => `${/^[A-Za-z_$][\w$]*$/.test(k) ? k : `'${k}'`}: ${print(x)}`).join(', ')} }`;
   return String(v);
 }
 
@@ -100,7 +100,10 @@ export function exampleCode(meta: ComponentMeta, spec: ExampleSpec, env: Env): s
   const define = `define${meta.pascal ?? meta.displayName.split(' ')[0]}`;
   const preset = clean(spec.preset);
   const body = printTree(spec.tree, spec.name, '    ');
+  const text = [...(spec.body ?? []), ...body, ...(spec.after ?? []), ...(spec.imports ?? [])].join('\n');
+  const hooks = ['useState', 'useEffect', 'useRef', 'useMemo', 'useCallback', 'useReducer'].filter((h) => new RegExp(`\\b${h}\\b`).test(text));
   return [
+    ...(hooks.length ? [`import { ${hooks.join(', ')} } from 'react';`] : []),
     `import { ${define} } from '${meta.importPath}';`,
     ...(spec.imports ?? []),
     '',
@@ -112,7 +115,7 @@ export function exampleCode(meta: ComponentMeta, spec: ExampleSpec, env: Env): s
     ...(spec.body ?? []).map((l) => '  ' + l),
     ...(spec.body?.length ? [''] : []),
     '  return (',
-    ...(body.filter((l) => /^ {4}[<{]/.test(l) && !l.startsWith('    </')).length > 1 ? ['    <>', ...body.map((l) => '  ' + l), '    </>'] : body),
+    ...(needsFragment(body) ? ['    <>', ...body.map((l) => '  ' + l), '    </>'] : body),
     '  );',
     '}',
     ...(spec.after?.length ? ['', ...spec.after] : []),
@@ -187,7 +190,7 @@ function splitTop(text: string, sep: string): string[] {
 }
 
 function breakLine(line: string, width: number): string[] {
-  if (line.length <= width || /^\s*\/\//.test(line)) return [line];
+  if (line.length <= width || hasComment(line)) return [line];
   const indent = line.match(/^\s*/)![0];
   const inner = indent + '  ';
   const body = line.slice(indent.length);
@@ -220,6 +223,26 @@ function breakLine(line: string, width: number): string[] {
     return [line.slice(0, open + 1), ...items.flatMap((item) => breakLine(`${inner}${item}${comma}`, width)), indent + close];
   }
   return [line];
+}
+
+/** Whether a line holds a comment (`//` or `/*`) outside a string. */
+function hasComment(line: string): boolean {
+  let quote = '';
+  for (let i = 0; i < line.length - 1; i++) {
+    const c = line[i];
+    if (quote) {
+      if (c === '\\') i++;
+      else if (c === quote) quote = '';
+    } else if (c === "'" || c === '"' || c === '`') quote = c;
+    else if (c === '/' && (line[i + 1] === '/' || line[i + 1] === '*') && line[i - 1] !== ':') return true;
+  }
+  return false;
+}
+
+/** A return needs a fragment for more than one element, or for one expression (`{cond ? … : …}`). */
+function needsFragment(body: string[]): boolean {
+  const top = body.filter((l) => /^ {4}[<{]/.test(l) && !l.startsWith('    </'));
+  return top.length > 1 || (top.length === 1 && top[0].startsWith('    {'));
 }
 
 /** Long lines become the shape a formatter would give them, so code never needs dragging sideways. */

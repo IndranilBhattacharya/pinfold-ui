@@ -103,7 +103,7 @@ export function TourPlayground() {
   const spec: ExampleSpec = {
     name: 'Onboarding',
     preset: set,
-    imports: ["","const steps = [","  { target: '[data-tour=search]', title: 'Search anything', content: 'Find a project, an issue or a person from here.' },","  { target: '[data-tour=create]', title: 'Start something new', content: 'New project sets up a workspace.', placement: 'bottom-end' },","  { target: '[data-tour=stats]', title: 'Your numbers', content: 'Projects, open issues and deploys.', placement: 'top' },","  { target: '[data-tour=activity]', title: 'What just happened', content: 'The latest activity lands here.' },","];"],
+    imports: ["import { Button } from '@pinfold/react/button';","import type { TourStep } from '@pinfold/react/tour';","","const steps: TourStep[] = [","  { target: '[data-tour=search]', title: 'Search anything', content: 'Find a project, an issue or a person from here.' },","  { target: '[data-tour=create]', title: 'Start something new', content: 'New project sets up a workspace.', placement: 'bottom-end' },","  { target: '[data-tour=stats]', title: 'Your numbers', content: 'Projects, open issues and deploys.', placement: 'top' },","  { target: '[data-tour=activity]', title: 'What just happened', content: 'The latest activity lands here.' },","];"],
     body: [`const [open, setOpen] = useState(${openOnLoad});`],
     tree: [
       {

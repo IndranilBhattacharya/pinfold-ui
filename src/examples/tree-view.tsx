@@ -84,13 +84,13 @@ export function TreeViewPlayground() {
   const spec: ExampleSpec = {
     name: 'Files',
     preset: set,
-    body: ['const [selected, setSelected] = useState<string[]>([]);', ...(lazy ? ['const load = (item, { signal }) => api.list(item.id, { signal }); // resolves to the node\'s children'] : [])],
+    body: ['// projectFiles: [{ id: \'src\', label: \'src\', children: [...] }, { id: \'dist\', label: \'dist\', badge: \'build\', hasChildren: true }, \'package.json\']', 'const [selected, setSelected] = useState<string[]>([]);', ...(lazy ? ['const load = (item, { signal }) => api.list(item.id, { signal }); // resolves to the node\'s children'] : [])],
     tree: [
       {
         app: TreeDemo,
         use: {
           label: 'Project files',
-          items: src([], 'projectFiles // [{ id: "src", label: "src", children: [...] }, { id: "dist", label: "dist", badge: "build", hasChildren: true }, "package.json"]'),
+          items: src([], 'projectFiles'),
           dimensions: { height: 340 },
           ...(lazy ? { loadChildren: src(undefined, 'load') } : null),
           onSelectionChange: src(undefined, 'setSelected'),

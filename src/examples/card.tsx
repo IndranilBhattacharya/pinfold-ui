@@ -25,7 +25,7 @@ export function CardPlayground() {
           title: page.inputs._title,
           description: page.inputs._description,
           content: src(<b>$29 per month</b>, '<b>$29 per month</b>'),
-          image: image ? { src: src(LANDSCAPE, "'/pro.png'"), alt: '' } : undefined,
+          image: image ? { src: src(LANDSCAPE, "'/pro.png'"), alt: 'A lake under mountains at dawn' } : undefined,
           href: link ? '#/card' : undefined,
           actions: link ? undefined : [{ label: 'Upgrade', onClick: src(() => reportEvent('Called: ' + "upgrade"), 'upgrade') }, { label: 'Compare plans', onClick: src(() => reportEvent('Called: ' + "compare"), 'compare') }],
         },

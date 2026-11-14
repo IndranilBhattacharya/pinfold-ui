@@ -92,6 +92,7 @@ export function NavbarPlayground() {
   };
   const spec: ExampleSpec = {
     name: 'TopBar',
+    imports: ["import { Avatar } from '@pinfold/react/avatar';"],
     preset: set,
     body: ['const pathname = usePathname();', 'const router = useRouter();'],
     tree: [{ app: BarDemo, use, code: ['$TAG'] }],

@@ -15,6 +15,7 @@ import type { ComponentMeta, PropMeta } from '@pinfold/core/meta';
 import type { PinfoldSize, PinfoldStylePack, PinfoldTone } from '@pinfold/core';
 import { IN_PREVIEW, PREVIEW_NAME, postToPage, reportEvent } from './preview-mode';
 import { PreviewFrame } from './frame';
+import { SiteToasts } from './site-toast';
 
 /**
  * Pieces every component playground shares. Controls come from the component's
@@ -395,15 +396,14 @@ export interface CodeAction {
 /** Generated code (TypeScript / JavaScript) and the copy actions. */
 export function CodePanel({ file, code, actions, note }: { file: string; code: (lang: 'ts' | 'js') => string; actions: CodeAction[]; note?: React.ReactNode }) {
   const [lang, setLang] = React.useState<'ts' | 'js'>('ts');
-  const [status, setStatus] = React.useState<string | null>(null);
   const snippet = reflow(code(lang));
+  // A toast confirms (it is a polite live region, so a screen reader hears it too).
   const copy = async (label: string, text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      setStatus(`${label} copied`);
-      setTimeout(() => setStatus(null), 1500);
+      void SiteToasts.show({ title: `${label} copied`, tone: 'success' });
     } catch {
-      setStatus('Copy failed: select the text instead');
+      void SiteToasts.show({ title: 'Copy failed', description: 'Select the text and copy it instead.', tone: 'danger' });
     }
   };
   return (
@@ -423,9 +423,6 @@ export function CodePanel({ file, code, actions, note }: { file: string; code: (
           <Tool key={a.label} label={a.label} title={a.title} onClick={() => (a.run ? a.run() : copy(a.label.replace(/^Copy /, ''), a.copy ?? ''))} />
         ))}
         <Tool label="Copy link" onClick={() => copy('Link', location.href)} />
-        <span className="dx-hint" role="status" aria-live="polite">
-          {status}
-        </span>
       </div>
       {note}
     </>

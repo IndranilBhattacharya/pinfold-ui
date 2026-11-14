@@ -10,7 +10,8 @@
     "dev": "vite --port 5180 --open",
     "build": "vite build",
     "preview": "vite preview --port 5180",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check": "node scripts/no-native-controls.mjs"
   },
   "dependencies": {
     "react": "^19.3.1",

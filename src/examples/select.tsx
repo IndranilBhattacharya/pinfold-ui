@@ -58,12 +58,12 @@ export function SelectPlayground() {
   const set = Object.fromEntries(changed(page.options, page.defaults, { ...inactive, multiple: 'set by the example' }));
   const shapes: Record<string, { body: string[]; use: Record<string, unknown>; code: string[] }> = {
     groups: {
-      body: ["const [plan, setPlan] = useState('pro');"],
+      body: ["const [plan, setPlan] = useState<string | null>('pro');"],
       use: { label: 'Plan', items: PLANS.map(({ price, ...p }) => p), value: src('pro', 'plan'), onChange: src(() => reportEvent('Called: ' + "setPlan"), 'setPlan') },
       code: ['$TAG', '<PlanSummary plan={plan} />'],
     },
     strings: {
-      body: ["const [region, setRegion] = useState('Tokyo');"],
+      body: ["const [region, setRegion] = useState<string | null>('Tokyo');"],
       use: { label: 'Region', description: 'Where your data lives.', items: REGIONS, value: src('Tokyo', 'region'), onChange: src(() => reportEvent('Called: ' + "setRegion"), 'setRegion') },
       code: ['$TAG'],
     },

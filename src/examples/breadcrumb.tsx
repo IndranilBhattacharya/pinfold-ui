@@ -142,6 +142,7 @@ export function BreadcrumbPlayground() {
   };
   return (
     <Page
+      examples={{ name: '_example', options: [ ['files', 'file browser (items with menus)'], ['settings', 'settings path (path + home)'], ['collapsed', 'collapsed (maxItems: 3)'], ] }}
       meta={breadcrumbMeta}
       page={page}
       define={defineBreadcrumb}
@@ -155,18 +156,6 @@ export function BreadcrumbPlayground() {
         <>
           {setup.blurb} The folder view and the trail share one path. Click a crumb, a hidden crumb in the dots menu, or a sibling page from a crumb's arrow menu: the folder view moves and the log under it shows the order the events fire in (onChange first, with the crumb's key, then onNavigate with the href). Folders in the list move the path too, and so does the trail.
         </>
-      }
-      demo={
-        <Choice
-          page={page}
-          name="_example"
-          label="example"
-          options={[
-            ['files', 'file browser (items with menus)'],
-            ['settings', 'settings path (path + home)'],
-            ['collapsed', 'collapsed (maxItems: 3)'],
-          ]}
-        />
       }
     />
   );

@@ -76,6 +76,7 @@ export function SelectPlayground() {
   const spec: ExampleSpec = { name: 'Field', preset: set, body: shape.body, tree: [{ app: ProjectForm, use: { ...shape.use, _kind: src(kind, '') }, code: shape.code }], openOnLoad: true };
   return (
     <Page
+      examples={{ name: '_kind', options: [['groups', 'a plan: groups and descriptions'], ['strings', 'a region: rows from strings'], ['multiple', 'labels: several values']] }}
       meta={selectMeta}
       page={page}
       define={defineSelect}
@@ -87,7 +88,6 @@ export function SelectPlayground() {
       file="components/project-form"
       frame={(live) => <div className="dx-list-demo">{live}</div>}
       note={KEEP_NOTE + ' ' + 'Arrows, Home and End move past disabled rows; letters jump; Enter or Space chooses. A hidden native select submits and validates.'}
-      demo={<Choice page={page} name="_kind" label="example" options={[['groups', 'a plan: groups and descriptions'], ['strings', 'a region: rows from strings'], ['multiple', 'labels: several values']]} />}
     />
   );
 }

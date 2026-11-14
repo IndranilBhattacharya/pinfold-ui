@@ -76,6 +76,7 @@ export function CalendarPlayground() {
   const spec: ExampleSpec = { name: 'Picker', preset: set, body: shape.body, tree: [{ app: CalendarDemo, use: { ...shape.use, _kind: src(kind, '') }, code: shape.code }] };
   return (
     <Page
+      examples={{ name: '_kind', options: [['single', 'a day and its agenda'], ['range', 'a stay and its price'], ['multiple', 'days you are free']] }}
       meta={calendarMeta}
       page={page}
       define={defineCalendar}
@@ -92,7 +93,6 @@ export function CalendarPlayground() {
             ? 'Each pick toggles a day; weekends cannot be chosen. Values are ISO dates, the same on the server.'
             : 'Arrows move a day or a week, PageUp and PageDown a month (with Shift, a year). The agenda follows the day.'
       }
-      demo={<Choice page={page} name="_kind" label="example" options={[['single', 'a day and its agenda'], ['range', 'a stay and its price'], ['multiple', 'days you are free']]} />}
     />
   );
 }

@@ -113,6 +113,7 @@ export function DatePickerPlayground() {
   };
   return (
     <Page
+      examples={{ name: '_kind', options: [ ['single', 'a due date'], ['range', 'a stay (range)'], ['report', 'a report range with presets'], ['booking', 'a booking: nights, prices, booked days'], ['meeting', 'a meeting: day and time'], ['month', 'a billing month'], ] }}
       meta={datepickerMeta}
       page={page}
       define={defineDatePicker}
@@ -124,23 +125,6 @@ export function DatePickerPlayground() {
       file="components/date-field"
       frame={(live) => <div className="dx-list-demo dx-list-demo--tall">{live}</div>}
       note={KEEP_NOTE + ' ' + 'Type "24/12/2026" (the UK order here) and press Enter, or ArrowDown to open the calendar on the chosen day.'}
-      demo={
-        <>
-          <Choice
-            page={page}
-            name="_kind"
-            label="example"
-            options={[
-              ['single', 'a due date'],
-              ['range', 'a stay (range)'],
-              ['report', 'a report range with presets'],
-              ['booking', 'a booking: nights, prices, booked days'],
-              ['meeting', 'a meeting: day and time'],
-              ['month', 'a billing month'],
-            ]}
-          />
-        </>
-      }
     />
   );
 }

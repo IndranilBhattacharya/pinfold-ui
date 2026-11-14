@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { defineToggle } from '@pinfold/react/toggle';
 import { type ComponentMeta } from '@pinfold/core/meta';
 import { CodePanel, controlsOf, defaultsOf, ENV, EnvControls, Flag, Note, OptionControls, Pick, reviveEnv, Stage, TextField, Tool, useUrlState, type Env } from './shared';
 import { exampleCode, Live, src, type ExampleSpec } from './example';
@@ -76,9 +77,40 @@ interface PageProps {
   valueLabel?: (key: string, value: string | number) => string | undefined;
   /** The preview takes the full width, with the controls under it: for components that are a layout (a shell, a bar, a grid). */
   wide?: boolean;
+  /** The page's examples, as a switch above the preview: the page input that holds the choice, and the choices. */
+  examples?: Examples;
 }
 
-export function Page({ meta, page, define, spec: given, inactive, inherit = [], provider = false, motion = false, align = 'center', demo: ownDemo, note, file, frame, autoLabel, valueLabel, wide = false }: PageProps) {
+export interface Examples {
+  name: string;
+  options: ReadonlyArray<readonly [string, string]>;
+  /** Instead of setting the input: an example that also sets options (a horizontal list, say). */
+  onChange?: (value: string) => void;
+}
+
+const ExamplePick = defineToggle({ variant: 'segmented', size: 'sm', selection: 'single' });
+
+/** Which example the preview shows. */
+export function ExampleSwitch({ page, examples }: { page: PageApi; examples: Examples }) {
+  const current = String(page.inputs[examples.name] ?? examples.options[0][0]);
+  return (
+    <div className="dx-examples">
+      <ExamplePick
+        label="Example"
+        items={examples.options.map(([value, label]) => ({ value, label }))}
+        value={[current]}
+        onChange={(next) => {
+          const value = (next as string[])[0];
+          if (!value) return;
+          if (examples.onChange) examples.onChange(value);
+          else page.setOption(examples.name, value);
+        }}
+      />
+    </div>
+  );
+}
+
+export function Page({ meta, page, define, spec: given, inactive, inherit = [], provider = false, motion = false, align = 'center', demo: ownDemo, note, file, frame, autoLabel, valueLabel, wide = false, examples }: PageProps) {
   // An overlay opens as the page loads (unless switched off): the option is real and in the code.
   const opens = given.openOnLoad !== undefined && page.inputs._open !== false;
   const spec = opens ? withDefaultOpen(given, given.openOnLoad!) : given;
@@ -109,6 +141,7 @@ export function Page({ meta, page, define, spec: given, inactive, inherit = [], 
         <Tool label="Reset" onClick={page.reset} />
       </div>
       <div className="dx-play__preview">
+        {examples ? <ExampleSwitch page={page} examples={examples} /> : null}
         <Stage env={page.env} setEnv={page.setEnv} align={align}>
           {frame ? frame(live) : align === 'center' ? <div className="dx-center">{live}</div> : live}
         </Stage>

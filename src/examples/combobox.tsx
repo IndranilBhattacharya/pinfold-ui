@@ -121,6 +121,7 @@ export function ComboboxPlayground() {
   const spec: ExampleSpec = { name: 'Search', preset: set, body: shape.body, tree: [{ app: Finder, use: { ...shape.use, _kind: src(kind, '') }, code: ['$TAG'] }], openOnLoad: true };
   return (
     <Page
+      examples={{ name: '_kind', options: [['cities', 'cities: filter your rows'], ['server', 'repositories: search a server'], ['people', 'a team: 10,000 people, async, chips'], ['tags', 'tags: several, free text']] }}
       meta={comboboxMeta}
       page={page}
       define={defineCombobox}
@@ -142,7 +143,6 @@ export function ComboboxPlayground() {
             ? 'Enter adds what you typed; Backspace in an empty field removes the last tag.'
             : 'The first match is active as you type, so Enter takes it. Escape closes, then clears.')
       }
-      demo={<Choice page={page} name="_kind" label="example" options={[['cities', 'cities: filter your rows'], ['server', 'repositories: search a server'], ['people', 'a team: 10,000 people, async, chips'], ['tags', 'tags: several, free text']]} />}
     />
   );
 }

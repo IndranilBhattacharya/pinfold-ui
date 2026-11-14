@@ -142,21 +142,15 @@ export function ScrollAreaPlayground() {
       align="start"
       file="components/changelog"
       note={notes[kind]}
-      demo={
-        <div className="dx-opt">
-          <Pick
-            label="example"
-            items={SCROLL_KINDS.map(([value, label]) => ({ value, label }))}
-            value={kind}
-            onChange={(next) => {
-              if (!next) return;
-              page.setOption('_kind', next);
-              page.setOption('orientation', next === 'chips' ? 'horizontal' : 'vertical');
-              page.setOption('stickToEnd', next === 'chat');
-            }}
-          />
-        </div>
-      }
+      examples={{
+        name: '_kind',
+        options: SCROLL_KINDS,
+        onChange: (next) => {
+          page.setOption('_kind', next);
+          page.setOption('orientation', next === 'chips' ? 'horizontal' : 'vertical');
+          page.setOption('stickToEnd', next === 'chat');
+        },
+      }}
     />
   );
 }

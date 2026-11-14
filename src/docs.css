@@ -577,3 +577,7 @@ a { color: inherit; text-decoration: none; }
 /* A full-height preview (a shell, a bar, a modal) fills its frame. */
 .dx-preview-fixed .dx-stage { min-block-size: 100vh; padding: 1rem; }
 .dx-preview-crash { padding: 1rem; }
+
+/* The page's examples, over its preview. */
+.dx-play--wide > .dx-play__preview > .dx-examples { order: -1; }
+.dx-examples { margin-bottom: 0.75rem; max-inline-size: 100%; overflow-x: auto; scrollbar-width: none; }

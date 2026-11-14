@@ -185,6 +185,7 @@ export function TabsPlayground() {
   }
   return (
     <Page
+      examples={{ name: '_demo', options: [['settings', 'settings with panels'], ['editor', 'editor: close and add'], ['views', 'views from strings']] }}
       meta={tabsMeta}
       page={page}
       define={defineTabs}
@@ -203,7 +204,7 @@ export function TabsPlayground() {
       }
       demo={
         <>
-          <Choice page={page} name="_demo" label="example" options={[['settings', 'settings with panels'], ['editor', 'editor: close and add'], ['views', 'views from strings']]} />
+          
           {demo === 'settings' ? (
             <div className="dx-opts">
               <Toggle page={page} name="_icons" label="icons and a count" />

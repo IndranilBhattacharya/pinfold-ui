@@ -92,6 +92,7 @@ export function TagsPlayground() {
   const spec: ExampleSpec = { name: 'Chips', preset: set, body: shape.body.length ? shape.body : undefined, tree: [{ app: TagsDemo, use: { ...shape.use, _kind: src(kind, '') }, code: shape.code }] };
   return (
     <Page
+      examples={{ name: '_kind', options: [['filters', 'filters to remove'], ['pick', 'topics to pick'], ['status', 'labels, tones and a link']] }}
       meta={tagsMeta}
       page={page}
       define={defineTags}
@@ -108,7 +109,6 @@ export function TagsPlayground() {
             ? 'Each tag can carry its own tone; a tag with href is a link. "+2" shows the rest.'
             : 'Each remove button says which tag it removes; focus moves to the next tag. The shoes follow the filters.'
       }
-      demo={<Choice page={page} name="_kind" label="example" options={[['filters', 'filters to remove'], ['pick', 'topics to pick'], ['status', 'labels, tones and a link']]} />}
     />
   );
 }

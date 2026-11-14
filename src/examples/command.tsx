@@ -73,6 +73,7 @@ export function CommandPlayground() {
   };
   return (
     <Page
+      examples={{ name: '_kind', options: [['inline', 'on the page'], ['dialog', 'a ⌘K dialog']] }}
       meta={commandMeta}
       page={page}
       define={defineCommand}
@@ -83,7 +84,6 @@ export function CommandPlayground() {
       align="start"
       file="components/palette"
       note={kind === 'dialog' ? 'A native modal: the page goes inert, Escape closes and focus returns. ⌘K / Ctrl+K opens it from anywhere.' : 'Typing narrows by name or keyword; the first command is active, so Enter runs it. Arrows skip the disabled one.'}
-      demo={<Choice page={page} name="_kind" label="example" options={[['inline', 'on the page'], ['dialog', 'a ⌘K dialog']]} />}
     />
   );
 }

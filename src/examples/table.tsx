@@ -254,6 +254,7 @@ export function TablePlayground() {
   };
   return (
     <Page
+      examples={{ name: '_kind', options: [ ['grid', 'orders: every grid feature'], ['billion', 'a billion rows from a server'], ['client', 'a directory you search and choose from'], ['server', 'a server that sorts and pages'], ] }}
       wide
       meta={tableMeta}
       page={page}
@@ -268,17 +269,7 @@ export function TablePlayground() {
       note={notes[kind]}
       demo={
         <>
-          <Choice
-            page={page}
-            name="_kind"
-            label="example"
-            options={[
-              ['grid', 'orders: every grid feature'],
-              ['billion', 'a billion rows from a server'],
-              ['client', 'a directory you search and choose from'],
-              ['server', 'a server that sorts and pages'],
-            ]}
-          />
+          
           {grid ? (
             <>
               <Choice page={page} name="_group" label="group by" options={[['', 'nothing'], ['status', 'status'], ['region', 'region']]} />

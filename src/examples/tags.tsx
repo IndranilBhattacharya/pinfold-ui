@@ -6,6 +6,7 @@ import { Button } from '@pinfold/react/button';
 import { changed } from '../playground/shared';
 import { src, type ExampleSpec } from '../playground/example';
 import { Choice, Page, usePage } from '../playground/kit';
+import { reportEvent } from '../playground/preview-mode';
 
 /** The tags page. */
 
@@ -64,12 +65,12 @@ export function TagsPlayground() {
   const shapes: Record<string, { body: string[]; use: Record<string, unknown>; code: string[] }> = {
     filters: {
       body: ["const [filters, setFilters] = useState(['Waterproof', 'Under $100']);"],
-      use: { label: 'Filters', items: src(['Waterproof', 'Under $100'], 'filters'), onRemove: src(() => {}, '(value) => setFilters((f) => f.filter((x) => x !== value))') },
+      use: { label: 'Filters', items: src(['Waterproof', 'Under $100'], 'filters'), onRemove: src(() => reportEvent('Called: ' + "(value) => setFilters((f) => f.filter((x) => x !== value))"), '(value) => setFilters((f) => f.filter((x) => x !== value))') },
       code: ['$TAG', '<Results filters={filters} />'],
     },
     pick: {
       body: ["const [topics, setTopics] = useState(['Accessibility']);"],
-      use: { label: 'Topics', selection: 'multiple', items: TOPICS, value: src(['Accessibility'], 'topics'), onChange: src(() => {}, 'setTopics') },
+      use: { label: 'Topics', selection: 'multiple', items: TOPICS, value: src(['Accessibility'], 'topics'), onChange: src(() => reportEvent('Called: ' + "setTopics"), 'setTopics') },
       code: ['$TAG', '<Articles topics={topics} />'],
     },
     status: {

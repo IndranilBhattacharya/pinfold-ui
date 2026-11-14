@@ -4,6 +4,7 @@ import { defineSlider } from '@pinfold/react/slider';
 import { changed } from '../playground/shared';
 import { src, type ExampleSpec } from '../playground/example';
 import { Page, SPEAKER_HIGH, SPEAKER_LOW, Toggle, usePage } from '../playground/kit';
+import { reportEvent } from '../playground/preview-mode';
 
 /** The slider page. */
 
@@ -19,7 +20,7 @@ export function SliderPlayground() {
   const ends = page.inputs._icons ? { startContent: src(SPEAKER_LOW, '<VolumeLowIcon />'), endContent: src(SPEAKER_HIGH, '<VolumeHighIcon />') } : {};
   const spec: ExampleSpec = range
     ? { name: 'Price', preset: { ...set, ...scale, minGap: 25, formatValue: 'formatValue' in inactive ? undefined : src((v: number) => `$${v}`, '(v) => `$${v}`') }, tree: [{ use: { label: 'Price', name: 'price', defaultValue: [100, 350], marks, ...ends } }] }
-    : { name: 'Volume', preset: { ...set, ...scale }, tree: [{ use: { label: 'Volume', defaultValue: [40], marks, ...ends, onChangeEnd: src(() => {}, 'save') } }] };
+    : { name: 'Volume', preset: { ...set, ...scale }, tree: [{ use: { label: 'Volume', defaultValue: [40], marks, ...ends, onChangeEnd: src(() => reportEvent('Called: ' + "save"), 'save') } }] };
   return (
     <Page
       meta={sliderMeta}

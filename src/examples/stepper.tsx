@@ -10,6 +10,7 @@ import { changed } from '../playground/shared';
 import { src, type ExampleSpec } from '../playground/example';
 import { Choice, Page, Toggle, usePage } from '../playground/kit';
 import { Order } from './table';
+import { reportEvent } from '../playground/preview-mode';
 
 /** The stepper page. */
 
@@ -132,9 +133,9 @@ export function StepperPlayground() {
               { ...WIZARD[3], content: src(null, '<Review />') },
             ],
             value: src(0, 'step'),
-            onChange: src(() => {}, 'setStep'),
+            onChange: src(() => reportEvent('Called: ' + "setStep"), 'setStep'),
             onNext: src(() => true, '(step) => step !== 1 || checkAddress()'),
-            onComplete: src(() => {}, 'placeOrder'),
+            onComplete: src(() => reportEvent('Called: ' + "placeOrder"), 'placeOrder'),
             doneContent: src(null, '<OrderPlaced onRestart={() => setStep(0)} />'),
             _async: src(!!page.inputs._async, ''),
             _markError: src(!!page.inputs._error, ''),
@@ -145,7 +146,7 @@ export function StepperPlayground() {
     };
   } else {
     const use: Record<string, unknown> = { value: src(Number(page.inputs._step), String(page.inputs._step)), items: ['Cart', 'Shipping', 'Payment', 'Review'], _back: src(!!page.inputs._back, '') };
-    if (page.inputs._back) use.onChange = src(() => {}, 'setStep');
+    if (page.inputs._back) use.onChange = src(() => reportEvent('Called: ' + "setStep"), 'setStep');
     spec = { name: 'Steps', preset: set, tree: [{ app: StepsOnly, use, code: ['$TAG'] }] };
   }
   return (

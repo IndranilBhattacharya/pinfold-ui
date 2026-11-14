@@ -4,6 +4,7 @@ import { defineToggle } from '@pinfold/react/toggle';
 import { changed } from '../playground/shared';
 import { src, type ExampleSpec } from '../playground/example';
 import { Choice, Page, Toggle, usePage } from '../playground/kit';
+import { reportEvent } from '../playground/preview-mode';
 
 /** The toggle page. */
 
@@ -33,8 +34,8 @@ export function TogglePlayground() {
   const inactive = inactiveToggleOptions({ items: group ? views : undefined, selection: page.options.selection as string });
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
   const spec: ExampleSpec = group
-    ? { name: 'View', preset: set, tree: [{ use: { label: 'View', items: views, defaultValue: ['list'], onChange: src(() => {}, 'setView') } }] }
-    : { name: 'Pin', preset: set, tree: [{ use: { label: 'Pin', icon: icons ? src(PIN_ICON, '<PinIcon />') : undefined, defaultPressed: true, onChange: src(() => {}, 'setPinned') } }] };
+    ? { name: 'View', preset: set, tree: [{ use: { label: 'View', items: views, defaultValue: ['list'], onChange: src(() => reportEvent('Called: ' + "setView"), 'setView') } }] }
+    : { name: 'Pin', preset: set, tree: [{ use: { label: 'Pin', icon: icons ? src(PIN_ICON, '<PinIcon />') : undefined, defaultPressed: true, onChange: src(() => reportEvent('Called: ' + "setPinned"), 'setPinned') } }] };
   return (
     <Page
       meta={toggleMeta}

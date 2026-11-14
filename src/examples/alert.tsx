@@ -5,6 +5,7 @@ import { defineAlert } from '@pinfold/react/alert';
 import { changed, Tool } from '../playground/shared';
 import { src, type ExampleSpec } from '../playground/example';
 import { Page, Text, Toggle, usePage } from '../playground/kit';
+import { reportEvent } from '../playground/preview-mode';
 
 /** The alert page. */
 
@@ -21,7 +22,7 @@ export function AlertPlayground() {
   const spec: ExampleSpec = {
     name: 'Notice',
     preset: set,
-    tree: [{ use: { title: page.inputs._title, description: page.inputs._description, actions: page.inputs._actions ? [{ label: 'Retry', onClick: src(() => {}, 'retry') }, { label: 'Use another card', onClick: src(() => {}, 'change') }] : undefined } }],
+    tree: [{ use: { title: page.inputs._title, description: page.inputs._description, actions: page.inputs._actions ? [{ label: 'Retry', onClick: src(() => reportEvent('Called: ' + "retry"), 'retry') }, { label: 'Use another card', onClick: src(() => reportEvent('Called: ' + "change"), 'change') }] : undefined } }],
   };
   return (
     <Page

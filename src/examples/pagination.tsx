@@ -6,10 +6,12 @@ import { definePagination } from '@pinfold/react/pagination';
 import { changed } from '../playground/shared';
 import { src, type ExampleSpec } from '../playground/example';
 import { Choice, Page, Toggle, usePage } from '../playground/kit';
+import { CUSTOMERS as HARBOR_CUSTOMERS } from '../demo/harbor';
+import { reportEvent } from '../playground/preview-mode';
 
 /** The pagination page. */
 
-const CUSTOMERS = ['Northwind', 'Globex', 'Initech', 'Umbrella', 'Hooli', 'Vandelay', 'Stark', 'Wayne', 'Acme', 'Soylent', 'Tyrell'];
+const CUSTOMERS = HARBOR_CUSTOMERS.map((c) => c.name);
 const STATUSES = [
   ['Paid', 'success'],
   ['Pending', 'warning'],
@@ -94,7 +96,7 @@ export function PaginationPlayground() {
   const scope = mode === 'cursor' ? { hasNext: true } : { total: INVOICES.length };
   const inactive = inactivePaginationOptions({ ...page.options, ...scope });
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
-  const onChange = src(() => {}, '(page, { pageSize }) => setQuery({ page, pageSize })');
+  const onChange = src(() => reportEvent('Called: ' + "(page, { pageSize }) => setQuery({ page, pageSize })"), '(page, { pageSize }) => setQuery({ page, pageSize })');
   const base = { page: src(1, 'query.page'), pageSize: src(sizes?.[0] ?? 10, 'query.pageSize'), pageSizes: sizes, onChange, _mode: src(mode, '') };
   const shapes = {
     client: {

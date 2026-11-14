@@ -6,39 +6,35 @@ import { changed } from '../playground/shared';
 import { src, type ExampleSpec } from '../playground/example';
 import { Page, usePage } from '../playground/kit';
 import { BOARD_ICON, CAL_ICON, svg } from './toggle';
+import { ME, PAGES_OF_APP } from '../demo/harbor';
 
 /** The sidebar page. */
 
+/** Harbor's own navigation: the demos route between these pages. */
 export const NAV_ITEMS = [
-  { label: 'Inbox', href: '/inbox', icon: svg('M4 13h4l2 3h4l2-3h4M5 5h14l2 8v6H3v-6z'), badge: 4 },
-  { label: 'Today', href: '/today', icon: CAL_ICON },
   {
-    label: 'Projects',
-    icon: svg('M3 6h6l2 2h10v11H3z'),
+    label: 'Shipments',
+    icon: svg('M3 17h18l-2 3H5zM5 17V9h14v8M9 9V5h6v4'),
     items: [
-      { label: 'Pinfold', href: '/projects/pinfold' },
-      { label: 'Atlas', href: '/projects/atlas', badge: 'New' },
-      { label: 'Archive', href: '/projects/archive' },
+      { label: 'Active', href: '/shipments/active' },
+      { label: 'Delayed', href: '/shipments/delayed', badge: 3 },
+      { label: 'Archive', href: '/shipments/archive' },
     ],
   },
+  { label: 'Orders', href: '/orders', icon: svg('M4 13h4l2 3h4l2-3h4M5 5h14l2 8v6H3v-6z'), badge: 12 },
+  { label: 'Customers', href: '/customers', icon: svg('M16 21a5 5 0 0 0-10 0M11 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM21 21a4 4 0 0 0-4-4') },
   { label: 'Reports', href: '/reports', icon: BOARD_ICON },
   { label: 'Settings', href: '/settings', icon: svg('M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM4 12h2M18 12h2M12 4v2M12 18v2'), group: 'Account' },
   { label: 'Billing', href: '/billing', icon: svg('M3 6h18v12H3zM3 10h18'), group: 'Account' },
 ];
 export const NAV_PAGES: Record<string, { title: string; lead: string }> = {
-  '/inbox': { title: 'Inbox', lead: '4 unread messages, newest first.' },
-  '/today': { title: 'Today', lead: 'Three tasks due and one meeting at 15:00.' },
-  '/projects/pinfold': { title: 'Pinfold', lead: '41 components, 12 open issues.' },
-  '/projects/atlas': { title: 'Atlas', lead: 'Started this week: two members, no issues yet.' },
-  '/projects/archive': { title: 'Archive', lead: 'Finished projects, read only.' },
-  '/reports': { title: 'Reports', lead: 'Weekly activity and time spent per project.' },
-  '/settings': { title: 'Settings', lead: 'Profile, notifications and connected apps.' },
-  '/billing': { title: 'Billing', lead: 'Team plan, renews on the 1st.' },
+  ...PAGES_OF_APP,
+  '/shipments/archive': { title: 'Archive', lead: 'Delivered shipments from the last 12 months, read only.' },
 };
 
 /** An app shell: the sidebar drives the page beside it through its router. */
 function Shell({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
-  const [path, setPath] = React.useState('/projects/atlas');
+  const [path, setPath] = React.useState('/shipments/active');
   const current = NAV_PAGES[path] ?? { title: path, lead: '' };
   return (
     <div className="dx-app">
@@ -48,14 +44,14 @@ function Shell({ Preset, props }: { Preset: React.ElementType; props: Record<str
         onNavigate={setPath}
         header={
           <div className="dx-app__brand">
-            <span aria-hidden="true">A</span>
-            <strong>Acme Inc</strong>
+            <span aria-hidden="true">H</span>
+            <strong>Harbor</strong>
           </div>
         }
         footer={
           <div className="dx-app__brand dx-app__brand--user">
-            <span aria-hidden="true">ML</span>
-            <span>Mara Lind</span>
+            <span aria-hidden="true">MC</span>
+            <span>{ME.name}</span>
           </div>
         }
       />
@@ -81,11 +77,11 @@ export function SidebarPlayground() {
         app: Shell,
         use: {
           label: 'Main',
-          value: src('/projects/atlas', 'pathname'),
+          value: src('/shipments/active', 'pathname'),
           onNavigate: src(undefined, 'router.push'),
           header: src(null, '<Workspace />'),
           footer: src(null, '<Account />'),
-          items: src(NAV_ITEMS, "[{ label: 'Inbox', href: '/inbox', icon: <InboxIcon />, badge: 4 }, { label: 'Today', href: '/today', icon: <CalendarIcon /> }, { label: 'Projects', icon: <FolderIcon />, items: [{ label: 'Pinfold', href: '/projects/pinfold' }, { label: 'Atlas', href: '/projects/atlas', badge: 'New' }, { label: 'Archive', href: '/projects/archive' }] }, { label: 'Reports', href: '/reports', icon: <ChartIcon /> }, { label: 'Settings', href: '/settings', icon: <CogIcon />, group: 'Account' }, { label: 'Billing', href: '/billing', icon: <CardIcon />, group: 'Account' }]"),
+          items: src(NAV_ITEMS, "[{ label: 'Shipments', icon: <ShipIcon />, items: [{ label: 'Active', href: '/shipments/active' }, { label: 'Delayed', href: '/shipments/delayed', badge: 3 }, { label: 'Archive', href: '/shipments/archive' }] }, { label: 'Orders', href: '/orders', icon: <InboxIcon />, badge: 12 }, { label: 'Customers', href: '/customers', icon: <PeopleIcon /> }, { label: 'Reports', href: '/reports', icon: <ChartIcon /> }, { label: 'Settings', href: '/settings', icon: <GearIcon />, group: 'Account' }, { label: 'Billing', href: '/billing', icon: <CardIcon />, group: 'Account' }]"),
         },
         code: ['<div className="app">', '  $TAG', '  <main>{children}</main>', '</div>'],
       },

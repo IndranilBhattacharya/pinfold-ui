@@ -5,6 +5,7 @@ import { changed } from '../playground/shared';
 import { src, type ExampleSpec } from '../playground/example';
 import { LANDSCAPE } from '../playground/people';
 import { Page, Text, Toggle, usePage } from '../playground/kit';
+import { reportEvent } from '../playground/preview-mode';
 
 /** The card page. */
 
@@ -26,7 +27,7 @@ export function CardPlayground() {
           content: src(<b>$29 per month</b>, '<b>$29 per month</b>'),
           image: image ? { src: src(LANDSCAPE, "'/pro.png'"), alt: '' } : undefined,
           href: link ? '#/card' : undefined,
-          actions: link ? undefined : [{ label: 'Upgrade', onClick: src(() => {}, 'upgrade') }, { label: 'Compare plans', onClick: src(() => {}, 'compare') }],
+          actions: link ? undefined : [{ label: 'Upgrade', onClick: src(() => reportEvent('Called: ' + "upgrade"), 'upgrade') }, { label: 'Compare plans', onClick: src(() => reportEvent('Called: ' + "compare"), 'compare') }],
         },
       },
     ],

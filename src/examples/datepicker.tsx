@@ -8,6 +8,7 @@ import { Choice, Page, usePage } from '../playground/kit';
 import { KEEP_NOTE } from './overlays';
 import { Invoices } from './pagination';
 import { nights } from './calendar';
+import { reportEvent } from '../playground/preview-mode';
 
 /** The datepicker page. */
 
@@ -75,8 +76,8 @@ export function DatePickerPlayground() {
   const inactive = { ...inactiveDatePickerOptions(page.options), mode: 'set by the example above.' };
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
   const uses: Record<string, Record<string, unknown>> = {
-    range: { label: 'Stay', mode: 'range', name: 'stay', months: 2, locale: 'en-GB', value: src(null, 'stay'), onChange: src(() => {}, 'setStay') },
-    report: { label: 'Report period', mode: 'range', months: 2, locale: 'en-GB', presets: ['today', 'last7', 'last30', 'thisMonth', 'lastMonth', 'thisYear'], value: src(null, 'period'), onChange: src(() => {}, 'setPeriod') },
+    range: { label: 'Stay', mode: 'range', name: 'stay', months: 2, locale: 'en-GB', value: src(null, 'stay'), onChange: src(() => reportEvent('Called: ' + "setStay"), 'setStay') },
+    report: { label: 'Report period', mode: 'range', months: 2, locale: 'en-GB', presets: ['today', 'last7', 'last30', 'thisMonth', 'lastMonth', 'thisYear'], value: src(null, 'period'), onChange: src(() => reportEvent('Called: ' + "setPeriod"), 'setPeriod') },
     booking: {
       label: 'Your stay',
       mode: 'range',
@@ -88,11 +89,11 @@ export function DatePickerPlayground() {
       isDateDisabled: src(() => false, '(day) => booked.has(day)'),
       dayContent: src(() => null, '(day) => (booked.has(day) ? null : `$${price(day)}`)'),
       value: src(null, 'stay'),
-      onChange: src(() => {}, 'setStay'),
+      onChange: src(() => reportEvent('Called: ' + "setStay"), 'setStay'),
     },
-    meeting: { label: 'Meeting', locale: 'en-GB', time: true, timeStep: 15, hourCycle: 24, value: src(null, 'meeting'), onChange: src(() => {}, 'setMeeting') },
-    month: { label: 'Billing month', granularity: 'month', locale: 'en-GB', value: src(null, 'month'), onChange: src(() => {}, 'setMonth') },
-    single: { label: 'Due date', description: 'Type it, or pick it from the calendar.', locale: 'en-GB', min: '2026-11-08', value: src(null, 'due'), onChange: src(() => {}, 'setDue') },
+    meeting: { label: 'Meeting', locale: 'en-GB', time: true, timeStep: 15, hourCycle: 24, value: src(null, 'meeting'), onChange: src(() => reportEvent('Called: ' + "setMeeting"), 'setMeeting') },
+    month: { label: 'Billing month', granularity: 'month', locale: 'en-GB', value: src(null, 'month'), onChange: src(() => reportEvent('Called: ' + "setMonth"), 'setMonth') },
+    single: { label: 'Due date', description: 'Type it, or pick it from the calendar.', locale: 'en-GB', min: '2026-11-08', value: src(null, 'due'), onChange: src(() => reportEvent('Called: ' + "setDue"), 'setDue') },
   };
   const use: Record<string, unknown> = { ...(uses[kind] ?? uses.single), _kind: src(kind, '') };
   if (page.options.granularity && page.options.granularity !== 'day') delete use.months;

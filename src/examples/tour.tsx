@@ -19,7 +19,7 @@ function MockApp() {
   return (
     <div className="dx-mock" data-tour-demo>
       <header className="dx-mock__bar">
-        <strong>Acme</strong>
+        <strong>Harbor</strong>
         <div data-tour="search" className="dx-mock__search">
           <Input label="Search" placeholder="Search projects" size="sm" />
         </div>
@@ -37,7 +37,7 @@ function MockApp() {
       </div>
       <div data-tour="activity" className="dx-mock__activity">
         <Badge label="Live" variant="soft" size="sm" tone="success" />
-        <span>Mara deployed Atlas 2.4.0 a minute ago</span>
+        <span>Amara Osei cleared HB-4107 at customs a minute ago</span>
       </div>
     </div>
   );

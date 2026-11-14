@@ -5,6 +5,7 @@ import { changed } from '../playground/shared';
 import { src, type ExampleSpec } from '../playground/example';
 import { Page, Text, Toggle, usePage } from '../playground/kit';
 import { FORM_NOTE, InForm, formTree } from './forms';
+import { reportEvent } from '../playground/preview-mode';
 
 /** The one-time code page. */
 
@@ -16,7 +17,7 @@ export function OtpPlayground() {
   const spec: ExampleSpec = {
     name: 'Code',
     preset: { ...set, groups },
-    ...formTree(page, { label: 'Verification code', name: 'code', defaultValue: String(page.inputs._value ?? '') || undefined, description: 'We sent it to your phone.', onComplete: src(() => {}, 'verify') }),
+    ...formTree(page, { label: 'Verification code', name: 'code', defaultValue: String(page.inputs._value ?? '') || undefined, description: 'We sent it to your phone.', onComplete: src(() => reportEvent('Called: ' + "verify"), 'verify') }),
   };
   return (
     <Page

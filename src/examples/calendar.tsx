@@ -5,6 +5,7 @@ import { defineCalendar } from '@pinfold/react/calendar';
 import { changed } from '../playground/shared';
 import { src, type ExampleSpec } from '../playground/example';
 import { Choice, Page, usePage } from '../playground/kit';
+import { reportEvent } from '../playground/preview-mode';
 
 /** The calendar page. */
 
@@ -58,17 +59,17 @@ export function CalendarPlayground() {
   const shapes: Record<string, { body: string[]; use: Record<string, unknown>; code: string[] }> = {
     single: {
       body: ["const [day, setDay] = useState('2026-11-09');"],
-      use: { defaultMonth: '2026-11-01', value: src('2026-11-09', 'day'), onChange: src(() => {}, 'setDay') },
+      use: { defaultMonth: '2026-11-01', value: src('2026-11-09', 'day'), onChange: src(() => reportEvent('Called: ' + "setDay"), 'setDay') },
       code: ['$TAG', '<Agenda day={day} />'],
     },
     range: {
       body: ["const [stay, setStay] = useState({ start: '2026-11-18', end: '2026-11-21' });", "const booked = new Set(['2026-11-13', '2026-11-14', '2026-11-27']);"],
-      use: { mode: 'range', defaultMonth: '2026-11-01', min: '2026-11-03', value: src(null, 'stay'), onChange: src(() => {}, 'setStay'), isDateDisabled: src((d: string) => BOOKED.has(d), '(d) => booked.has(d)') },
+      use: { mode: 'range', defaultMonth: '2026-11-01', min: '2026-11-03', value: src(null, 'stay'), onChange: src(() => reportEvent('Called: ' + "setStay"), 'setStay'), isDateDisabled: src((d: string) => BOOKED.has(d), '(d) => booked.has(d)') },
       code: ['$TAG', '<Price nights={nights(stay)} />'],
     },
     multiple: {
       body: ["const [days, setDays] = useState(['2026-11-10', '2026-11-11', '2026-11-17']);"],
-      use: { mode: 'multiple', defaultMonth: '2026-11-01', isDateDisabled: src((d: string) => [0, 6].includes(new Date(d).getUTCDay()), '(d) => isWeekend(d)'), value: src([], 'days'), onChange: src(() => {}, 'setDays') },
+      use: { mode: 'multiple', defaultMonth: '2026-11-01', isDateDisabled: src((d: string) => [0, 6].includes(new Date(d).getUTCDay()), '(d) => isWeekend(d)'), value: src([], 'days'), onChange: src(() => reportEvent('Called: ' + "setDays"), 'setDays') },
       code: ['$TAG'],
     },
   };

@@ -7,32 +7,33 @@ import { src, type ExampleSpec } from '../playground/example';
 import { defineNavbar } from '@pinfold/react/navbar';
 import { BELL, Page, Toggle, usePage } from '../playground/kit';
 import { MARK, MOON, SEARCH } from './app-shell';
+import { ME, NOTIFICATIONS as HARBOR_NOTES, PRODUCT } from '../demo/harbor';
 
 /** The navbar page. */
 
 const BAR_ITEMS = [
   { label: 'Overview', href: '/overview' },
   {
-    label: 'Projects',
+    label: 'Shipments',
     items: [
-      { label: 'Pinfold', href: '/projects/pinfold' },
-      { label: 'Atlas', href: '/projects/atlas' },
-      { label: 'Archive', href: '/projects/archive' },
+      { label: 'Active', href: '/shipments/active' },
+      { label: 'Delayed', href: '/shipments/delayed' },
+      { label: 'Archive', href: '/shipments/archive' },
     ],
   },
   { label: 'Reports', href: '/reports' },
-  { label: 'Pricing', href: '/pricing', badge: 'New' },
+  { label: 'Rates', href: '/rates', badge: 'New' },
 ];
 const BAR_PAGES: Record<string, string> = {
-  '/': 'Home: the product in one page.',
-  '/overview': 'Overview: this week at a glance.',
-  '/projects/pinfold': 'Pinfold: 41 components, 12 open issues.',
-  '/projects/atlas': 'Atlas: started this week, two members.',
-  '/projects/archive': 'Archive: finished projects, read only.',
-  '/reports': 'Reports: weekly activity and time spent.',
-  '/pricing': 'Pricing: free, team and enterprise.',
+  '/': 'Overview: this week at a glance.',
+  '/overview': 'Overview: 42 shipments on the water, 3 delayed.',
+  '/shipments/active': 'Active shipments: everything between pickup and delivery.',
+  '/shipments/delayed': 'Delayed: three shipments need a new ETA.',
+  '/shipments/archive': 'Archive: delivered in the last 12 months.',
+  '/reports': 'Reports: on-time delivery 94% this quarter.',
+  '/rates': 'Rates: this week\'s prices per lane and carrier.',
 };
-const NOTIFICATIONS = ['Mara commented on Atlas', 'Jonas invited you to Pinfold', 'Your report is ready'];
+const NOTIFICATIONS = HARBOR_NOTES.slice(0, 3).map((n) => n.text);
 const SectionTabs = defineTabs({ size: 'sm' });
 
 function BarDemo({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
@@ -53,9 +54,9 @@ function BarDemo({ Preset, props }: { Preset: React.ElementType; props: Record<s
         value={path}
         onNavigate={setPath}
         tools={tools}
-        actions={[{ label: 'Start free', onClick: () => setLast('Start free pressed') }]}
-        end={<Avatar name="Mara Lind" size="sm" />}
-        secondary={secondary ? <SectionTabs label="Section" items={['Overview', 'Activity', 'Members']} /> : undefined}
+        actions={[{ label: 'Book a shipment', onClick: () => setLast('Book a shipment pressed') }]}
+        end={<Avatar name={ME.name} size="sm" />}
+        secondary={secondary ? <SectionTabs label="Section" items={['Summary', 'Shipments', 'Invoices']} /> : undefined}
         layout={custom ? { start: ['brand'], center: ['links'], end: ['tool:search', 'tool:bell', 'tool:theme', 'separator', 'actions', 'end', 'toggle'] } : undefined}
       />
       <div className="dx-site__page">
@@ -79,11 +80,11 @@ export function NavbarPlayground() {
     label: 'Main',
     value: src('/overview', 'pathname'),
     onNavigate: src(undefined, 'router.push'),
-    brand: { label: 'Acme', logo: src(MARK, '<Logo />'), href: '/' },
-    items: src(BAR_ITEMS, "[{ label: 'Overview', href: '/overview' }, { label: 'Projects', items: [{ label: 'Pinfold', href: '/projects/pinfold' }, { label: 'Atlas', href: '/projects/atlas' }, { label: 'Archive', href: '/projects/archive' }] }, { label: 'Reports', href: '/reports' }, { label: 'Pricing', href: '/pricing', badge: 'New' }]"),
+    brand: { label: PRODUCT, logo: src(MARK, '<Logo />'), href: '/' },
+    items: src(BAR_ITEMS, "[{ label: 'Overview', href: '/overview' }, { label: 'Shipments', items: [{ label: 'Active', href: '/shipments/active' }, { label: 'Delayed', href: '/shipments/delayed' }, { label: 'Archive', href: '/shipments/archive' }] }, { label: 'Reports', href: '/reports' }, { label: 'Rates', href: '/rates', badge: 'New' }]"),
     tools: src([], "[{ id: 'search', label: 'Search', icon: <SearchIcon />, onClick: openSearch }, { id: 'bell', label: 'Notifications', icon: <BellIcon />, badge: unread, menu: notifications }, { id: 'theme', label: 'Dark mode', icon: <MoonIcon />, active: dark, onClick: toggleTheme }]"),
-    actions: src([], "[{ label: 'Start free', onClick: startTrial }]"),
-    end: src(null, '<Avatar name="Mara Lind" size="sm" />'),
+    actions: src([], "[{ label: 'Book a shipment', onClick: openBooking }]"),
+    end: src(null, `<Avatar name="${ME.name}" size="sm" />`),
     layout: custom ? { start: ['brand'], center: ['links'], end: ['tool:search', 'tool:bell', 'tool:theme', 'separator', 'actions', 'end', 'toggle'] } : undefined,
     secondary: secondary ? src(null, '<SectionTabs />') : undefined,
     _layout: src(custom, ''),

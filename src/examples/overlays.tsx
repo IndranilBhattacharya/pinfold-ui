@@ -10,6 +10,7 @@ import { useButton } from '@pinfold/react/button';
 import { changed, CodePanel, EnvControls, OptionControls, Stage, Tool } from '../playground/shared';
 import { exampleCode, src, type ExampleSpec } from '../playground/example';
 import { Page, Text, usePage } from '../playground/kit';
+import { reportEvent } from '../playground/preview-mode';
 
 /** The overlays page. */
 
@@ -32,7 +33,7 @@ export function PopoverPlayground() {
   const spec: ExampleSpec = {
     name: 'Share',
     preset: Object.fromEntries(changed(page.options, page.defaults, inactive)),
-    tree: [{ use: { title: page.inputs._title, description: 'Anyone with the link can view it.', actions: [{ label: 'Copy link', onClick: src(() => {}, 'copy') }, { label: 'Close' }], trigger: { label: 'Share', variant: 'outline' } } }],
+    tree: [{ use: { title: page.inputs._title, description: 'Anyone with the link can view it.', actions: [{ label: 'Copy link', onClick: src(() => reportEvent('Called: ' + "copy"), 'copy') }, { label: 'Close' }], trigger: { label: 'Share', variant: 'outline' } } }],
     openOnLoad: true,
   };
   return <Page meta={popoverMeta} page={page} define={definePopover} spec={spec} inactive={inactive} motion file="components/share" frame={(live) => <div className="dx-overlay-demo">{live}</div>} note={KEEP_NOTE} demo={<Text page={page} name="_title" label="title" hint="the panel's accessible name" />} />;
@@ -44,7 +45,7 @@ export function DialogPlayground() {
   const spec: ExampleSpec = {
     name: 'Confirm',
     preset: Object.fromEntries(changed(page.options, page.defaults, inactive)),
-    tree: [{ use: { title: page.inputs._title, description: 'It will be removed for everyone. This cannot be undone.', trigger: { label: 'Delete project', tone: 'danger', variant: 'soft' }, actions: [{ label: 'Cancel' }, { label: 'Delete', tone: 'danger', onClick: src(() => {}, 'remove') }] } }],
+    tree: [{ use: { title: page.inputs._title, description: 'It will be removed for everyone. This cannot be undone.', trigger: { label: 'Delete project', tone: 'danger', variant: 'soft' }, actions: [{ label: 'Cancel' }, { label: 'Delete', tone: 'danger', onClick: src(() => reportEvent('Called: ' + "remove"), 'remove') }] } }],
     openOnLoad: true,
   };
   return <Page meta={dialogMeta} page={page} define={defineDialog} spec={spec} inactive={inactive} motion align="start" file="components/confirm" note={KEEP_NOTE + ' It is a real modal in its own frame: focus stays inside, Escape and the backdrop close it, and Delete project opens it again.'} demo={<><Text page={page} name="_title" label="title" hint="a real heading, and the accessible name" /></>} />;
@@ -55,15 +56,15 @@ export function MenuPlayground() {
   const inactive = inactiveMenuOptions(page.options);
   const context = page.options.mode === 'context';
   const items: MenuItem[] = [
-    { label: 'Edit', shortcut: 'E', onSelect: src(() => {}, 'edit') as never },
-    { label: 'Duplicate', shortcut: 'D', onSelect: src(() => {}, 'duplicate') as never },
+    { label: 'Edit', shortcut: 'E', onSelect: src(() => reportEvent('Called: ' + "edit"), 'edit') as never },
+    { label: 'Duplicate', shortcut: 'D', onSelect: src(() => reportEvent('Called: ' + "duplicate"), 'duplicate') as never },
     { label: 'Archive', disabled: true },
-    { type: 'submenu', label: 'Move to', items: [{ label: 'Inbox', onSelect: src(() => {}, 'moveToInbox') as never }, { label: 'Later', onSelect: src(() => {}, 'moveToLater') as never }, { type: 'submenu', label: 'Project', items: [{ label: 'Pinfold', onSelect: src(() => {}, 'moveToPinfold') as never }, { label: 'Atlas', onSelect: src(() => {}, 'moveToAtlas') as never }] }] },
+    { type: 'submenu', label: 'Move to', items: [{ label: 'Inbox', onSelect: src(() => reportEvent('Called: ' + "moveToInbox"), 'moveToInbox') as never }, { label: 'Later', onSelect: src(() => reportEvent('Called: ' + "moveToLater"), 'moveToLater') as never }, { type: 'submenu', label: 'Team', items: [{ label: 'Operations', onSelect: src(() => reportEvent('Called: ' + "moveToOperations"), 'moveToOperations') as never }, { label: 'Customs', onSelect: src(() => reportEvent('Called: ' + "moveToCustoms"), 'moveToCustoms') as never }] }] },
     { type: 'separator' },
     { type: 'checkbox', label: 'Wrap lines', checked: !!page.inputs._wrap, onSelect: src(() => page.setOption('_wrap', !page.inputs._wrap), 'toggleWrap') as never },
     { type: 'group', label: 'Sort by', items: [{ type: 'radio', label: 'Name', checked: page.inputs._sort === 'name', onSelect: src(() => page.setOption('_sort', 'name'), 'sortByName') as never }, { type: 'radio', label: 'Date', checked: page.inputs._sort === 'date', onSelect: src(() => page.setOption('_sort', 'date'), 'sortByDate') as never }] },
     { type: 'separator' },
-    { label: 'Delete', tone: 'danger', onSelect: src(() => {}, 'remove') as never },
+    { label: 'Delete', tone: 'danger', onSelect: src(() => reportEvent('Called: ' + "remove"), 'remove') as never },
   ];
   const spec: ExampleSpec = {
     name: 'RowActions',

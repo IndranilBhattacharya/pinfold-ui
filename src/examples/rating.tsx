@@ -5,6 +5,7 @@ import { defineRating } from '@pinfold/react/rating';
 import { changed } from '../playground/shared';
 import { src, type ExampleSpec } from '../playground/example';
 import { Page, usePage } from '../playground/kit';
+import { reportEvent } from '../playground/preview-mode';
 
 /** The rating page. */
 
@@ -37,7 +38,7 @@ export function RatingPlayground() {
     name: 'Stars',
     preset: set,
     body: ['const [mine, setMine] = useState(4);', 'const average = averageOf([...votes, mine]);'],
-    tree: [{ app: Review, use: { label: 'Your rating', name: 'rating', value: src(4, 'mine'), ...(page.options.readOnly ? null : { onChange: src(() => {}, 'setMine') }), _ro: src(!!page.options.readOnly, '') }, code: ['$TAG', '<Stars label="Average rating" readOnly showValue value={average} />'] }],
+    tree: [{ app: Review, use: { label: 'Your rating', name: 'rating', value: src(4, 'mine'), ...(page.options.readOnly ? null : { onChange: src(() => reportEvent('Called: ' + "setMine"), 'setMine') }), _ro: src(!!page.options.readOnly, '') }, code: ['$TAG', '<Stars label="Average rating" readOnly showValue value={average} />'] }],
   };
   return (
     <Page

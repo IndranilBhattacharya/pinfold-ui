@@ -12,6 +12,7 @@ import { changed } from '../playground/shared';
 import { src, type ExampleSpec } from '../playground/example';
 import { PEOPLE } from '../playground/people';
 import { Choice, Page, Toggle, usePage } from '../playground/kit';
+import { reportEvent } from '../playground/preview-mode';
 
 /** The tabs page. */
 
@@ -152,10 +153,10 @@ export function TabsPlayground() {
             label: 'Open files',
             items: src(items, 'items'),
             value: src('App.tsx', 'open'),
-            onChange: src(() => {}, 'setOpen'),
-            onClose: src(() => {}, '(id) => setFiles((f) => f.filter((name) => name !== id))'),
-            onAdd: src(() => {}, '() => setFiles((f) => [...f, `untitled-${f.length}.ts`])'),
-            onReorder: src(() => {}, 'setFiles'),
+            onChange: src(() => reportEvent('Called: ' + "setOpen"), 'setOpen'),
+            onClose: src(() => reportEvent('Called: ' + "(id) => setFiles((f) => f.filter((name) => name !== id))"), '(id) => setFiles((f) => f.filter((name) => name !== id))'),
+            onAdd: src(() => reportEvent('Called: ' + "() => setFiles((f) => [...f, `untitled-${f.length}.ts`])"), '() => setFiles((f) => [...f, `untitled-${f.length}.ts`])'),
+            onReorder: src(() => reportEvent('Called: ' + "setFiles"), 'setFiles'),
           },
           code: ['$TAG'],
         },
@@ -166,7 +167,7 @@ export function TabsPlayground() {
       name: 'ViewTabs',
       preset: set,
       body: ["const [view, setView] = useState('Board');"],
-      tree: [{ app: ViewTabs, use: { label: 'View', items: [...VIEWS], value: src('Board', 'view'), onChange: src(() => {}, 'setView') }, code: ['$TAG', '<ViewOf name={view} />'] }],
+      tree: [{ app: ViewTabs, use: { label: 'View', items: [...VIEWS], value: src('Board', 'view'), onChange: src(() => reportEvent('Called: ' + "setView"), 'setView') }, code: ['$TAG', '<ViewOf name={view} />'] }],
     };
   } else {
     const items = [

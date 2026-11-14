@@ -6,9 +6,9 @@ import { accordionRowsJoined, inactiveAccordionOptions, type AccordionAppearance
 import { changed, CodePanel, controlsOf, defaultsOf, ENV, EnvControls, Glyph, OptionControls, Pick, reviveEnv, Stage, TextField, Tool, useUrlState, appSetup, type Env } from './shared';
 
 const START_ITEMS: AccordionItemConfig[] = [
-  { id: 'plan', title: 'Choose a plan', description: 'Monthly or yearly, cancel anytime', badge: 'Step 1', content: 'Yearly saves two months. Both plans include every component.' },
-  { id: 'theme', title: 'Pick your palette', badge: 'Step 2', content: 'npx pinfold theme --primary emerald --radius lg' },
-  { id: 'ship', title: 'Ship it', content: 'One import, one config object, done.' },
+  { id: 'book', title: 'How do I book a shipment?', description: 'From a quote to a booking in two minutes', badge: 'Getting started', content: 'Choose the lane and the date, add the cargo and its weight, and confirm the quote. Harbor books the carrier and sends the paperwork.' },
+  { id: 'customs', title: 'Who files the customs declaration?', badge: 'Customs', content: 'Harbor files it for every shipment that crosses a border, 48 hours before arrival. You see its status on the shipment page.' },
+  { id: 'delay', title: 'What happens when a shipment is delayed?', content: 'The shipment turns red on the list, you and your customer get a new ETA, and its owner can rebook it on another carrier.' },
 ];
 
 const CONTROLS = controlsOf(accordionMeta);

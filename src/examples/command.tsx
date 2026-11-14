@@ -8,6 +8,7 @@ import { changed } from '../playground/shared';
 import { src, type ExampleSpec } from '../playground/example';
 import { Choice, Page, usePage } from '../playground/kit';
 import { FOLDER_ICON, TAB_ICON, USER_ICON } from './tabs';
+import { reportEvent } from '../playground/preview-mode';
 
 /** The command page. */
 
@@ -59,10 +60,10 @@ export function CommandPlayground() {
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
   const preset = kind === 'dialog' ? { ...set, mode: 'dialog' } : set;
   const items = COMMANDS.map((c, i) => ({ ...c, icon: src(c.icon, ['<FileIcon />', '<FolderIcon />', '<MoonIcon />', '<GearIcon />', '<UserIcon />', '<UserIcon />'][i]) }));
-  const use: Record<string, unknown> = { label: 'Commands', items, onSelect: src(() => {}, 'runCommand'), _kind: src(kind, '') };
+  const use: Record<string, unknown> = { label: 'Commands', items, onSelect: src(() => reportEvent('Called: ' + "runCommand"), 'runCommand'), _kind: src(kind, '') };
   if (kind === 'dialog') {
     use.open = src(false, 'open');
-    use.onOpenChange = src(() => {}, 'setOpen');
+    use.onOpenChange = src(() => reportEvent('Called: ' + "setOpen"), 'setOpen');
   }
   const spec: ExampleSpec = {
     name: 'Palette',

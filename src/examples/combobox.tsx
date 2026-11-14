@@ -6,6 +6,7 @@ import { changed } from '../playground/shared';
 import { src, type ExampleSpec } from '../playground/example';
 import { Choice, Page, usePage } from '../playground/kit';
 import { KEEP_NOTE } from './overlays';
+import { reportEvent } from '../playground/preview-mode';
 
 /** The combobox page. */
 
@@ -93,11 +94,11 @@ export function ComboboxPlayground() {
   const shapes: Record<string, { body: string[]; use: Record<string, unknown> }> = {
     cities: {
       body: ['const [city, setCity] = useState(null);'],
-      use: { label: 'City', placeholder: 'Search cities', items: CITIES, defaultInputValue: 'o', value: src(null, 'city'), onChange: src(() => {}, 'setCity') },
+      use: { label: 'City', placeholder: 'Search cities', items: CITIES, defaultInputValue: 'o', value: src(null, 'city'), onChange: src(() => reportEvent('Called: ' + "setCity"), 'setCity') },
     },
     server: {
       body: ["const [query, setQuery] = useState('vi');", 'const { data = [], isFetching } = useQuery({ queryKey: [\'repos\', query], queryFn: () => searchRepos(query), enabled: !!query });'],
-      use: { label: 'Repository', placeholder: 'owner/name', filter: 'none', items: src([], 'data'), loading: src(false, 'isFetching'), inputValue: src('vi', 'query'), onInputChange: src(() => {}, 'setQuery') },
+      use: { label: 'Repository', placeholder: 'owner/name', filter: 'none', items: src([], 'data'), loading: src(false, 'isFetching'), inputValue: src('vi', 'query'), onInputChange: src(() => reportEvent('Called: ' + "setQuery"), 'setQuery') },
     },
     people: {
       body: ["const [team, setTeam] = useState(['p0', 'p16']);", '// Your API: rows for what is typed. signal cancels a request the next keystroke made stale.', 'const searchPeople = (query, { signal }) => fetch(`/api/people?q=${query}`, { signal }).then((r) => r.json());'],
@@ -109,12 +110,12 @@ export function ComboboxPlayground() {
         chipsPlacement: 'below',
         selectedInList: 'disable',
         value: src(['p0', 'p16'], 'team'),
-        onChange: src(() => {}, 'setTeam'),
+        onChange: src(() => reportEvent('Called: ' + "setTeam"), 'setTeam'),
       },
     },
     tags: {
       body: ["const [tags, setTags] = useState(['react']);"],
-      use: { label: 'Tags', multiple: true, allowCustom: true, placeholder: 'Add a tag', defaultInputValue: 'type', items: ['react', 'typescript', 'css', 'accessibility', 'design-system'], value: src(['react'], 'tags'), onChange: src(() => {}, 'setTags') },
+      use: { label: 'Tags', multiple: true, allowCustom: true, placeholder: 'Add a tag', defaultInputValue: 'type', items: ['react', 'typescript', 'css', 'accessibility', 'design-system'], value: src(['react'], 'tags'), onChange: src(() => reportEvent('Called: ' + "setTags"), 'setTags') },
     },
   };
   const shape = shapes[kind];

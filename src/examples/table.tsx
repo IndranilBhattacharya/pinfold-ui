@@ -10,16 +10,17 @@ import { Button } from '@pinfold/react/button';
 import { changed } from '../playground/shared';
 import { src, type ExampleSpec } from '../playground/example';
 import { Choice, Page, Toggle, usePage } from '../playground/kit';
+import { PEOPLE } from '../demo/harbor';
+import { reportEvent } from '../playground/preview-mode';
 
 /** The table page. */
 
-const ROLES = ['Engineer', 'Designer', 'Researcher', 'Writer', 'Manager'];
-const TEAM = Array.from({ length: 23 }, (_, i) => ({
-  id: `u${i + 1}`,
-  name: ['Maya Chen', 'Leo Park', 'Ines Duarte', 'Sam Okafor', 'Aiko Mori', 'Noah Fischer', 'Priya Nair', 'Tom Hale', 'Lena Kraus', 'Omar Haddad', 'Sara Lind', 'Jon Price'][i % 12] + (i >= 12 ? ' II' : ''),
-  role: ROLES[(i * 3) % ROLES.length],
+const TEAM = PEOPLE.map((p, i) => ({
+  id: p.id,
+  name: p.name,
+  role: p.role,
   projects: ((i * 7) % 9) + 1,
-  joined: `20${18 + (i % 8)}-0${(i % 9) + 1}-1${i % 9}`,
+  joined: p.joined,
 }));
 type Person = (typeof TEAM)[number];
 
@@ -163,7 +164,7 @@ function Directory({ Preset, props }: { Preset: React.ElementType; props: Record
         {...(fetching ? { loading: true } : null)}
       />
       {open ? (
-        <Card title={open.name} description={`${open.role} · ${open.projects} projects · joined ${open.joined}`} actions={[{ label: 'Close', onClick: () => setOpen(null) }]} />
+        <Card title={open.name} description={`${open.role} · ${open.projects} shipments this month · joined ${open.joined}`} actions={[{ label: 'Close', onClick: () => setOpen(null) }]} />
       ) : null}
     </div>
   );
@@ -197,7 +198,7 @@ export function TablePlayground() {
       ...(opts.virtual ? { dimensions: { height: 520 } } : { pageSize: 8, pageSizes: [8, 25, 50] }),
       ...(page.inputs._toolbar ? { toolbar: { search: true, columns: true, export: 'orders.csv' } } : null),
       ...(page.inputs._group ? { groupBy: String(page.inputs._group) } : null),
-      onCellEdit: src(() => {}, '({ rowKey, key, value }) => saveOrder(rowKey, { [key]: value })'),
+      onCellEdit: src(() => reportEvent('Called: ' + "({ rowKey, key, value }) => saveOrder(rowKey, { [key]: value })"), '({ rowKey, key, value }) => saveOrder(rowKey, { [key]: value })'),
       ...(page.inputs._detail ? { renderDetail: src(() => null, '(order) => <OrderDetail order={order} />') } : null),
     };
     spec = { name: 'Grid', preset: set, tree: [{ app: OrdersGrid, use, code: ['$TAG'] }] };
@@ -217,7 +218,7 @@ export function TablePlayground() {
     const columns = [
       { key: 'name', sortable: true },
       { key: 'role', sortable: true },
-      { key: 'projects', align: 'end', sortable: true },
+      { key: 'projects', header: 'Shipments', align: 'end', sortable: true },
       { key: 'joined', header: 'Joined', sortable: true },
     ];
     const use: Record<string, unknown> = { label: 'Team', columns, pageSize: 8, _kind: src(kind, ''), _choose: src(choose, '') };
@@ -231,7 +232,7 @@ export function TablePlayground() {
               'const [sort, setSort] = useState([]);',
               "const { data, isFetching } = useQuery({ queryKey: ['team', page, sort], queryFn: () => fetchTeam({ page, sort }), placeholderData: keepPreviousData });",
             ],
-            tree: [{ app: Directory, use: { ...use, rows: src([], 'data.rows'), total: src(TEAM.length, 'data.total'), manualSort: true, sort: src(null, 'sort'), onSortChange: src(() => {}, 'setSort'), page: src(1, 'page'), onPageChange: src(() => {}, 'setPage'), loading: src(false, 'isFetching') }, code: ['$TAG'] }],
+            tree: [{ app: Directory, use: { ...use, rows: src([], 'data.rows'), total: src(TEAM.length, 'data.total'), manualSort: true, sort: src(null, 'sort'), onSortChange: src(() => reportEvent('Called: ' + "setSort"), 'setSort'), page: src(1, 'page'), onPageChange: src(() => reportEvent('Called: ' + "setPage"), 'setPage'), loading: src(false, 'isFetching') }, code: ['$TAG'] }],
           }
         : {
             name: 'Grid',
@@ -240,7 +241,7 @@ export function TablePlayground() {
             tree: [
               {
                 app: Directory,
-                use: { ...use, rows: src(TEAM, 'rows'), ...(choose ? { selected: src([], 'chosen'), onSelectionChange: src(() => {}, 'setChosen') } : null), onRowAction: src(() => {}, '(person) => openProfile(person)') },
+                use: { ...use, rows: src(TEAM, 'rows'), ...(choose ? { selected: src([], 'chosen'), onSelectionChange: src(() => reportEvent('Called: ' + "setChosen"), 'setChosen') } : null), onRowAction: src(() => reportEvent('Called: ' + "(person) => openProfile(person)"), '(person) => openProfile(person)') },
                 code: ['<Search value={query} onChange={setQuery} />', ...(choose ? ['{chosen.length > 0 && <BulkBar count={chosen.length} />}'] : []), '$TAG'],
               },
             ],

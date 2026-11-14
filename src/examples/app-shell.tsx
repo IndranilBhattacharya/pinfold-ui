@@ -10,6 +10,8 @@ import { defineNavbar } from '@pinfold/react/navbar';
 import { Page, usePage } from '../playground/kit';
 import { svg } from './toggle';
 import { NAV_ITEMS, NAV_PAGES } from './sidebar';
+import { ACTIVITY, ME, NOTIFICATIONS, ORDERS, PRODUCT, STATUS_TONE } from '../demo/harbor';
+import { Badge } from '@pinfold/react/badge';
 
 /** The app shell page. */
 
@@ -26,7 +28,6 @@ const AppBar = defineNavbar({ variant: 'plain', indicator: 'none', size: 'sm' })
 const AppNav = defineSidebar({ surface: 'transparent', variant: 'soft', size: 'sm' });
 const Shell = defineAppShell({});
 
-const ACTIVITY = ['Mara closed Atlas #41', 'Jonas opened Pinfold #52', 'Nina deployed 2.4.0', 'Sam commented on Reports'];
 
 function Page_({ path }: { path: string }) {
   const current = NAV_PAGES[path] ?? { title: path, lead: '' };
@@ -36,12 +37,16 @@ function Page_({ path }: { path: string }) {
       <h3>{current.title}</h3>
       <p className="dx-panel__lead">{current.lead}</p>
       <ul className="dx-rows">
-        {Array.from({ length: 9 }, (_, i) => (
-          <li key={i}>
-            <b>{current.title}</b> item {i + 1}
-            <span className="dx-hint">{i + 1}h</span>
-          </li>
-        ))}
+        {ORDERS.filter((o) => (path === '/shipments/delayed' ? o.status === 'delayed' : path === '/shipments/archive' ? o.status === 'delivered' : true))
+          .slice(0, 9)
+          .map((o) => (
+            <li key={o.id}>
+              <b>{o.id}</b>
+              <span>{o.customer.name}</span>
+              <span className="dx-hint">{o.lane}</span>
+              <Badge label={o.status} tone={STATUS_TONE[o.status]} size="sm" />
+            </li>
+          ))}
       </ul>
     </div>
   );
@@ -49,7 +54,7 @@ function Page_({ path }: { path: string }) {
 
 function ShellDemo({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
   const rest = props;
-  const [path, setPath] = React.useState('/projects/atlas');
+  const [path, setPath] = React.useState('/shipments/active');
   const [unread, setUnread] = React.useState(3);
   const [said, setSaid] = React.useState('Nothing pressed yet.');
   return (
@@ -59,7 +64,7 @@ function ShellDemo({ Preset, props }: { Preset: React.ElementType; props: Record
         navbar={
           <AppBar
             label="App"
-            brand={{ label: 'Acme', logo: MARK }}
+            brand={{ label: PRODUCT, logo: MARK }}
             tools={[
               { id: 'search', label: 'Search', icon: SEARCH, onClick: () => setSaid('Search pressed: open your command palette here.') },
               {
@@ -68,14 +73,13 @@ function ShellDemo({ Preset, props }: { Preset: React.ElementType; props: Record
                 icon: BELL,
                 badge: unread || undefined,
                 menu: [
-                  { label: 'Mara closed Atlas #41', onSelect: () => setSaid('Opened: Mara closed Atlas #41.') },
-                  { label: 'Nina deployed 2.4.0', onSelect: () => setSaid('Opened: Nina deployed 2.4.0.') },
-                  { type: 'separator' },
+                  ...NOTIFICATIONS.slice(0, 3).map((n) => ({ label: n.text, onSelect: () => setSaid(`Opened: ${n.text}.`) })),
+                  { type: 'separator' as const },
                   { label: 'Mark all as read', disabled: !unread, onSelect: () => (setUnread(0), setSaid('All notifications read.')) },
                 ],
               },
             ]}
-            end={<Avatar name="Mara Lind" size="sm" />}
+            end={<Avatar name={ME.name} size="sm" />}
           />
         }
         sidebar={<AppNav label="Main" items={NAV_ITEMS} value={path} onNavigate={(next: string) => (setPath(next), setSaid(`Went to ${next}.`))} />}
@@ -91,7 +95,7 @@ function ShellDemo({ Preset, props }: { Preset: React.ElementType; props: Record
         }
         footer={
           <span className="dx-hint" role="status">
-            © 2026 Acme · {said}
+            © 2026 {PRODUCT} · {said}
           </span>
         }
       >

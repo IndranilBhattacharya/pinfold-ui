@@ -6,6 +6,7 @@ import { changed } from '../playground/shared';
 import { src, type ExampleSpec } from '../playground/example';
 import { Choice, Page, usePage } from '../playground/kit';
 import { KEEP_NOTE } from './overlays';
+import { reportEvent } from '../playground/preview-mode';
 
 /** The select page. */
 
@@ -58,17 +59,17 @@ export function SelectPlayground() {
   const shapes: Record<string, { body: string[]; use: Record<string, unknown>; code: string[] }> = {
     groups: {
       body: ["const [plan, setPlan] = useState('pro');"],
-      use: { label: 'Plan', items: PLANS.map(({ price, ...p }) => p), value: src('pro', 'plan'), onChange: src(() => {}, 'setPlan') },
+      use: { label: 'Plan', items: PLANS.map(({ price, ...p }) => p), value: src('pro', 'plan'), onChange: src(() => reportEvent('Called: ' + "setPlan"), 'setPlan') },
       code: ['$TAG', '<PlanSummary plan={plan} />'],
     },
     strings: {
       body: ["const [region, setRegion] = useState('Tokyo');"],
-      use: { label: 'Region', description: 'Where your data lives.', items: REGIONS, value: src('Tokyo', 'region'), onChange: src(() => {}, 'setRegion') },
+      use: { label: 'Region', description: 'Where your data lives.', items: REGIONS, value: src('Tokyo', 'region'), onChange: src(() => reportEvent('Called: ' + "setRegion"), 'setRegion') },
       code: ['$TAG'],
     },
     multiple: {
       body: ["const [labels, setLabels] = useState(['bug', 'docs']);"],
-      use: { label: 'Labels', multiple: true, name: 'labels', items: LABELS, value: src(['bug', 'docs'], 'labels'), onChange: src(() => {}, 'setLabels') },
+      use: { label: 'Labels', multiple: true, name: 'labels', items: LABELS, value: src(['bug', 'docs'], 'labels'), onChange: src(() => reportEvent('Called: ' + "setLabels"), 'setLabels') },
       code: ['$TAG'],
     },
   };

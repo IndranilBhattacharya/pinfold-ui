@@ -5,6 +5,7 @@ import { changed } from '../playground/shared';
 import { src, type ExampleSpec } from '../playground/example';
 import { Page, Toggle, usePage } from '../playground/kit';
 import { BOLD_ICON, ITALIC_ICON, REDO_ICON, UNDO_ICON } from './toggle';
+import { reportEvent } from '../playground/preview-mode';
 
 /** The toolbar page. */
 
@@ -27,15 +28,15 @@ export function ToolbarPlayground() {
         ]
     : icons
     ? [
-        { label: 'Undo', icon: src(UNDO_ICON, '<UndoIcon />'), iconOnly: true, onClick: src(() => {}, 'undo') },
-        { label: 'Redo', icon: src(REDO_ICON, '<RedoIcon />'), iconOnly: true, onClick: src(() => {}, 'redo') },
-        { label: 'Bold', icon: src(BOLD_ICON, '<BoldIcon />'), iconOnly: true, onClick: src(() => {}, 'bold') },
-        { label: 'Italic', icon: src(ITALIC_ICON, '<ItalicIcon />'), iconOnly: true, onClick: src(() => {}, 'italic') },
+        { label: 'Undo', icon: src(UNDO_ICON, '<UndoIcon />'), iconOnly: true, onClick: src(() => reportEvent('Called: ' + "undo"), 'undo') },
+        { label: 'Redo', icon: src(REDO_ICON, '<RedoIcon />'), iconOnly: true, onClick: src(() => reportEvent('Called: ' + "redo"), 'redo') },
+        { label: 'Bold', icon: src(BOLD_ICON, '<BoldIcon />'), iconOnly: true, onClick: src(() => reportEvent('Called: ' + "bold"), 'bold') },
+        { label: 'Italic', icon: src(ITALIC_ICON, '<ItalicIcon />'), iconOnly: true, onClick: src(() => reportEvent('Called: ' + "italic"), 'italic') },
       ]
     : [
-        { label: 'Previous', onClick: src(() => {}, 'previous') },
-        { label: 'Today', onClick: src(() => {}, 'today') },
-        { label: 'Next', onClick: src(() => {}, 'next') },
+        { label: 'Previous', onClick: src(() => reportEvent('Called: ' + "previous"), 'previous') },
+        { label: 'Today', onClick: src(() => reportEvent('Called: ' + "today"), 'today') },
+        { label: 'Next', onClick: src(() => reportEvent('Called: ' + "next"), 'next') },
       ];
   const picked = selection === 'none' ? undefined : { defaultValue: icons ? ['bold'] : ['week'], onChange: src(() => {}, icons ? 'setStyles' : 'setView') };
   const name = selection === 'none' ? (icons ? 'Editor' : 'Pager') : icons ? 'Format' : 'Range';

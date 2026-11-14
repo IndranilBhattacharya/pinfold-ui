@@ -10,6 +10,7 @@ import { Button } from '@pinfold/react/button';
 import { changed, Pick } from '../playground/shared';
 import { src, type ExampleNode, type ExampleSpec } from '../playground/example';
 import { Choice, ICON, Page, PageApi, Text, Toggle, flex, usePage } from '../playground/kit';
+import { reportEvent } from '../playground/preview-mode';
 
 /** The forms page. */
 
@@ -195,7 +196,7 @@ export function SwitchPlayground() {
   const page = usePage(switchMeta, ['size', 'tone'], { _label: 'Email alerts', _description: 'At most one a day.', _checked: true, _all: false, _form: false });
   const all = !!page.inputs._all;
   const set = Object.fromEntries(changed(page.options, page.defaults, all ? { variant: 'each switch sets its own' } : {}));
-  const one = { label: page.inputs._label, name: 'alerts', description: page.inputs._description, defaultChecked: page.inputs._checked ? true : undefined, onChange: src(() => {}, 'save') };
+  const one = { label: page.inputs._label, name: 'alerts', description: page.inputs._description, defaultChecked: page.inputs._checked ? true : undefined, onChange: src(() => reportEvent('Called: ' + "save"), 'save') };
   const spec: ExampleSpec = all
     ? {
         name: 'Alerts',

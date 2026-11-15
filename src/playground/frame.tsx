@@ -63,10 +63,18 @@ export function PreviewFrame({ env, setEnv, name = 'main' }: { env: Env; setEnv?
     const onMessage = (e: MessageEvent) => {
       if (e.origin !== location.origin || e.source !== frame.current?.contentWindow) return;
       const data = e.data as FrameMessage;
+      // The frame read its state from its address when it loaded; a control changed since then (while it
+      // was loading or mounting its page) would be lost. Send it the page's state again, every key: it
+      // ignores what it already has.
+      const resend = () => new URLSearchParams(location.search).forEach((raw, key) => post({ type: 'state', key, raw }));
       if (data.type === 'ready') {
         setReady(true);
         setCrash('');
-      } else if (data.type === 'painted') setPainted(true); else if (data.type === 'height' && !FIXED_HEIGHT.has(route)) setHeight(Math.max(MIN_PX, Math.ceil(data.px)));
+        resend();
+      } else if (data.type === 'painted') {
+        setPainted(true);
+        resend();
+      } else if (data.type === 'height' && !FIXED_HEIGHT.has(route)) setHeight(Math.max(MIN_PX, Math.ceil(data.px)));
       else if (data.type === 'event') setEvent(data.text);
       else if (data.type === 'error') setCrash(data.message);
       // The demo changed the page's state (a gallery pick): the page takes it.
@@ -74,7 +82,7 @@ export function PreviewFrame({ env, setEnv, name = 'main' }: { env: Env; setEnv?
     };
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
-  }, [route]);
+  }, [route, post]);
 
   // The drag handle on the frame's end edge sets any width; choosing a device clears it.
   const box = React.useRef<HTMLDivElement | null>(null);

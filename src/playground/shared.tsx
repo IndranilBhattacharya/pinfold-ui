@@ -82,7 +82,11 @@ export function useUrlState<S>(key: string, initial: S, revive: (stored: any) =>
     url.searchParams.set(key, raw);
     history.replaceState(history.state, '', url);
     if (raw === agreed.current) return;
+    // A frame's first state is the one it loaded with: the page already has it, and may have moved on
+    // (a control changed while the frame loaded). Announcing it would undo that change.
+    const first = agreed.current === null;
     agreed.current = raw;
+    if (IN_PREVIEW && first) return;
     if (IN_PREVIEW) postToPage({ type: 'state', key, raw });
     else window.dispatchEvent(new CustomEvent('pinfold:state', { detail: { key, raw } }));
   }, [key, state]);

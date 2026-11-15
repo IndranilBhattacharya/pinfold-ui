@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { componentMetas } from '@pinfold/core/meta';
 import { reflow } from './example';
 import { PinfoldProvider } from '@pinfold/react';
 import { defineSelect } from '@pinfold/react/select';
@@ -486,6 +487,18 @@ export function Glyph({ name }: { name: GlyphName }) {
  * The app-wide setup the preview assumes (provider size, tone, style pack, direction), as the
  * code a developer adds once. Empty when the environment is at its defaults.
  */
+/** Every stylesheet a component needs: what it renders inside itself, and what those render (table, pagination, select). */
+const REQUIRES = new Map(componentMetas.map((m) => [m.name, m.requires ?? []] as const));
+function requiredStyles(component: string, direct: readonly string[]): string[] {
+  const out = new Set<string>();
+  const walk = (name: string) => {
+    for (const r of REQUIRES.get(name) ?? []) if (!out.has(r)) (out.add(r), walk(r));
+  };
+  for (const r of direct) (out.add(r), walk(r));
+  out.delete(component);
+  return [...out].sort();
+}
+
 /** `requires`: the components it renders inside itself, whose stylesheets it needs too (meta.requires). */
 export function appSetup(env: Env, component?: string, requires: readonly string[] = []): string[] {
   const props = [
@@ -495,7 +508,7 @@ export function appSetup(env: Env, component?: string, requires: readonly string
     env.stylePack !== 'default' && `stylePack="${env.stylePack}"`,
     env.rtl && 'dir="rtl"',
   ].filter(Boolean) as string[];
-  const styles = component ? ['', '// ---- once for the whole app ----', "import '@pinfold/css/core.css';", ...requires.map((r) => `import '@pinfold/css/${r}.css';`), `import '@pinfold/css/${component}.css';`] : [];
+  const styles = component ? ['', '// ---- once for the whole app ----', "import '@pinfold/css/core.css';", ...requiredStyles(component, requires).map((r) => `import '@pinfold/css/${r}.css';`), `import '@pinfold/css/${component}.css';`] : [];
   if (!props.length) return styles;
   const config = props.map((p) => p.replace(/^(\w+)="(.*)"$/, "$1: '$2'")).join(', ');
   return [

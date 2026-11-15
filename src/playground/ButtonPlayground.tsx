@@ -168,7 +168,9 @@ export function ButtonPlayground() {
             </>
           }
         />
-        <CodePanel file="components/save-button" code={() => buttonCode(state)} actions={[{ label: 'Copy CLI command', copy: 'npx pinfold add button' }]} />
+        <div className="dx-play__code">
+          <CodePanel file="components/save-button" code={() => buttonCode(state)} actions={[{ label: 'Copy CLI command', copy: 'npx pinfold add button' }]} />
+        </div>
 
         <h3 className="dx-subhead">Every variant and tone</h3>
         <p className="dx-hint">Uses the size and radius above and the environment, so you can check contrast at a glance.</p>
@@ -270,7 +272,9 @@ export function SpinnerPlayground() {
           <SpinnerPreview state={state} />
         </Stage>
         <Note description={`Resolved: size ${source('size', options, env, spinnerMeta.props.size.default)} · tone ${source('tone', options, env, spinnerMeta.props.tone.default)}.`} />
-        <CodePanel file="components/loading" code={() => spinnerCode(state)} actions={[{ label: 'Copy CLI command', copy: 'npx pinfold add spinner' }]} />
+        <div className="dx-play__code">
+          <CodePanel file="components/loading" code={() => spinnerCode(state)} actions={[{ label: 'Copy CLI command', copy: 'npx pinfold add spinner' }]} />
+        </div>
 
         <h3 className="dx-subhead">Every animation</h3>
         <p className="dx-hint">In the size, tone and environment above. Click one to use it.</p>

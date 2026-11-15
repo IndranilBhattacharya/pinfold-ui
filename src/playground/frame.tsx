@@ -2,12 +2,14 @@ import * as React from 'react';
 import { defineSelect } from '@pinfold/react/select';
 import { defineButton } from '@pinfold/react/button';
 import { defineSkeleton } from '@pinfold/react/skeleton';
+import { docsPage, readRoute } from '../site/router';
 import { FIXED_HEIGHT, type FrameMessage } from './preview-mode';
+import { ExternalLink, RotateCcw } from 'lucide-react';
 import { SiteMode, SitePalette } from './site-context';
 import type { Env } from './shared';
 
 const Device = defineSelect({ size: 'sm', dimensions: { width: '11rem' } });
-const Action = defineButton({ variant: 'ghost', tone: 'neutral', size: 'sm' });
+const Action = defineButton({ variant: 'ghost', tone: 'neutral', size: 'sm', iconOnly: true });
 const Loading = defineSkeleton({ variant: 'rect', animation: 'shimmer' });
 
 const DEVICE_OPTIONS = [
@@ -21,7 +23,7 @@ const DEVICE_OPTIONS = [
 const FIXED_PX = 600;
 const MIN_PX = 160;
 
-const routeNow = () => location.hash.replace(/^#\/?/, '') || 'overview';
+const routeNow = () => docsPage(readRoute()) ?? 'landing';
 const frameUrl = (route: string, name: string) => `${import.meta.env.BASE_URL}preview.html${location.search}#/${route}/${name}`;
 
 /**
@@ -107,6 +109,7 @@ export function PreviewFrame({ env, setEnv, name = 'main' }: { env: Env; setEnv?
       <div className="dx-frame__bar">
         <Device
           label="Preview width"
+          hideLabel
           items={DEVICE_OPTIONS}
           value={dragWidth ? null : env.device}
           placeholder={dragWidth ? `${dragWidth} px` : undefined}
@@ -118,13 +121,14 @@ export function PreviewFrame({ env, setEnv, name = 'main' }: { env: Env; setEnv?
         <span className="dx-frame__spacer" />
         <Action
           label="Reload preview"
+          icon={<RotateCcw size={15} aria-hidden="true" />}
           onClick={() => {
             setReady(false);
             setPainted(false);
             setReloads((n) => n + 1);
           }}
         />
-        <Action label="Open in a new tab" href={src} target="_blank" rel="noopener" />
+        <Action label="Open the preview in a new tab" icon={<ExternalLink size={15} aria-hidden="true" />} href={src} target="_blank" rel="noopener" />
       </div>
       <div ref={box} className="dx-frame__box" style={{ width: width ? `min(100%, ${width}px)` : '100%' }}>
         {!painted ? <Loading className="dx-frame__loading" dimensions={{ height }} /> : null}

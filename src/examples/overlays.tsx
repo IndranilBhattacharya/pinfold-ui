@@ -705,7 +705,9 @@ export function ToastPlayground() {
           {/* Every option the code shows reaches the region. */}
           <ToastRegion {...set} />
         </Stage>
-        <CodePanel file="components/toasts" code={() => exampleCode(toastMeta, spec, page.env)} actions={[{ label: 'Copy CLI command', copy: 'npx pinfold add toast' }]} />
+        <div className="dx-play__code">
+          <CodePanel file="components/toasts" code={() => exampleCode(toastMeta, spec, page.env)} actions={[{ label: 'Copy CLI command', copy: 'npx pinfold add toast' }]} />
+        </div>
       </div>
     </div>
   );

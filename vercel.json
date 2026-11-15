@@ -3,5 +3,12 @@
   "framework": "vite",
   "installCommand": "npm ci",
   "buildCommand": "sh scripts/vercel-build.sh",
-  "outputDirectory": "dist"
+  "outputDirectory": "dist",
+  "cleanUrls": true,
+  "rewrites": [{ "source": "/docs/:path*", "destination": "/index.html" }, { "source": "/docs", "destination": "/index.html" }],
+  "headers": [
+    { "source": "/r/(.*)", "headers": [{ "key": "Access-Control-Allow-Origin", "value": "*" }] },
+    { "source": "/schema/(.*)", "headers": [{ "key": "Access-Control-Allow-Origin", "value": "*" }] },
+    { "source": "/llms(.*).txt", "headers": [{ "key": "Access-Control-Allow-Origin", "value": "*" }] }
+  ]
 }

@@ -133,6 +133,7 @@ export function Page({ meta, page, define, spec: given, inactive, inherit = [], 
     );
   }
   return (
+    <>
     <div className={wide ? 'dx-play dx-play--wide' : 'dx-play'}>
       <div className="dx-play__editor">
         {demo}
@@ -148,9 +149,10 @@ export function Page({ meta, page, define, spec: given, inactive, inherit = [], 
           {frame ? frame(live) : align === 'center' ? <div className="dx-center">{live}</div> : live}
         </Stage>
         {note ? <div className="dx-note"><Note description={note} /></div> : null}
-        <CodePanel file={file} code={() => exampleCode(meta, spec, page.env)} actions={[{ label: 'Copy CLI command', copy: `npx pinfold add ${meta.name}` }]} />
       </div>
     </div>
+    <CodePanel file={file} code={() => exampleCode(meta, spec, page.env)} actions={[{ label: 'Copy CLI command', copy: `npx pinfold add ${meta.name}` }]} />
+    </>
   );
 }
 

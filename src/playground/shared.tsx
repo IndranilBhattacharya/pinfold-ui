@@ -17,6 +17,8 @@ import type { PinfoldSize, PinfoldStylePack, PinfoldTone } from '@pinfold/core';
 import { IN_PREVIEW, PREVIEW_NAME, postToPage, reportEvent } from './preview-mode';
 import { PreviewFrame } from './frame';
 import { SiteToasts } from './site-toast';
+import { Bot as BotIcon, Link as LinkIcon, Terminal as TerminalIcon } from 'lucide-react';
+import { CodeBlock, copyText } from '../site/CodeBlock';
 
 /**
  * Pieces every component playground shares. Controls come from the component's
@@ -135,6 +137,7 @@ export const Flag = defineSwitch({ size: 'sm' });
 export const Width = defineSlider({ size: 'sm', min: 30, max: 100, showValue: 'label' });
 export const Lang = defineTabs({ variant: 'pills', size: 'sm' });
 export const Tool = defineButton({ variant: 'soft', tone: 'neutral', size: 'sm' });
+const IconTool = defineButton({ variant: 'ghost', tone: 'neutral', size: 'sm', iconOnly: true });
 export const TextField = defineInput({ size: 'sm' });
 /** A number option: its range and step from the metadata; empty means unset (the default). */
 export const Amount = defineNumberField({ size: 'sm', dimensions: { width: '9rem' } });
@@ -412,39 +415,33 @@ export interface CodeAction {
   title?: string;
 }
 
-/** Generated code (TypeScript / JavaScript) and the copy actions. */
+/** The stylesheets a snippet needs: the ones it imports, else those of the components it imports. */
+function stylesOf(code: string): string[] {
+  const named = [...code.matchAll(/@pinfold\/css\/([\w-]+)\.css/g)].map((m) => m[1]).filter((n) => n !== 'core' && n !== 'packs');
+  if (named.length) return [...new Set(named)];
+  const used = [...code.matchAll(/from '(?:@pinfold\/react|@\/components\/ui)\/([\w-]+)'/g)].map((m) => m[1]);
+  return [...new Set(used.flatMap((n) => [n, ...requiredStyles(n, REQUIRES.get(n) ?? [])]))];
+}
+
+/** Generated code with the language toggle, the sandboxes and the copy actions (CLI, prompt, link). */
 export function CodePanel({ file, code, actions, note }: { file: string; code: (lang: 'ts' | 'js') => string; actions: CodeAction[]; note?: React.ReactNode }) {
-  const [lang, setLang] = React.useState<'ts' | 'js'>('ts');
-  const snippet = reflow(code(lang));
-  // A toast confirms (it is a polite live region, so a screen reader hears it too).
-  const copy = async (label: string, text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      void SiteToasts.show({ title: `${label} copied`, tone: 'success' });
-    } catch {
-      void SiteToasts.show({ title: 'Copy failed', description: 'Select the text and copy it instead.', tone: 'danger' });
-    }
-  };
-  return (
+  const sample = code('ts');
+  const name = file.split('/').pop() ?? file;
+  const prompt = `Using Pinfold (@pinfold/react), build this in my app. Keep the config as it is and put the preset outside components:\n\n${sample}`;
+  const extra = (
     <>
-      <Lang label="Code language" items={[{ id: 'ts', label: 'TypeScript' }, { id: 'js', label: 'JavaScript' }]} value={lang} onChange={(id) => setLang(id as 'ts' | 'js')} />
-      <div className="dx-code dx-code--accent">
-        <span className="dx-code__label">
-          {file}.{lang}x
-        </span>
-        <pre>
-          <code>{snippet}</code>
-        </pre>
-      </div>
-      <div className="dx-actions">
-        <Tool label="Copy code" tone="primary" onClick={() => copy('Code', snippet)} />
-        {actions.map((a) => (
-          <Tool key={a.label} label={a.label} title={a.title} onClick={() => (a.run ? a.run() : copy(a.label.replace(/^Copy /, ''), a.copy ?? ''))} />
-        ))}
-        <Tool label="Copy link" onClick={() => copy('Link', location.href)} />
-      </div>
-      {note}
+      {actions.map((a) => (
+        <IconTool key={a.label} label={a.label} icon={/CLI/.test(a.label) ? <TerminalIcon size={15} /> : <LinkIcon size={15} />} onClick={() => (a.run ? a.run() : void copyText(a.label.replace(/^Copy (the )?/, ''), a.copy ?? ''))} />
+      ))}
+      <IconTool label="Copy a prompt for your AI assistant" icon={<BotIcon size={15} />} onClick={() => void copyText('Prompt', prompt)} />
+      <IconTool label="Copy a link to this exact state" icon={<LinkIcon size={15} />} onClick={() => void copyText('Link', location.href)} />
     </>
+  );
+  return (
+    <div className="dx-codepanel">
+      <CodeBlock code={code} file={name} sandbox={{ styles: stylesOf(sample), title: `Pinfold: ${name}` }} actions={extra} maxLines={40} />
+      {note}
+    </div>
   );
 }
 

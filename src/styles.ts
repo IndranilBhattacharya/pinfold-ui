@@ -1,3 +1,5 @@
+import '@fontsource-variable/geist';
+import '@fontsource-variable/geist-mono';
 /** Every stylesheet the site and its preview frames use, in cascade order. */
 import '@pinfold/css/reset.css';
 import '@pinfold/css/tokens.css';
@@ -54,3 +56,4 @@ import '@pinfold/css/fileupload.css';
 import '@pinfold/css/tour.css';
 import '@pinfold/css/packs.css';
 import './docs.css';
+import './site.css';

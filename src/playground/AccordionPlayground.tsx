@@ -218,6 +218,7 @@ export function AccordionPlayground() {
 
       <div className="dx-play__preview">
         <Stage env={env} setEnv={setEnv}>{parsed.items ? <Faq /> : <p className="dx-error">Fix the JSON to see the preview.</p>}</Stage>
+        <div className="dx-play__code">
         <CodePanel
           file="components/questions"
           code={(lang) => code(items, options, env, icons, lang)}
@@ -232,6 +233,7 @@ export function AccordionPlayground() {
             </p>
           }
         />
+        </div>
       </div>
     </div>
   );

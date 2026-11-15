@@ -1,10 +1,32 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-pinfold-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Pinfold — configuration-driven React components</title>
-    <meta name="description" content="Build an entire accordion, data grid or calendar from one config object or hook." />
+    <title>Pinfold: accessible React components, configured</title>
+    <meta name="description" content="Pinfold turns one typed object into an accessible React component: data grids, date pickers, command palettes and more. WCAG 2.2 AA, Server Components, zero runtime dependencies." />
+    <meta name="theme-color" content="#08080d" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Pinfold" />
+    <meta property="og:title" content="Pinfold: config in, interfaces out" />
+    <meta property="og:description" content="Accessible React components from one typed config. Data grid, date picker, command palette and more." />
+    <meta property="og:url" content="https://pinfold.indranildev.in/" />
+    <meta property="og:image" content="https://pinfold.indranildev.in/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://pinfold.indranildev.in/og.png" />
+    <script>
+      try {
+        var m = localStorage.getItem('pinfold-mode') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+        document.documentElement.setAttribute('data-pinfold-theme', m);
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

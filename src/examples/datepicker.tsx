@@ -73,7 +73,13 @@ function DateDemo({ Preset, props }: { Preset: React.ElementType; props: Record<
 export function DatePickerPlayground() {
   const page = usePage(datepickerMeta, ['size', 'tone'], { _kind: 'single' });
   const kind = String(page.inputs._kind);
-  const inactive = { ...inactiveDatePickerOptions(page.options), mode: 'set by the example above.' };
+  // What an example sets itself (a month picker, a time, prices per day) wins over the control.
+  const own: Record<string, Record<string, unknown>> = { month: { granularity: 'month' }, meeting: { granularity: 'day', time: true, timeStep: 15, hourCycle: 24 }, booking: { granularity: 'day' } };
+  const inactive = {
+    ...inactiveDatePickerOptions({ ...page.options, ...own[kind] }),
+    mode: 'set by the example above.',
+    ...Object.fromEntries(Object.keys(own[kind] ?? {}).map((k) => [k, 'set by the example above.'])),
+  };
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
   const uses: Record<string, Record<string, unknown>> = {
     range: { label: 'Stay', mode: 'range', name: 'stay', months: 2, locale: 'en-GB', value: src(null, 'stay'), onChange: src(() => reportEvent('Called: ' + "setStay"), 'setStay') },

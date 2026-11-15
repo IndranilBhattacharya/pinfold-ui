@@ -60,7 +60,7 @@ export function TagsPlayground() {
   const page = usePage(tagsMeta, ['size'], { _kind: 'filters' });
   const kind = String(page.inputs._kind);
   const config = { selection: kind === 'pick' ? 'multiple' : (page.options.selection as string), onRemove: kind === 'filters' ? 1 : undefined, maxVisible: kind === 'status' ? 3 : undefined };
-  const inactive = { ...inactiveTagsOptions(config), selection: 'set by the example above.' };
+  const inactive = { ...inactiveTagsOptions(config), selection: 'set by the example above.', ...(kind === 'status' ? { maxVisible: 'set by the example above.' } : {}) };
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
   const shapes: Record<string, { body: string[]; use: Record<string, unknown>; code: string[] }> = {
     filters: {

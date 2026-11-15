@@ -12,7 +12,7 @@ export function SkeletonPlayground() {
   const layout = String(page.inputs._layout);
   const composed = layout !== 'shape';
   const items = layout === 'profile' ? [{ variant: 'circle' }, { lines: 2 }] : layout === 'card' ? [{ variant: 'rect', dimensions: { height: 120 } }, { lines: 2 }, { direction: 'row', items: [{ variant: 'circle', size: 'sm' }, { lines: 1 }] }] : undefined;
-  const inactive = inactiveSkeletonOptions({ ...page.options, items });
+  const inactive = { ...inactiveSkeletonOptions({ ...page.options, items }), ...(composed ? { preset: 'set by the example above.' } : {}) };
   const set = Object.fromEntries(changed({ ...page.options, loading: undefined }, page.defaults, inactive));
   const done = page.options.loading === false;
   const content = src(<p className="dx-demo-text">Ada Lovelace wrote the first program.</p>, '<p>{user.bio}</p>');

@@ -398,7 +398,7 @@ function Overview() {
     <article>
       <section className="dx-hero">
         <p className="dx-eyebrow">
-          v{version} · {COMPONENTS.length} components · more every round
+          v{version} · {COMPONENTS.length} components · more on the way
         </p>
         <h1>
           Build UI from <em>configuration</em>,<br /> not from markup.

@@ -22,12 +22,13 @@ export function AccordionExtras() {
           {(['solid', 'outline', 'separated', 'filled', 'ghost'] as const).map((variant) => (
             <figure key={variant} className="dx-card">
               <figcaption>{variant}</figcaption>
-              <Demo variant={variant} items={FAQ.slice(0, 3)} defaultValue={['what']} indicator={variant === 'filled' ? 'plus' : 'chevron'} />
+              {/* Only the first opens a row: open panels are named regions, and six with one name would blur together. */}
+              <Demo variant={variant} items={FAQ.slice(0, 3)} defaultValue={variant === 'solid' ? ['what'] : []} indicator={variant === 'filled' ? 'plus' : 'chevron'} />
             </figure>
           ))}
           <figure className="dx-card">
             <figcaption>dimensions — nothing about size is locked</figcaption>
-            <Demo variant="outline" items={FAQ.slice(0, 3)} defaultValue={['what']} dimensions={{ paddingX: 24, paddingY: 18, gap: 14, radius: 20, fontSize: 15, indicatorSize: 20 }} />
+            <Demo variant="outline" items={FAQ.slice(0, 3)} defaultValue={[]} dimensions={{ paddingX: 24, paddingY: 18, gap: 14, radius: 20, fontSize: 15, indicatorSize: 20 }} />
           </figure>
         </div>
       </Section>
@@ -42,25 +43,25 @@ function Demo(config: AccordionConfig & { variant?: AccordionVariant }) {
   return useAccordion(config).render();
 }
 
-/** Proves the hook is genuinely markup-free: this renders a definition list. */
+/** The hook draws nothing: here its prop getters dress plain headings and sections. */
 function HeadlessDemo() {
   const api = useAccordion({ items: FAQ.slice(0, 3), mode: 'multiple', defaultValue: ['what'] });
   return (
     <div className="dx-split">
-      <dl {...api.getRootProps({ className: 'dx-dl' })}>
+      <div {...api.getRootProps({ className: 'dx-dl' })}>
         {api.items.map((item) => (
           <div key={item.id} {...api.getItemProps(item)}>
-            <dt {...api.getHeaderProps(item, { className: 'dx-dt' })}>
+            <h3 {...api.getHeaderProps(item, { className: 'dx-dt' })}>
               <button {...api.getTriggerProps(item, { className: 'dx-dt__btn' })}>
                 <span>{item.open ? '−' : '+'}</span> {resolveNode(item.config.title, item)}
               </button>
-            </dt>
-            <dd {...api.getPanelProps(item, { className: 'dx-dd' })} hidden={!item.open}>
+            </h3>
+            <div {...api.getPanelProps(item, { className: 'dx-dd' })} hidden={!item.open}>
               {resolveNode(item.config.content, item)}
-            </dd>
+            </div>
           </div>
         ))}
-      </dl>
+      </div>
       <div className="dx-state">
         <div className="dx-state__row">
           <Ghost label="openAll()" variant="soft" onClick={api.openAll} />

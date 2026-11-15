@@ -34,7 +34,7 @@ export class PageBoundary extends React.Component<{ name: string; children: Reac
 /** While a page's code loads: the shape of a playground (controls beside a preview). */
 export function PageLoading() {
   return (
-    <div className="dx-play" aria-busy="true" aria-label="Loading the playground">
+    <div className="dx-play" role="status" aria-busy="true" aria-label="Loading the playground">
       <Loading variant="text" lines={6} />
       <Loading variant="rect" dimensions={{ height: 320 }} />
     </div>

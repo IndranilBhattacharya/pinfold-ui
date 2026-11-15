@@ -316,7 +316,9 @@ function Compare() {
       <p className="dx-landing-section__lede">Most libraries make you choose: compose everything yourself, or accept the look you are given. Pinfold gives you a finished component from one object, and a name for every part when you want it your way.</p>
       <div className="dx-compare-table" role="table" aria-label="Pinfold compared with typical libraries">
         <div role="row" className="dx-compare-table__head">
-          <span role="columnheader" />
+          <span role="columnheader">
+            <span className="dx-sr">Feature</span>
+          </span>
           <span role="columnheader" className="dx-compare-table__us">
             <Mark size={18} /> Pinfold
           </span>

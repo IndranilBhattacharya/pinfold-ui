@@ -167,14 +167,22 @@ export function PaletteStudio({
 
       <div className="dx-studio__output">
         <div className="dx-ramps">
+          <div className="dx-ramp dx-ramp--head" aria-hidden="true">
+            <span />
+            <div className="dx-ramp__steps">
+              {STEPS.map((step) => (
+                <span key={step} className="dx-ramp__num">
+                  {step}
+                </span>
+              ))}
+            </div>
+          </div>
           {ROLES.map(([role]) => (
             <div key={role} className="dx-ramp">
               <span className="dx-ramp__name">{role}</span>
               <div className="dx-ramp__steps">
                 {STEPS.map((step) => (
-                  <span key={step} className="dx-ramp__step" title={`--pinfold-${role}-${step}: ${theme.vars[`--pinfold-${role}-${step}`]}`} style={{ background: theme.vars[`--pinfold-${role}-${step}`] }} data-anchor={theme.anchors[role]?.step === step ? '' : undefined}>
-                    <span className="dx-ramp__label" data-dark={step >= 500 ? "" : undefined}>{step}</span>
-                  </span>
+                  <span key={step} className="dx-ramp__step" title={`--pinfold-${role}-${step}: ${theme.vars[`--pinfold-${role}-${step}`]}`} style={{ background: theme.vars[`--pinfold-${role}-${step}`] }} data-anchor={theme.anchors[role]?.step === step ? '' : undefined} />
                 ))}
               </div>
             </div>

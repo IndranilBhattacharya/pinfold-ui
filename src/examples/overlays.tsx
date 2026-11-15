@@ -7,6 +7,8 @@ import { defineDialog } from '@pinfold/react/dialog';
 import { defineMenu, type MenuItem } from '@pinfold/react/menu';
 import { defineToast } from '@pinfold/react/toast';
 import { useButton } from '@pinfold/react/button';
+import { Spinner } from '@pinfold/react/spinner';
+import { ORDERS } from '../demo/harbor';
 import { ObjectOptions, changed, CodePanel, EnvControls, OptionControls, Stage, Tool } from '../playground/shared';
 import { exampleCode, src, type ExampleSpec } from '../playground/example';
 import { Page, Text, usePage } from '../playground/kit';
@@ -97,21 +99,84 @@ let burst = 0;
 export function ToastPlayground() {
   const page = usePage(toastMeta, []);
   const set = Object.fromEntries(changed(page.options, page.defaults));
+  const saveTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(() => () => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+  }, []);
+
+  const Shipped = useButton({
+    label: 'Order shipped',
+    variant: 'soft',
+    tone: 'success',
+    onClick: () => {
+      void Toasts.show({
+        title: `Order ${ORDERS[0].id} shipped`,
+        description: `${ORDERS[0].customer.name} · ${ORDERS[0].lane}`,
+        tone: 'success',
+      });
+    },
+  });
+
+  const Customs = useButton({
+    label: 'Customs hold',
+    variant: 'soft',
+    tone: 'danger',
+    onClick: () => {
+      void Toasts.show({
+        title: `Customs hold: ${ORDERS[1].id}`,
+        description: 'Documentation required in Rotterdam.',
+        tone: 'danger',
+        action: {
+          label: 'Retry',
+          onClick: () => {
+            void Toasts.show({ title: 'Customs check sent again', tone: 'info' });
+          },
+        },
+      });
+    },
+  });
+
+  const Save = useButton({
+    label: 'Save changes',
+    variant: 'outline',
+    onClick: () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      void Toasts.show({ id: 'harbor-save', title: 'Saving…', duration: 0, icon: <Spinner size="sm" /> });
+      saveTimer.current = setTimeout(() => {
+        void Toasts.show({ id: 'harbor-save', title: 'Saved', tone: 'success' });
+      }, 1200);
+    },
+  });
+
   const Many = useButton({
     label: 'Show four more',
     variant: 'outline',
     onClick: () => {
-      for (let i = 1; i <= 4; i++) void Toasts.show({ title: `Report ${++burst} exported`, description: 'Saved to Downloads.', tone: 'neutral' });
+      for (let i = 1; i <= 4; i++) {
+        const order = ORDERS[(burst + i) % ORDERS.length];
+        void Toasts.show({ title: `Order ${order.id} updated`, description: `${order.lane} · ${order.status}`, tone: 'neutral' });
+      }
+      burst += 4;
     },
   });
-  const Error_ = useButton({ label: 'Show an error', variant: 'soft', tone: 'danger', onClick: () => void Toasts.show({ title: 'Upload failed', description: 'The file is too large.', tone: 'danger', action: { label: 'Retry' } }) });
-  const Saved = useButton({ label: 'Show a toast', variant: 'soft', tone: 'success', onClick: () => void Toasts.show({ title: 'Saved', tone: 'success' }) });
+
   const spec: ExampleSpec = {
     name: 'Toasts',
     preset: set,
+    imports: ["import { Spinner } from '@pinfold/react/spinner';"],
+    body: ["const retry = () => Toasts.show({ title: 'Customs check sent again', tone: 'info' });"],
     tree: [{ use: {} }],
-    after: ['// Anywhere, also outside React.', ...sampleCode],
+    after: [
+      '// Anywhere, also outside React.',
+      ...sampleCode,
+      `Toasts.show({ title: 'Order ${ORDERS[0].id} shipped', tone: 'success' });`,
+      `Toasts.show({ title: 'Customs hold: ${ORDERS[1].id}', tone: 'danger', action: { label: 'Retry', onClick: retry } });`,
+      "Toasts.show({ id: 'harbor-save', title: 'Saving…', duration: 0, icon: <Spinner size=\"sm\" /> });",
+      "Toasts.show({ id: 'harbor-save', title: 'Saved', tone: 'success' });",
+    ],
   };
+
   return (
     <div className="dx-play">
       <div className="dx-play__editor">
@@ -125,11 +190,12 @@ export function ToastPlayground() {
           <p className="dx-demo-text">Toasts appear in the corner set by placement. Hover or tab into the pile to fan it out. The three samples stay so the options show.</p>
           {/* The buttons live with the region, in the preview's own document. */}
           <div className="dx-gallery__row dx-resolved">
-            <Saved />
-            <Error_ />
+            <Shipped />
+            <Customs />
+            <Save />
             <Many />
           </div>
-          <p className="dx-hint">Hovering pauses every timer. Errors and toasts with an action stay until dismissed.</p>
+          <p className="dx-hint">Hovering, focus inside the region, or leaving the window pauses every timer. Errors and toasts with an action stay until dismissed.</p>
           {/* Every option the code shows reaches the region. */}
           <ToastRegion {...set} />
         </Stage>

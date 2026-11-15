@@ -218,8 +218,8 @@ function breakLine(line: string, width: number): string[] {
     const close = line.slice(end);
     const items = splitTop(line.slice(open + 1, end), ',');
     if (!items.length) continue;
-    // One item in a call, or the one value of a JSX attribute: no trailing comma.
-    const comma = items.length === 1 && (line[open] === '(' || line[open - 1] === '=') ? '' : ',';
+    // One item in a call, the one value of a JSX attribute or a JSX child expression: no trailing comma.
+    const comma = items.length === 1 && (line[open] === '(' || line[open - 1] === '=' || line[open - 1] === '>') ? '' : ',';
     return [line.slice(0, open + 1), ...items.flatMap((item) => breakLine(`${inner}${item}${comma}`, width)), indent + close];
   }
   return [line];

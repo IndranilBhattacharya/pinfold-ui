@@ -528,6 +528,8 @@ a { color: inherit; text-decoration: none; }
 .dx-arena__card h4 { margin: 0; }
 .dx-arena__card p { margin: 0; font-size: 0.8125rem; color: var(--pinfold-color-text-muted); }
 .dx-arena__card--zoom { align-items: center; justify-content: center; min-block-size: 8rem; font-family: var(--pinfold-font-mono); font-size: 0.75rem; color: #fff; background: linear-gradient(135deg, var(--pinfold-primary-500), var(--pinfold-info-500)); border: 0; }
+.dx-cursor-builder { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.75rem; padding: 1rem; background: var(--pinfold-color-surface); border: 1px solid var(--pinfold-color-border); border-radius: var(--pinfold-radius-lg); }
+.dx-cursor-builder__title { inline-size: 100%; margin: 0 0 0.25rem; font-size: var(--pinfold-text-sm); font-weight: var(--pinfold-weight-medium); }
 .dx-note { margin-block: 0.75rem; }
 
 /* tour demo: a small mock app */

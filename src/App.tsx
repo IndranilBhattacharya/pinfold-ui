@@ -39,7 +39,7 @@ function playgroundFor(name: string) {
 
 /* The site is built from the library: the shell, the bar, the side navigation, the API tables and the
    small parts below are Pinfold presets, defined once here and used as one-liners. */
-const Shell = defineAppShell({ dimensions: { maxWidth: 1180, padding: '0 clamp(1rem, 3vw, 2.5rem) 3rem', sidebarWidth: 248 }, backdrop: 'blur' });
+const Shell = defineAppShell({ dimensions: { maxWidth: 1180, padding: '0 clamp(1rem, 3vw, 2.5rem) 3rem', sidebarWidth: 248 }, backdrop: 'blur', sidebarCollapsible: true, autoSaveId: 'pinfold-site' });
 const TopBar = defineNavbar({ variant: 'glass', indicator: 'none', dimensions: { paddingX: 'clamp(1rem, 3vw, 2rem)' } });
 const SiteNav = defineSidebar({ surface: 'transparent', variant: 'soft', size: 'sm' });
 const Api = defineTable<ApiRow>({ variant: 'outline', density: 'compact', sortable: true, toolbar: { search: true, columns: false }, columnMenu: false, lines: 'rows' });
@@ -202,7 +202,7 @@ export function App() {
               ]}
             />
           }
-          sidebar={<SiteNav label="Components" items={nav} value={route} />}
+          sidebar={({ collapsed, drawer }) => <SiteNav label="Components" items={nav} value={route} collapsed={collapsed && !drawer} />}
           footer={
             <p className="dx-footer">
               MIT · Created by Indranil Bhattacharya · <a href="https://github.com/IndranilBhattacharya/pinfold">pinfold</a> · <a href="https://github.com/IndranilBhattacharya/pinfold-ui">pinfold-ui</a> ·{' '}

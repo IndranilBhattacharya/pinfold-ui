@@ -584,17 +584,19 @@ export function MenuPlayground() {
 const Toasts = defineToast();
 /** Three that stay, so the pile and its options show. The code panel prints the same calls. */
 const SAMPLES = [
-  { id: 'invite', title: 'Invitation sent', description: 'Amara will get an email.', tone: 'info' as const, duration: 0 },
-  { id: 'upload', title: 'Upload complete', description: 'report.pdf is ready to share.', tone: 'neutral' as const, duration: 0 },
-  { id: 'saved', title: 'Saved', description: 'Your changes are live.', tone: 'success' as const, duration: 0 },
+  { id: 'invite', title: 'Invitation sent', description: 'Amara will get an email.', tone: 'info' as const },
+  { id: 'upload', title: 'Upload complete', description: 'report.pdf is ready to share.', tone: 'neutral' as const },
+  { id: 'saved', title: 'Saved', description: 'Your changes are live.', tone: 'success' as const },
 ];
-const sampleCode = SAMPLES.map((t) => `Toasts.show({ id: '${t.id}', title: '${t.title}', description: '${t.description}', tone: '${t.tone}', duration: 0 });`);
+const sampleCode = SAMPLES.map((t) => `Toasts.show({ id: '${t.id}', title: '${t.title}', description: '${t.description}', tone: '${t.tone}' });`);
 
 function ToastRegion(props: Record<string, unknown>) {
+  // The samples follow `duration` like any toast; changing an option shows them again with it.
+  const options = JSON.stringify(props, (_k, v) => (typeof v === 'function' ? undefined : v));
   React.useEffect(() => {
     for (const t of SAMPLES) Toasts.show(t);
     return () => Toasts.clear();
-  }, []);
+  }, [options]);
   return <Toasts {...props} />;
 }
 
@@ -691,7 +693,7 @@ export function ToastPlayground() {
       </div>
       <div className="dx-play__preview">
         <Stage env={page.env} setEnv={page.setEnv}>
-          <p className="dx-demo-text">Toasts appear in the corner set by placement. Hover or tab into the pile to fan it out. The three samples stay so the options show.</p>
+          <p className="dx-demo-text">Toasts appear in the corner set by placement. Hover or tab into the pile to fan it out. The three samples leave after `duration` (0 keeps them); change any option to show them again.</p>
           {/* The buttons live with the region, in the preview's own document. */}
           <div className="dx-gallery__row dx-resolved">
             <Shipped />

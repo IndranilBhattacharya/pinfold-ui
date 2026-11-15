@@ -63,7 +63,6 @@ function FolderBrowser({ Preset, props }: { Preset: React.ElementType; props: Re
       <Preset
         {...rest}
         {...trail}
-        maxItems={setup.maxItems}
         onChange={(key: string, item: { href?: string }) => push(`onChange('${key}', { href: '${item.href ?? ''}' })`)}
         onNavigate={(href: string) => {
           push(`onNavigate('${href}')`);
@@ -110,7 +109,8 @@ export function BreadcrumbPlayground() {
   const example = String(page.inputs._example);
   const setup = CRUMB_EXAMPLES[example] ?? CRUMB_EXAMPLES.files;
   const fromPath = setup.source === 'path';
-  const maxItems = setup.maxItems;
+  // A maxItems chosen above wins over the example's own.
+  const maxItems = (page.options.maxItems as number | undefined) ?? setup.maxItems;
   const inactive = inactiveBreadcrumbOptions({ maxItems, variant: page.options.variant as string, home: page.options.home as any, ...(fromPath ? { path: '/' } : { items: [] }) } as any);
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
   const use: Record<string, unknown> = {

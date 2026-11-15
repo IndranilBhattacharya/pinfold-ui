@@ -37,10 +37,13 @@ function projectTree(lazy: boolean) {
 
 const LAZY_CHILDREN: Record<string, unknown[]> = { node_modules: nodeModules, dist };
 
+/** The file open in the editor: selected as the page loads, so selection options show at once. */
+const OPEN_FILE = ['src/components/Button.tsx'];
+
 function TreeDemo({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
   const { _lazy: lazy, ...rest } = props;
   const [last, setLast] = React.useState('Nothing yet: select a row, open a folder or press Enter.');
-  const [selected, setSelected] = React.useState<string[]>([]);
+  const [selected, setSelected] = React.useState<string[]>(OPEN_FILE);
   const items = React.useMemo(() => projectTree(!!lazy), [lazy]);
   return (
     <div className="dx-stack">
@@ -51,6 +54,7 @@ function TreeDemo({ Preset, props }: { Preset: React.ElementType; props: Record<
         items={items}
         dimensions={{ height: 340 }}
         defaultExpanded={['src', 'src/components']}
+        defaultValue={OPEN_FILE}
         loadChildren={
           lazy
             ? async (item: { id: string }, { signal }: { signal: AbortSignal }) => {
@@ -84,7 +88,7 @@ export function TreeViewPlayground() {
   const spec: ExampleSpec = {
     name: 'Files',
     preset: set,
-    body: ['// projectFiles: [{ id: \'src\', label: \'src\', children: [...] }, { id: \'dist\', label: \'dist\', badge: \'build\', hasChildren: true }, \'package.json\']', 'const [selected, setSelected] = useState<string[]>([]);', ...(lazy ? ['const load = (item, { signal }) => api.list(item.id, { signal }); // resolves to the node\'s children'] : [])],
+    body: ['// projectFiles: [{ id: \'src\', label: \'src\', children: [...] }, { id: \'dist\', label: \'dist\', badge: \'build\', hasChildren: true }, \'package.json\']', "const [selected, setSelected] = useState<string[]>(['src/components/Button.tsx']);", ...(lazy ? ['const load = (item, { signal }) => api.list(item.id, { signal }); // resolves to the node\'s children'] : [])],
     tree: [
       {
         app: TreeDemo,
@@ -92,6 +96,8 @@ export function TreeViewPlayground() {
           label: 'Project files',
           items: src([], 'projectFiles'),
           dimensions: { height: 340 },
+          defaultExpanded: ['src', 'src/components'],
+          defaultValue: src(OPEN_FILE, 'selected'),
           ...(lazy ? { loadChildren: src(undefined, 'load') } : null),
           onSelectionChange: src(undefined, 'setSelected'),
           onAction: src(undefined, '(id) => openFile(id)'),

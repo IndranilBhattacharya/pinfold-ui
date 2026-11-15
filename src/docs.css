@@ -407,7 +407,8 @@ a { color: inherit; text-decoration: none; }
 .dx-demo-form .dx-hint { margin: 0; overflow-wrap: anywhere; }
 /* Overlay previews: room for the forced-open copy. */
 .dx-overlay-demo { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2rem 4rem; inline-size: 100%; min-block-size: 20rem; }
-.dx-overlay-demo--tall { align-items: flex-start; min-block-size: 26rem; }
+/* The trigger sits mid-height, so a menu has room above (top placements) and below. */
+.dx-overlay-demo--tall { min-block-size: 50rem; }
 .dx-menu-area { display: grid; place-items: center; inline-size: 12rem; block-size: 5rem; border: 1px dashed var(--pinfold-color-border-strong); border-radius: var(--pinfold-radius-md); color: var(--pinfold-color-text-muted); }
 .dx-dialog-demo { display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; inline-size: 100%; }
 

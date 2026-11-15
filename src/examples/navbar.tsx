@@ -107,7 +107,6 @@ export function NavbarPlayground() {
       inactive={inactive}
       inherit={['size', 'tone']}
       provider
-      motion
       align="start"
       file="components/top-bar"
       note="Choose a link and the text under the bar says which page is current. Projects is a dropdown; the bell is a menu and its badge counts what is unread; the moon is a toggle. Preview at tablet width (the switch above the preview) and the links that do not fit go under More (or scroll, with overflow: scroll: drag the row or use the wheel); as a phone they fold into a menu button; the ones that do not fit go under More."

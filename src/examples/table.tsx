@@ -80,10 +80,13 @@ const ORDER_COLUMNS_CODE = `[
 /** Orders you can edit in place: the grid reports the edit, your state keeps it. */
 function OrdersGrid({ Preset, props }: { Preset: React.ElementType; props: Record<string, any> }) {
   const [rows, setRows] = React.useState(ORDERS);
+  const { _reorder, ...rest } = props;
   return (
     <Preset
-      {...props}
+      {...rest}
       rows={rows}
+      // Reordering is set in the preset; the page says so through `_reorder`.
+      onRowReorder={_reorder ? ({ rows: next }: { rows: Order[] }) => setRows(next) : undefined}
       onCellEdit={({ rowKey, key, value }: { rowKey: string; key: keyof Order; value: unknown }) => setRows((all) => all.map((r) => (r.id === rowKey ? { ...r, [key]: value } : r)))}
       renderDetail={(o: Order) => (
         <div className="dx-order-detail">
@@ -170,6 +173,9 @@ function Directory({ Preset, props }: { Preset: React.ElementType; props: Record
   );
 }
 
+/** Examples drawn at a fixed height (a virtual body or a data source). */
+const tallFor = (kind: string, virtual: boolean) => (kind === 'grid' && virtual) || kind === 'billion';
+
 export function TablePlayground() {
   const page = usePage(tableMeta, ['size', 'tone'], { _kind: 'grid', _group: '', _detail: true, _toolbar: true });
   const kind = String(page.inputs._kind);
@@ -184,8 +190,13 @@ export function TablePlayground() {
     sortable: !!opts.sortable || !grid,
     filterable: !!opts.filterable,
     renderDetail: grid && page.inputs._detail ? () => null : undefined,
+    reorderableRows: !!opts.reorderableRows,
+    // The orders grid saves the new order; the other examples do not reorder.
+    onRowReorder: grid ? () => {} : undefined,
+    stickyHeader: !!opts.stickyHeader,
+    dimensions: tallFor(kind, !!opts.virtual) ? { height: 520 } : undefined,
   });
-  if (!grid) Object.assign(inactive, billion ? { virtual: 'a data source always scrolls virtually.' } : { sortable: 'set per column by this example.', virtual: 'this example pages its rows.' });
+  if (!grid) Object.assign(inactive, billion ? { virtual: 'a data source always scrolls virtually.' } : { sortable: 'set per column by this example.', virtual: 'this example pages its rows.', reorderableRows: 'the orders example reorders its rows; this one keeps the server\'s order.' });
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
   const choose = !!opts.selection && opts.selection !== 'none';
   const tall = (grid && !!opts.virtual) || billion;
@@ -195,7 +206,10 @@ export function TablePlayground() {
       label: 'Orders',
       columns: src(ORDER_COLUMNS, ORDER_COLUMNS_CODE),
       rows: src(ORDERS, 'orders'),
-      ...(opts.virtual ? { dimensions: { height: 520 } } : { pageSize: 8, pageSizes: [8, 25, 50] }),
+      // A page size chosen above wins over the example's own.
+      ...(opts.virtual ? { dimensions: { height: 520 } } : set.pageSize ? null : { pageSize: 8, pageSizes: [8, 25, 50] }),
+      ...(opts.reorderableRows ? { onRowReorder: src(() => reportEvent('Called: setRows'), '({ rows }) => setOrders(rows)') } : null),
+      _reorder: src(!!opts.reorderableRows, ''),
       ...(page.inputs._toolbar ? { toolbar: { search: true, columns: true, export: 'orders.csv' } } : null),
       ...(page.inputs._group ? { groupBy: String(page.inputs._group) } : null),
       onCellEdit: src(() => reportEvent('Called: ' + "({ rowKey, key, value }) => saveOrder(rowKey, { [key]: value })"), '({ rowKey, key, value }) => saveOrder(rowKey, { [key]: value })'),
@@ -221,7 +235,7 @@ export function TablePlayground() {
       { key: 'projects', header: 'Shipments', align: 'end', sortable: true },
       { key: 'joined', header: 'Joined', sortable: true },
     ];
-    const use: Record<string, unknown> = { label: 'Team', columns, pageSize: 8, _kind: src(kind, ''), _choose: src(choose, '') };
+    const use: Record<string, unknown> = { label: 'Team', columns, ...(set.pageSize ? null : { pageSize: 8 }), _kind: src(kind, ''), _choose: src(choose, '') };
     spec =
       kind === 'server'
         ? {

@@ -13,7 +13,7 @@ export function ToolbarPlayground() {
   const page = usePage(toolbarMeta, ['size'], { _icons: false });
   const icons = !!page.inputs._icons;
   const selection = (page.options.selection as string) ?? 'none';
-  const inactive = inactiveToolbarOptions({ selection });
+  const inactive = inactiveToolbarOptions({ selection, variant: page.options.variant as string | undefined, attached: page.options.attached as boolean | undefined });
   const set = Object.fromEntries(changed(page.options, page.defaults, inactive));
   const items = selection !== 'none'
     ? icons

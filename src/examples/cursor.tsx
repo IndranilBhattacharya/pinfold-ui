@@ -59,7 +59,6 @@ export function CursorPlayground() {
       spec={spec}
       inherit={['size', 'tone']}
       provider
-      motion
       align="start"
       file="components/pointer"
       note={'Move the mouse over the cards: text, a button (pressable), an element marked data-cursor="zoom" with data-cursor-label="View", and a text field (the system I-beam takes over). It draws on a fine pointer only; on touch nothing changes.'}

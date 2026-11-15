@@ -138,7 +138,6 @@ export function ScrollAreaPlayground() {
       inactive={inactive}
       inherit={['tone']}
       provider={['tone']}
-      motion
       align="start"
       file="components/changelog"
       note={notes[kind]}

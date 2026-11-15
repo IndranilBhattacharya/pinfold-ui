@@ -207,7 +207,7 @@ export function OptionControls({
   setOption,
   inactive = {},
   inherit = [],
-  autoLabel = (_key, meta) => `auto${meta.auto ? ` (${meta.auto})` : ''}`,
+  autoLabel = (_key, meta) => `auto${meta.auto ? ` (${meta.auto.replace(/`/g, '')})` : ''}`,
   valueLabel,
 }: {
   controls: Array<[string, PropMeta]>;
@@ -248,6 +248,20 @@ export function OptionControls({
           onChange={(next) => setOption(key, next === '' ? undefined : next)}
         />
       </div>
+    ) : meta.type === 'boolean' && meta.default === undefined && meta.auto ? (
+      <Choice
+        key={key}
+        label={key}
+        title={(explain && inactive[key]) || meta.description}
+        disabled={explain && key in inactive}
+        value={options[key] === undefined ? '' : String(options[key])}
+        unset={autoLabel(key, meta)}
+        values={[
+          { value: 'true', label: 'on' },
+          { value: 'false', label: 'off' },
+        ]}
+        onChange={(text) => setOption(key, text === '' ? undefined : text === 'true')}
+      />
     ) : meta.type === 'boolean' || (meta.orBoolean && !meta.values) ? (
       <div key={key} className="dx-opt dx-opt--check" title={(explain && inactive[key]) || meta.description}>
         <Flag label={key} checked={!!options[key]} disabled={explain && key in inactive} onChange={(on) => setOption(key, on)} />
@@ -261,7 +275,7 @@ export function OptionControls({
         value={options[key] === undefined ? '' : String(options[key])}
         // No library default means "inherit": offer that instead of a fixed value.
         unset={meta.default === undefined || inherit.includes(key) ? autoLabel(key, meta) : undefined}
-        values={meta.values!.map((v) => ({ value: String(v), label: valueLabel?.(key, v) ?? String(v) }))}
+        values={meta.values!.map((v) => ({ value: String(v), label: valueLabel?.(key, v) ?? (v === 'auto' && meta.auto ? `auto (${meta.auto.replace(/`/g, '')})` : String(v)) }))}
         onChange={(text) => setOption(key, text === '' ? undefined : typed(meta, text))}
       />
     );

@@ -143,7 +143,6 @@ export function AppShellPlayground() {
         define={defineAppShell}
         spec={spec}
         inactive={inactive}
-        motion
         align="start"
         file="app/layout"
         note={

@@ -103,12 +103,30 @@ function searchItems() {
   ];
 }
 
+/** The navigation keeps the current page in view: its own list scrolls, never the page. */
+function useCurrentInView(page: string | null) {
+  React.useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const current = document.querySelector<HTMLElement>('.dx-docsnav [aria-current="page"]');
+      let box = current?.parentElement ?? null;
+      while (box && !(/auto|scroll/.test(getComputedStyle(box).overflowY) && box.scrollHeight > box.clientHeight)) box = box.parentElement;
+      if (!current || !box) return;
+      const r = current.getBoundingClientRect();
+      const b = box.getBoundingClientRect();
+      if (r.top < b.top + 8) box.scrollTop -= b.top + 8 - r.top;
+      else if (r.bottom > b.bottom - 8) box.scrollTop += r.bottom - (b.bottom - 8) + b.height / 3;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [page]);
+}
+
 export function SiteShell({ page, mode, onMode, children }: { page: string | null; mode: Mode; onMode: (m: Mode) => void; children: React.ReactNode }) {
   const [searching, setSearching] = React.useState(false);
   const docs = page !== null;
   const menu = React.useMemo(navMenuItems, []);
   const nav = React.useMemo(docsNavItems, []);
   const Frame = docs ? DocsShell : LandingShell;
+  useCurrentInView(page);
   return (
     <>
       <a className="dx-skip" href="#dx-main">

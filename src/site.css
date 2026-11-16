@@ -55,7 +55,7 @@ body {
   background-image: none;
 }
 ::selection { background: color-mix(in oklab, var(--pinfold-primary-500) 35%, transparent); }
-a { color: inherit; }
+a:not(.pinfold, .pinfold *) { color: inherit; }
 
 .dx-sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .dx-skip {
@@ -103,7 +103,6 @@ a { color: inherit; }
 }
 
 /* The navigation menu panels: an opaque surface, so the page never shows through. */
-.dx-topmenu .pinfold-navmenu__panel { background: color-mix(in oklab, var(--dx-ink) 88%, transparent); backdrop-filter: blur(28px) saturate(1.6); -webkit-backdrop-filter: blur(28px) saturate(1.6); }
 .dx-menu-feature {
   display: flex;
   flex-direction: column;
@@ -360,7 +359,7 @@ a { color: inherit; }
 .dx-role__chip { display: block; inline-size: 1.15rem; block-size: 1.15rem; border-radius: 6px; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.18); }
 .dx-studio__row { display: grid; gap: 1rem; }
 .dx-codeblock[data-lang='bash'] .dx-src { min-inline-size: 0; }
-.dx-codeblock[data-lang='bash'] .dx-src__line { white-space: pre-wrap; overflow-wrap: anywhere; padding-inline-start: 2.2rem; text-indent: -1.1rem; }
+.dx-codeblock[data-lang='bash'] .dx-src__line { white-space: pre-wrap; overflow-wrap: break-word; word-break: normal; padding-inline-start: 2.2rem; text-indent: -1.1rem; }
 .dx-studio__field { display: grid; gap: 0.5rem; }
 .dx-studio__label { display: flex; justify-content: space-between; font-size: 0.8125rem; font-weight: 550; color: var(--pinfold-color-text-muted); }
 .dx-ramps { display: grid; gap: 0.6rem; }
@@ -660,3 +659,25 @@ a { color: inherit; }
 /* Labels from the older stylesheet, on the same readable grey. */
 .dx-label, .dx-card figcaption, .dx-fieldset > legend, .dx-hint { color: var(--dx-label) !important; }
 .dx-ramp__name { color: var(--dx-label); }
+
+/* Palette studio, one flowing column: roles as a grid of cards, then the output. */
+.dx-studio { grid-template-columns: minmax(0, 1fr) !important; gap: 1.25rem; }
+.dx-studio__controls { gap: 1.5rem; }
+.dx-studio__roles { grid-template-columns: repeat(auto-fill, minmax(min(100%, 15.5rem), 1fr)); gap: 0.85rem; }
+.dx-role { padding: 0.85rem; background: color-mix(in oklab, var(--pinfold-color-text) 3%, transparent); border: 1px solid var(--dx-line); border-radius: 14px; }
+.dx-studio__row { grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); align-items: end; }
+.dx-studio__controls > .pinfold-button { justify-self: start; }
+.dx-studio__output { grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); align-items: start; }
+.dx-studio__output > .dx-ramps { grid-column: 1 / -1; }
+.dx-studio__output > .pinfold-table { min-inline-size: 0; }
+@media (max-width: 600px) {
+  .dx-studio__controls, .dx-studio__output { padding: 0.85rem; }
+  .dx-ramp { grid-template-columns: minmax(0, 1fr); gap: 0.3rem; }
+  .dx-ramp--head > span:first-child { display: none; }
+  .dx-ramp__step { block-size: 1.9rem; }
+  .dx-ramp__num { font-size: 0.55rem; }
+}
+/* Grid items shrink to the column; long code scrolls inside its own block, never the page. */
+.dx-examples-list > *, .dx-example, .dx-codeblock, .dx-section > *, .dx-play > *, .dx-band__code > * { min-inline-size: 0; }
+.dx-codeblock { max-inline-size: 100%; }
+.dx-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }

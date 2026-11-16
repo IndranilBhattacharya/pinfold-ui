@@ -44,6 +44,7 @@ export function TimelinePlayground() {
   };
   return (
     <Page
+      wide
       meta={timelineMeta}
       page={page}
       define={defineTimeline}

@@ -9,19 +9,84 @@ type Files = Record<string, string>;
 
 const range = `^${version}`;
 
-/** Names a snippet uses as `attr={name}` without declaring them: your own handlers and data. */
-function standIns(code: string): string[] {
+/** Names a snippet uses without declaring them: custom components, handlers, and data. */
+function standIns(code: string, lang: 'ts' | 'js'): string[] {
   const declared = new Set<string>();
   for (const m of code.matchAll(/\b(?:const|let|var|function|class)\s+([A-Za-z_$][\w$]*)/g)) declared.add(m[1]);
-  for (const m of code.matchAll(/\[\s*([A-Za-z_$][\w$]*)\s*,\s*([A-Za-z_$][\w$]*)\s*\]\s*=/g)) (declared.add(m[1]), declared.add(m[2]));
-  for (const m of code.matchAll(/import\s+(?:type\s+)?\{([^}]*)\}/g)) for (const n of m[1].split(',')) declared.add(n.trim().split(/\s+as\s+/).pop()!.replace(/^type\s+/, ''));
+  for (const m of code.matchAll(/\[\s*([A-Za-z_$][\w$]*)\s*,\s*([A-Za-z_$][\w$]*)\s*\]\s*=/g)) {
+    declared.add(m[1]);
+    declared.add(m[2]);
+  }
+  for (const m of code.matchAll(/import\s+(?:type\s+)?\{([^}]*)\}/g)) {
+    for (const n of m[1].split(',')) declared.add(n.trim().split(/\s+as\s+/).pop()!.replace(/^type\s+/, ''));
+  }
+  for (const m of code.matchAll(/import\s+([A-Za-z_$][\w$]*)\s+from/g)) declared.add(m[1]);
+
   const out: string[] = [];
+  const added = new Set<string>();
+
+  // 1. Any JSX tag used as <Component ... /> that is not declared.
+  for (const m of code.matchAll(/<([A-Z][A-Za-z0-9_$]*)/g)) {
+    const name = m[1];
+    if (declared.has(name) || added.has(name)) continue;
+    added.add(name);
+    if (/icon/i.test(name)) {
+      out.push(
+        `const ${name} = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ verticalAlign: 'middle', display: 'inline-block' }}><circle cx="12" cy="12" r="9" /></svg>;`,
+      );
+    } else if (/panel/i.test(name)) {
+      out.push(
+        `const ${name} = () => <div style={{ padding: '16px 20px', border: '1px dashed rgba(124,58,237,0.3)', borderRadius: 8, margin: '8px 0', background: 'rgba(124,58,237,0.04)' }}><strong style={{ fontSize: '0.875rem' }}>${name.replace(/([A-Z])/g, ' $1').trim()}</strong><p style={{ margin: '4px 0 0', opacity: 0.7, fontSize: '0.8125rem' }}>Sample panel content</p></div>;`,
+      );
+    } else {
+      out.push(
+        lang === 'ts'
+          ? `const ${name} = (props: { children?: React.ReactNode }) => <div style={{ padding: 12, border: '1px dashed #8884', borderRadius: 6, margin: '4px 0' }}>{props.children ?? '${name}'}</div>;`
+          : `const ${name} = (props) => <div style={{ padding: 12, border: '1px dashed #8884', borderRadius: 6, margin: '4px 0' }}>{props.children ?? '${name}'}</div>;`,
+      );
+    }
+  }
+
+  // 2. Handlers and variables passed as attr={name}
   for (const m of code.matchAll(/(\w+)=\{([A-Za-z_$][\w$]*)\}/g)) {
     const [, attr, name] = m;
-    if (declared.has(name) || out.some((l) => l.includes(` ${name} `)) || /^(true|false|null|undefined)$/.test(name)) continue;
+    if (declared.has(name) || added.has(name) || /^(true|false|null|undefined)$/.test(name)) continue;
+    added.add(name);
     const fn = /^on[A-Z]/.test(attr) || /^(set|handle|save|remove|delete|load|fetch|run|go|close|open|submit|retry|follow)/.test(name);
-    out.push(`const ${name} = ${fn ? '(...args) => console.log(' + JSON.stringify(name) + ', ...args)' : '[]'};`);
+    out.push(
+      `const ${name} = ${fn ? (lang === 'ts' ? '(...args: unknown[]) => console.log(' + JSON.stringify(name) + ', ...args)' : '(...args) => console.log(' + JSON.stringify(name) + ', ...args)') : (lang === 'ts' ? '[] as never[]' : '[]')};`,
+    );
   }
+
+  // 3. Object property values: key: Identifier
+  for (const m of code.matchAll(/\b([A-Za-z_$][\w$]*)\s*:\s*([A-Za-z_$][\w$]*)\b/g)) {
+    const [, key, name] = m;
+    if (
+      declared.has(name) ||
+      added.has(name) ||
+      /^(true|false|null|undefined|return|typeof|instanceof|void|delete|new|in|default|case)$/.test(name) ||
+      /^(string|number|boolean|any|unknown|never|void|object|symbol|bigint)$/.test(name)
+    )
+      continue;
+    added.add(name);
+    if (/^[A-Z]/.test(name)) {
+      out.push(
+        `const ${name} = () => <span style={{ display: 'inline-block', width: 14, height: 14, borderRadius: '50%', background: 'currentColor', opacity: 0.6 }} />;`,
+      );
+    } else if (
+      /(items|rows|columns|data|options|list|people|users|cards|tags)/i.test(key) ||
+      /(items|rows|columns|data|options|list|people|users|cards|tags)/i.test(name)
+    ) {
+      out.push(`const ${name} = ${lang === 'ts' ? '[] as never[]' : '[]'};`);
+    } else if (/^(on[A-Z]|render|format|filter|validate)/.test(key) || /^(set|handle|get|format|filter)/.test(name)) {
+      out.push(
+        `const ${name} = ${lang === 'ts' ? '(...args: unknown[]) => console.log(' + JSON.stringify(name) + ', ...args)' : '(...args) => console.log(' + JSON.stringify(name) + ', ...args)'};`,
+      );
+    } else {
+      out.push(`const ${name} = undefined;`);
+    }
+  }
+
   return out;
 }
 
@@ -32,12 +97,12 @@ export function project(code: string, lang: 'ts' | 'js', styles: readonly string
   let app = code.split(/\n\/\/ ---- once for the whole app/)[0].trimEnd().replace(/from '@\/components\/ui\/([\w-]+)'/g, "from '@pinfold/react/$1'") + '\n';
   const name = /export function ([A-Z]\w*)\s*\(/.exec(app)?.[1];
   const usesExample = !!name;
-  const stubs = standIns(app);
+  const stubs = standIns(app, lang);
   if (stubs.length) {
     const lines = app.split('\n');
     let at = 0;
     lines.forEach((l, i) => /^import\b/.test(l) && (at = i + 1));
-    lines.splice(at, 0, '', '// Stand-ins for your own functions and data.', ...stubs.map((s) => (lang === 'ts' ? s.replace('(...args) =>', '(...args: unknown[]) =>').replace("= [];", '= [] as never[];') : s)));
+    lines.splice(at, 0, '', '// Stand-ins for your own components, functions and data.', ...stubs);
     app = lines.join('\n');
   }
   const css = ['core', ...styles.filter((s) => s !== 'core')].map((s) => `import '@pinfold/css/${s}.css';`).join('\n');
@@ -68,7 +133,8 @@ export function project(code: string, lang: 'ts' | 'js', styles: readonly string
 export function openStackBlitz(files: Files, title: string) {
   const form = document.createElement('form');
   form.method = 'POST';
-  form.action = 'https://stackblitz.com/run?file=src/Example';
+  const fileExt = files['src/Example.tsx'] ? 'tsx' : 'jsx';
+  form.action = `https://stackblitz.com/run?file=src/Example.${fileExt}`;
   form.target = '_blank';
   const field = (name: string, value: string) => {
     const input = document.createElement('input');

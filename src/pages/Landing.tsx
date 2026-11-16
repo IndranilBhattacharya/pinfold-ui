@@ -83,11 +83,11 @@ function Hero() {
         <ArrowRight size={14} aria-hidden="true" />
       </a>
       <h1 id="hero-title" className="dx-hero2__title">
-        <span>Build accessible React interfaces</span>
-        <span className="dx-hero2__shine">from a single config.</span>
+        <span>Configure once.</span>
+        <span className="dx-hero2__shine">Ship everywhere.</span>
       </h1>
       <p className="dx-hero2__lede">
-        Pinfold is a typed component library for React. Each of its {COUNT} accessible components, from data grids to date pickers, is driven by one configuration object: server-ready, themeable in any colour format, and customisable down to every part.
+        The typed React component library driven by a single config object. Fully accessible, endlessly themeable, zero friction.
       </p>
       <div className="dx-hero2__cta" data-cursor="go">
         <Primary label="Get started" href={docsHref('introduction')} endIcon={<ArrowRight size={16} aria-hidden="true" />} />

@@ -97,12 +97,29 @@ function Introduction() {
           </Point>
         </Grid>
       </Section>
+      <Section id="forms" title="Preset or hook?">
+        <P>{'Every component comes in two forms with the same config. Start with the preset: define it once, outside your components, and use it anywhere, in loops and in Server Components. Reach for the hook only in a client component that needs the controller. React hooks cannot run in Server Components, which is why the preset is the default.'}</P>
+        <CodeBlock
+          file="forms"
+          code={`import { defineButton, useButton } from '@pinfold/react/button';
+
+// The preset (default): defined once, used anywhere, Server Components included.
+export const Save = defineButton({ tone: 'success' });
+<Save label="Save" onClick={save} />
+
+// The hook, in a client component: the same config, plus a controller.
+function Editor() {
+  const Publish = useButton({ label: 'Publish', onClick: publish });
+  return <><Publish /><p>{Publish.loading ? 'Publishing…' : 'Ready'}</p></>;
+}`}
+        />
+      </Section>
       <Section id="levels" title="Four levels, one config">
         <P>{'Start with the config. Reach further only when you need to; the config never changes shape.'}</P>
         <div className="dx-levels">
           {[
             ['Preset', 'defineButton({ variant, tone }) once, then <Danger label="Delete" /> anywhere.'],
-            ['Hook', 'useAccordion({ items }) returns the component and its controller: openAll(), value, focusItem().'],
+            ['Hook', 'In a client component, useAccordion({ items }) also returns the controller: openAll(), value, focusItem().'],
             ['Parts', 'Rename, restyle or replace any part with classNames, slotProps or render.'],
             ['Headless', 'Prop getters with every ARIA attribute, for markup that is entirely yours.'],
           ].map(([t, d], i) => (

@@ -37,7 +37,7 @@ interface CustomDemo {
 
 const DEMOS: Record<string, CustomDemo> = {
   accordion: {
-    code: `useAccordion({
+    code: `defineAccordion({
   items: tickets.map((t) => ({
     id: t.id,
     // Any node is a title: your own component.
@@ -62,7 +62,7 @@ const DEMOS: Record<string, CustomDemo> = {
     ),
   },
   select: {
-    code: `useSelect({
+    code: `defineSelect({
   label: 'Assignee',
   items: people.map((p) => ({ value: p.id, label: p.name })),
   // Each option is drawn by your component; item has the row and its live state.
@@ -85,7 +85,7 @@ const DEMOS: Record<string, CustomDemo> = {
     ),
   },
   combobox: {
-    code: `useCombobox({
+    code: `defineCombobox({
   label: 'Reviewers',
   multiple: true,
   items: people,
@@ -118,7 +118,7 @@ const DEMOS: Record<string, CustomDemo> = {
     ),
   },
   tabs: {
-    code: `useTabs({
+    code: `defineTabs({
   label: 'Inbox',
   items: folders,
   render: {
@@ -149,7 +149,7 @@ const DEMOS: Record<string, CustomDemo> = {
     },
   },
   tags: {
-    code: `useTags({
+    code: `defineTags({
   label: 'Labels',
   items: labels,
   onRemove: removeLabel,
@@ -173,7 +173,7 @@ const DEMOS: Record<string, CustomDemo> = {
     },
   },
   calendar: {
-    code: `useCalendar({
+    code: `defineCalendar({
   mode: 'range',
   // Under each day: your content (a price, a dot).
   dayContent: (date) => price(date),
@@ -189,16 +189,17 @@ const DEMOS: Record<string, CustomDemo> = {
 /** The parts of a component and how to swap any of them for your own. */
 export function MakeItYours({ meta, Code }: { meta: ComponentMeta; Code: (p: { label: string; code: string; tone: 'muted' | 'accent' }) => React.ReactElement }): React.ReactElement {
   const demo = DEMOS[meta.name];
-  const name = meta.name.charAt(0).toUpperCase() + meta.name.slice(1);
   const part = meta.slots.find((s) => !['root', 'label', 'description', 'error'].includes(s)) ?? 'root';
-  const generic = `use${meta.displayName.replace(/\s+/g, '')}({
+  // The names the package really exports (meta.pascal): "Number field" is NumberField, not Numberfield.
+  const pascal = meta.pascal ?? meta.displayName.replace(/\s+/g, '');
+  const generic = `define${pascal}({
   // ...your config
   classNames: { ${part}: 'my-${part}' },              // add a class
   styles: { ${part}: { letterSpacing: '0.02em' } },  // inline style
   slotProps: { ${part}: { 'data-test': '${meta.name}-${part}' } },  // any DOM prop
   // Draw it yourself: spread props (ARIA, handlers, refs), then render anything.
   // Parts that repeat (rows, options, tabs, days...) also get item: their data and state.
-  render: { ${part}: ({ props, state, item, children }) => <My${name}Part {...props}>{children}</My${name}Part> },
+  render: { ${part}: ({ props, state, item, children }) => <My${pascal}Part {...props}>{children}</My${pascal}Part> },
 });`;
   return (
     <div className="dx-custom">

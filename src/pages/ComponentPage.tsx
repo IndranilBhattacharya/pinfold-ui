@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ArrowLeft, ArrowRight, BookOpenCheck, ExternalLink, Keyboard as KeyboardIcon, Eye, MousePointerClick, Shapes, Database, Zap, Paintbrush } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpenCheck, ExternalLink, Info, Keyboard as KeyboardIcon, Eye, MousePointerClick, Shapes, Database, Zap, Paintbrush } from 'lucide-react';
 import { defineTable } from '@pinfold/react/table';
 import { defineBadge } from '@pinfold/react/badge';
 import { defineBreadcrumb } from '@pinfold/react/breadcrumb';
@@ -212,6 +212,12 @@ export function ComponentPage({ meta, extra: Extra }: { meta: ComponentMeta; ext
             <Shapes size={15} aria-hidden="true" /> Source <ExternalLink size={12} aria-hidden="true" />
           </a>
         </div>
+        <p className="dx-head__forms">
+          <Info size={15} aria-hidden="true" />
+          <span>
+            <code>define{pascal}</code> works anywhere, Server Components included. <code>use{pascal}</code> is for a client component that needs the controller.
+          </span>
+        </p>
       </header>
 
       {Playground ? (

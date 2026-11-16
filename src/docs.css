@@ -595,7 +595,7 @@ a:not(.pinfold, .pinfold *) { color: inherit; text-decoration: none; }
 .dx-set-in-code { margin: 0.75rem 0 0; line-height: 1.7; }
 
 /* Navbar demo examples */
-.dx-navbar-scroll-demo { position: relative; max-height: 22rem; overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--pinfold-color-border); border-radius: var(--pinfold-radius-md); }
+.dx-navbar-scroll-demo { position: relative; max-height: 22rem; overflow-y: auto; border: 1px solid var(--pinfold-color-border); border-radius: var(--pinfold-radius-md); }
 .dx-navbar-overflow-box { max-width: 48rem; margin: 0 auto; }
 .dx-navbar-hero { padding: 1.5rem 1rem; text-align: center; }
 .dx-navbar-hero h2 { font-size: 1.35rem; font-weight: 600; margin-bottom: 0.5rem; }

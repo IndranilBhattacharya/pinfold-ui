@@ -48,9 +48,9 @@ const Pointer = defineCursor({
   variant: 'dot-ring',
   smoothing: 0.75,
   states: {
-    try: { label: 'Try it', variant: 'ring', scale: 1.6 },
+    try: { label: 'Explore', variant: 'ring', scale: 1.6 },
     copy: { label: 'Copy', variant: 'ring', scale: 1.4 },
-    go: { label: "Let's build", variant: 'ring', scale: 1.8 },
+    go: { label: 'Get started', variant: 'ring', scale: 1.8 },
     read: { label: 'Read', variant: 'ring', scale: 1.3 },
   },
 });
@@ -76,31 +76,35 @@ function Hero() {
   return (
     <section className="dx-hero2" aria-labelledby="hero-title">
       <a className="dx-pill" href={docsHref('introduction')}>
-        <Sparkles size={14} aria-hidden="true" />
+        <span className="dx-pill__tag">v{version}</span>
         <span>
-          v{version} · {COUNT} components · WCAG 2.2 AA
+          {COUNT} components · WCAG 2.2 AA
         </span>
         <ArrowRight size={14} aria-hidden="true" />
       </a>
       <h1 id="hero-title" className="dx-hero2__title">
-        <span>Config in.</span>
-        <span className="dx-hero2__shine">Interfaces out.</span>
+        <span>Build accessible React interfaces</span>
+        <span className="dx-hero2__shine">from a single config.</span>
       </h1>
       <p className="dx-hero2__lede">
-        Pinfold turns one typed object into an accessible React component: data grids, date pickers, command palettes and {COUNT - 3} more. Every part stays yours to restyle.
+        Pinfold is a typed component library for React. Each of its {COUNT} accessible components, from data grids to date pickers, is driven by one configuration object: server-ready, themeable in any colour format, and customisable down to every part.
       </p>
       <div className="dx-hero2__cta" data-cursor="go">
         <Primary label="Get started" href={docsHref('introduction')} endIcon={<ArrowRight size={16} aria-hidden="true" />} />
         <Secondary label="Browse components" href={docsHref('table')} icon={<Boxes size={16} aria-hidden="true" />} />
       </div>
       <InstallChip />
-      <ul className="dx-hero2__trust" aria-label="Works with">
-        {['React 18 and 19', 'Server Components', 'TypeScript', 'Tailwind v3 and v4', 'Zero runtime dependencies'].map((t) => (
-          <li key={t}>
-            <Check size={14} aria-hidden="true" /> {t}
-          </li>
-        ))}
-      </ul>
+      <div className="dx-hero2__works">
+        <p>Works with</p>
+        <ul aria-label="Works with">
+          {([['react', 'React 18 and 19'], ['nextjs', 'Next.js'], ['vite', 'Vite'], ['typescript', 'TypeScript'], ['tailwind', 'Tailwind CSS']] as const).map(([brand, name]) => (
+            <li key={brand}>
+              <Brand name={brand} size={18} mono />
+              <span>{name}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }
@@ -264,7 +268,7 @@ function WriteLess() {
     <section className="dx-band" aria-labelledby="less-title">
       <div className="dx-band__text">
         <p className="dx-kicker">Write less</p>
-        <h2 id="less-title">Describe the component. Skip the scaffolding.</h2>
+        <h2 id="less-title">Describe the interface. Skip the boilerplate.</h2>
         <p>
           Composed components make you rebuild the same tree, with the same classes and the same ARIA, every time. A Pinfold config is data: shorter to write, easy to diff, safe to store, and the shape an agent gets right first time.
         </p>
@@ -453,7 +457,7 @@ function Agents() {
     <section className="dx-band dx-band--ai" aria-labelledby="ai-title">
       <div className="dx-band__text">
         <p className="dx-kicker">For coding agents</p>
-        <h2 id="ai-title">Your agent already knows the API.</h2>
+        <h2 id="ai-title">Give your coding agent the real API.</h2>
         <p>A local MCP server hands your agent the real options of the version you installed: search, full references, JSON Schema and a validator. No guessing, no invented props.</p>
         <ul className="dx-agent-list">
           {(['claude', 'cursor', 'windsurf', 'shadcn'] as const).map((b) => (
@@ -501,8 +505,8 @@ function FinalCta() {
       <span className="dx-final__mark" aria-hidden="true">
         <Mark size={72} />
       </span>
-      <h2 id="final-title">Build the next screen from a config.</h2>
-      <p>Free and open source under the MIT license.</p>
+      <h2 id="final-title">Start building with Pinfold.</h2>
+      <p>Open source under the MIT license, and free to use in any project.</p>
       <div className="dx-hero2__cta" data-cursor="go">
         <Primary label="Get started" href={docsHref('installation')} endIcon={<ArrowRight size={16} aria-hidden="true" />} />
         <Secondary label="Star on GitHub" href="https://github.com/IndranilBhattacharya/pinfold" target="_blank" icon={<Brand name="github" size={16} />} />

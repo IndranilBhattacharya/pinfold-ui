@@ -8,7 +8,7 @@ import {
   Terminal, TextCursorInput, TextSearch, ToggleRight, TriangleAlert, Gauge, RectangleEllipsis, Info, Wind, Blocks,
   type LucideIcon,
 } from 'lucide-react';
-import { siClaude, siCodesandbox, siCursor, siGithub, siJavascript, siNpm, siPnpm, siShadcnui, siStackblitz, siTypescript, siWindsurf, siYarn, siBun } from 'simple-icons';
+import { siClaude, siCodesandbox, siCursor, siGithub, siJavascript, siNextdotjs, siNpm, siPnpm, siReact, siShadcnui, siStackblitz, siTailwindcss, siTypescript, siVite, siWindsurf, siYarn, siBun } from 'simple-icons';
 
 /** One icon per component, used in the navigation, search and page headers. */
 export const COMPONENT_ICONS: Record<string, LucideIcon> = {
@@ -99,6 +99,10 @@ const BRANDS = {
   cursor: siCursor,
   windsurf: siWindsurf,
   shadcn: siShadcnui,
+  react: siReact,
+  nextjs: siNextdotjs,
+  vite: siVite,
+  tailwind: siTailwindcss,
 } as const;
 export type BrandName = keyof typeof BRANDS;
 

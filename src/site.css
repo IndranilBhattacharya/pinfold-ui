@@ -187,6 +187,13 @@ a:not(.pinfold, .pinfold *) { color: inherit; }
 }
 .dx-head__lede { max-inline-size: 70ch; margin: 1rem 0 1.25rem; font-size: 1.125rem; line-height: 1.65; color: var(--pinfold-color-text-muted); }
 .dx-head__chips { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+/* A demo app shell sits inside a docs page that scrolls: its regions hand scrolling on. A real app shell fills
+   the screen, where the library keeps the regions contained (and stops pull-to-refresh). */
+.dx-stage--live .pinfold-appshell,
+.dx-stage--live .pinfold-appshell :is(.pinfold-appshell__main, .pinfold-appshell__sidebar, .pinfold-appshell__aside) { overscroll-behavior: auto; }
+.dx-head__forms { display: flex; align-items: flex-start; gap: 0.55rem; max-inline-size: 70ch; margin: 1.1rem 0 0; font-size: 0.875rem; line-height: 1.6; color: var(--pinfold-color-text-muted); }
+.dx-head__forms svg { flex-shrink: 0; margin-block-start: 0.2rem; color: var(--pinfold-color-accent); }
+.dx-head__forms code { padding: 0.08em 0.38em; font-size: 0.9em; color: var(--pinfold-color-text); background: color-mix(in oklab, var(--pinfold-color-text) 7%, transparent); border-radius: 6px; }
 .dx-chipcode {
   display: inline-flex;
   align-items: center;
@@ -432,7 +439,7 @@ a:not(.pinfold, .pinfold *) { color: inherit; }
 }
 :root[data-pinfold-theme='light'] .dx-aurora { opacity: 0.55; }
 
-.dx-hero2 { display: flex; flex-direction: column; align-items: center; max-inline-size: 64rem; margin-inline: auto; padding: clamp(4rem, 10vw, 7.5rem) 0 3rem; text-align: center; }
+.dx-hero2 { display: flex; flex-direction: column; align-items: center; max-inline-size: 72rem; margin-inline: auto; padding: clamp(3.5rem, 8vw, 6.5rem) 0 3rem; text-align: center; }
 .dx-pill {
   display: inline-flex;
   align-items: center;
@@ -450,9 +457,8 @@ a:not(.pinfold, .pinfold *) { color: inherit; }
   box-shadow: 0 0 0 4px color-mix(in oklab, var(--pinfold-primary-500) 8%, transparent);
   transition: border-color 0.2s;
 }
-.dx-pill svg:first-child { color: var(--pinfold-color-accent); }
 .dx-pill:hover { border-color: color-mix(in oklab, var(--pinfold-primary-500) 55%, transparent); }
-.dx-hero2__title { display: flex; flex-direction: column; margin: 0; font-size: clamp(3rem, 1.6rem + 6.4vw, 6.25rem); font-weight: 720; line-height: 0.98; letter-spacing: -0.055em; }
+.dx-hero2__title { display: flex; flex-direction: column; align-items: center; margin: 0; font-size: clamp(2.25rem, 1.1rem + 4.2vw, 4.25rem); font-weight: 680; line-height: 1.06; letter-spacing: -0.042em; text-wrap: balance; }
 .dx-hero2__shine {
   padding-block-end: 0.08em;
   background: linear-gradient(100deg, #c4b5fd 0%, #a78bfa 25%, #60a5fa 50%, #f0abfc 75%, #c4b5fd 100%);
@@ -464,7 +470,7 @@ a:not(.pinfold, .pinfold *) { color: inherit; }
 }
 :root[data-pinfold-theme='light'] .dx-hero2__shine { background-image: linear-gradient(100deg, #6d28d9 0%, #7c3aed 25%, #2563eb 50%, #c026d3 75%, #6d28d9 100%); }
 @keyframes dx-shine { to { background-position: -200% 0; } }
-.dx-hero2__lede { max-inline-size: 42rem; margin: 1.75rem 0 2.25rem; font-size: clamp(1.05rem, 0.95rem + 0.4vw, 1.25rem); line-height: 1.65; color: var(--pinfold-color-text-muted); text-wrap: balance; }
+.dx-hero2__lede { max-inline-size: 44rem; margin: 1.5rem 0 2.25rem; font-size: clamp(1.05rem, 0.95rem + 0.4vw, 1.25rem); line-height: 1.65; color: var(--pinfold-color-text-muted); text-wrap: balance; }
 .dx-hero2__cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; }
 .dx-install { margin-block-start: 1.1rem; font-family: var(--pinfold-font-mono); }
 .dx-install code { font-size: 0.9rem; }
@@ -681,3 +687,11 @@ a:not(.pinfold, .pinfold *) { color: inherit; }
 .dx-examples-list > *, .dx-example, .dx-codeblock, .dx-section > *, .dx-play > *, .dx-band__code > * { min-inline-size: 0; }
 .dx-codeblock { max-inline-size: 100%; }
 .dx-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
+
+/* Hero details: a version tag in the pill, and a calm "Works with" row. */
+.dx-pill__tag { padding: 0.1rem 0.5rem; font-size: 0.75rem; font-weight: 650; color: var(--pinfold-color-accent-contrast); background: var(--pinfold-color-accent); border-radius: 999px; }
+.dx-hero2__works { display: grid; justify-items: center; gap: 0.85rem; margin-block-start: 3rem; }
+.dx-hero2__works > p { margin: 0; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dx-label); }
+.dx-hero2__works ul { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem 2rem; margin: 0; padding: 0; list-style: none; }
+.dx-hero2__works li { display: inline-flex; align-items: center; gap: 0.55rem; font-size: 0.9rem; font-weight: 500; color: var(--pinfold-color-text-muted); }
+.dx-hero2__works li svg { color: var(--pinfold-color-text); opacity: 0.8; }

@@ -8,7 +8,7 @@ import {
   Terminal, TextCursorInput, TextSearch, ToggleRight, TriangleAlert, Gauge, RectangleEllipsis, Info, Wind, Blocks,
   type LucideIcon,
 } from 'lucide-react';
-import { siClaude, siCodesandbox, siCursor, siGithub, siJavascript, siNextdotjs, siNpm, siPnpm, siReact, siShadcnui, siStackblitz, siTailwindcss, siTypescript, siVite, siWindsurf, siYarn, siBun } from 'simple-icons';
+import { BRANDS, type BrandName } from './brand-icons';
 
 /** One icon per component, used in the navigation, search and page headers. */
 export const COMPONENT_ICONS: Record<string, LucideIcon> = {
@@ -84,27 +84,7 @@ export function PageIcon({ name, size = 16 }: { name: string; size?: number }) {
   return <Icon size={size} strokeWidth={1.75} aria-hidden="true" />;
 }
 
-/* Brand marks (simple-icons, CC0), drawn in their own colour or the text colour. */
-const BRANDS = {
-  github: siGithub,
-  stackblitz: siStackblitz,
-  codesandbox: siCodesandbox,
-  typescript: siTypescript,
-  javascript: siJavascript,
-  npm: siNpm,
-  pnpm: siPnpm,
-  yarn: siYarn,
-  bun: siBun,
-  claude: siClaude,
-  cursor: siCursor,
-  windsurf: siWindsurf,
-  shadcn: siShadcnui,
-  react: siReact,
-  nextjs: siNextdotjs,
-  vite: siVite,
-  tailwind: siTailwindcss,
-} as const;
-export type BrandName = keyof typeof BRANDS;
+export { BRANDS, type BrandName };
 
 /** Brands whose own colour reads on both the light and the dark site; the rest follow the text colour. */
 const COLOURED = new Set<BrandName>(['stackblitz', 'typescript', 'javascript', 'npm', 'pnpm', 'yarn', 'claude']);

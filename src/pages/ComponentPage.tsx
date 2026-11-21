@@ -179,7 +179,7 @@ export function PrevNext({ name }: { name: string }) {
   );
 }
 
-export function ComponentPage({ meta, extra: Extra }: { meta: ComponentMeta; extra?: () => React.ReactElement }) {
+export function ComponentPage({ meta, extra: Extra }: { meta: ComponentMeta; extra?: React.ComponentType }) {
   const Playground = playgroundFor(meta.name);
   const pascal = meta.pascal ?? meta.displayName.split(' ')[0];
   const importLine = `import { define${pascal} } from '${meta.importPath}';`;

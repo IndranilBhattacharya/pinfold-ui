@@ -21,7 +21,9 @@ import { defineProgress } from '@pinfold/react/progress';
 import { defineAccordion } from '@pinfold/react/accordion';
 import { ORDERS, STATUS_TONE, type Order } from '../demo/harbor';
 import { SiteToasts } from '../playground/site-toast';
-import { CodeBlock, copyText } from '../site/CodeBlock';
+import { copyText } from '../site/code-context';
+
+const CodeBlock = React.lazy(() => import('../site/CodeBlock').then((m) => ({ default: m.CodeBlock })));
 import { Brand, PageIcon } from '../site/icons';
 import { Mark } from '../site/Logo';
 import { docsHref } from '../site/router';
@@ -83,11 +85,12 @@ function Hero() {
         <ArrowRight size={14} aria-hidden="true" />
       </a>
       <h1 id="hero-title" className="dx-hero2__title">
+        <span style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>Pinfold — </span>
         <span>Configure once.</span>
         <span className="dx-hero2__shine">Ship everywhere.</span>
       </h1>
       <p className="dx-hero2__lede">
-        The typed React component library driven by a single config object. Fully accessible, endlessly themeable, zero friction.
+        The typed React UI component library driven by a single config object. Fully accessible, endlessly themeable, zero runtime dependencies.
       </p>
       <div className="dx-hero2__cta" data-cursor="go">
         <Primary label="Get started" href={docsHref('introduction')} endIcon={<ArrowRight size={16} aria-hidden="true" />} />
@@ -284,8 +287,10 @@ function WriteLess() {
         <p className="dx-band__note">The tinted lines are the Pinfold part: what you write for the library, as opposed to your app.</p>
       </div>
       <div className="dx-band__code" data-cursor="read">
-        <CodeBlock code={CONFIGURED} file="Faq" />
-        <More className="dx-band__other" items={[{ id: 'composed', title: `The same FAQ, composed (${composed} lines)`, content: <CodeBlock code={COMPOSED} file="Faq.composed" langToggle={false} showPinfold={false} /> }]} />
+        <React.Suspense fallback={<div className="dx-loading" aria-busy="true" />}>
+          <CodeBlock code={CONFIGURED} file="Faq" />
+          <More className="dx-band__other" items={[{ id: 'composed', title: `The same FAQ, composed (${composed} lines)`, content: <CodeBlock code={COMPOSED} file="Faq.composed" langToggle={false} showPinfold={false} /> }]} />
+        </React.Suspense>
       </div>
     </section>
   );
@@ -470,8 +475,10 @@ function Agents() {
         <Small label="Set up your agent" href={docsHref('ai')} endIcon={<ArrowRight size={14} aria-hidden="true" />} />
       </div>
       <div className="dx-band__code" data-cursor="copy">
-        <CodeBlock code="claude mcp add pinfold -- npx -y pinfold mcp" language="bash" />
-        <CodeBlock language="json" title=".cursor/mcp.json" code={`{\n  "mcpServers": {\n    "pinfold": { "command": "npx", "args": ["-y", "pinfold", "mcp"] }\n  }\n}`} />
+        <React.Suspense fallback={<div className="dx-loading" aria-busy="true" />}>
+          <CodeBlock code="claude mcp add pinfold -- npx -y pinfold mcp" language="bash" />
+          <CodeBlock language="json" title=".cursor/mcp.json" code={`{\n  "mcpServers": {\n    "pinfold": { "command": "npx", "args": ["-y", "pinfold", "mcp"] }\n  }\n}`} />
+        </React.Suspense>
       </div>
     </section>
   );

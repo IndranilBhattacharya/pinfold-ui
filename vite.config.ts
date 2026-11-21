@@ -46,12 +46,30 @@ function pinfoldArtifacts(): Plugin {
   };
 }
 
+/** Preload primary variable font subsets to eliminate the font discovery chain delay. */
+function preloadFonts(): Plugin {
+  return {
+    name: 'pinfold:preload-fonts',
+    transformIndexHtml(html, ctx) {
+      if (!ctx.bundle) return html;
+      const links: string[] = [];
+      for (const fileName of Object.keys(ctx.bundle)) {
+        if (/geist-(latin|mono-latin)-wght-normal-[^.]+\.woff2$/.test(fileName)) {
+          links.push(`<link rel="preload" href="/${fileName}" as="font" type="font/woff2" crossorigin>`);
+        }
+      }
+      if (!links.length) return html;
+      return html.replace('</head>', `  ${links.join('\n    ')}\n  </head>`);
+    },
+  };
+}
+
 // Consumes the sibling library repo's *source* (../pinfold) under the real public
 // specifiers, so every snippet on the page is copy-pasteable and demos never
 // hit a stale build. Exact-match regexes keep '@pinfold/react' from swallowing
 // '@pinfold/react/accordion'.
 export default defineConfig(({ mode }) => ({
-  plugins: [react(), pinfoldArtifacts()],
+  plugins: [react(), pinfoldArtifacts(), preloadFonts()],
   resolve: {
     // The library source lives in ../pinfold, which has its own node_modules.
     // Force one copy of React, or hooks break ("Invalid hook call").

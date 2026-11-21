@@ -4,16 +4,25 @@ import { DEFAULT_PALETTE, PinfoldProvider, useLiveTheme, type Palette } from './
 import { SiteMode, SitePalette } from './playground/site-context';
 import { SiteToasts } from './playground/site-toast';
 import { SiteShell, type Mode } from './site/Shell';
-import { LangProvider } from './site/CodeBlock';
+import { LangProvider } from './site/code-context';
 import { docsPage, navigate, useLinkInterception, useRoute } from './site/router';
 import { guideFor, metaFor } from './site/nav';
-import { ComponentPage } from './pages/ComponentPage';
-import { AccordionExtras } from './pages/AccordionExtras';
-import { GUIDE_PAGES } from './pages/guides';
-import { Theming } from './pages/Theming';
-import { NotFound } from './pages/NotFound';
+import { Landing } from './pages/Landing';
 
-const Landing = React.lazy(() => import('./pages/Landing').then((m) => ({ default: m.Landing })));
+const ComponentPage = React.lazy(() => import('./pages/ComponentPage').then((m) => ({ default: m.ComponentPage })));
+const AccordionExtras = React.lazy(() => import('./pages/AccordionExtras').then((m) => ({ default: m.AccordionExtras })));
+const Theming = React.lazy(() => import('./pages/Theming').then((m) => ({ default: m.Theming })));
+const NotFound = React.lazy(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })));
+const GuideView = React.lazy(() =>
+  import('./pages/guides').then((m) => ({
+    default: ({ page }: { page: string }) => {
+      const Comp = m.GUIDE_PAGES[page];
+      return Comp ? <Comp /> : null;
+    },
+  }))
+);
+
+const GUIDE_PAGE_NAMES = new Set(['introduction', 'installation', 'cli', 'tailwind', 'shadcn', 'ai', 'accessibility']);
 
 function readMode(): Mode {
   try {
@@ -25,7 +34,7 @@ function readMode(): Mode {
   return matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
 }
 
-const TITLE = 'Pinfold: accessible React components, configured';
+const TITLE = 'Pinfold — Config-Driven React UI Component Library';
 
 export function App() {
   const [mode, setModeState] = React.useState<Mode>(readMode);
@@ -55,10 +64,8 @@ export function App() {
   if (route === '') content = <Landing />;
   else if (meta) content = <ComponentPage meta={meta} extra={meta.name === 'accordion' ? AccordionExtras : undefined} />;
   else if (page === 'theming') content = <Theming palette={palette} onPalette={setPalette} theme={theme} pack={pack} onPack={setPack} />;
-  else if (page && GUIDE_PAGES[page]) {
-    const GuidePage = GUIDE_PAGES[page];
-    content = <GuidePage />;
-  } else content = <NotFound />;
+  else if (page && GUIDE_PAGE_NAMES.has(page)) content = <GuideView page={page} />;
+  else content = <NotFound />;
 
   return (
     <SiteMode.Provider value={mode}>

@@ -45,7 +45,7 @@ function measure(): number {
     const r = el.getBoundingClientRect();
     if (r.width && r.height) bottom = Math.max(bottom, r.bottom + window.scrollY + 16);
   }
-  return bottom;
+  return bottom + 4;
 }
 
 function useReportHeight(enabled: boolean) {
@@ -56,7 +56,7 @@ function useReportHeight(enabled: boolean) {
     const send = () => {
       frame = 0;
       const px = Math.ceil(measure());
-      if (Math.abs(px - last) < 2) return;
+      if (Math.abs(px - last) < 4) return;
       last = px;
       postToPage({ type: 'height', px });
     };

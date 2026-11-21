@@ -88,7 +88,7 @@ export interface Examples {
   onChange?: (value: string) => void;
 }
 
-const ExamplePick = defineToggle({ variant: 'segmented', size: 'sm', selection: 'single' });
+const ExamplePick = defineToggle({ variant: 'segmented', size: 'sm', selection: 'single', tone: 'neutral' });
 
 /** Which example the preview shows. */
 export function ExampleSwitch({ page, examples }: { page: PageApi; examples: Examples }) {
@@ -136,12 +136,12 @@ export function Page({ meta, page, define, spec: given, inactive, inherit = [], 
     <>
     <div className={wide ? 'dx-play dx-play--wide' : 'dx-play'}>
       <div className="dx-play__editor">
-        {demo}
-        <ObjectOptions meta={meta} options={page.options} setOption={page.setOption} />
-        <SetInCode meta={meta} inputs={page.inputs} />
+        {demo ? <div className="dx-demo-inputs">{demo}</div> : null}
         <OptionControls controls={page.controls} options={page.options} setOption={page.setOption} inactive={inactive} inherit={inherit} autoLabel={autoLabel ?? autoFromEnv(page.env)} valueLabel={valueLabel} />
+        <ObjectOptions meta={meta} options={page.options} setOption={page.setOption} />
         <EnvControls env={page.env} setEnv={page.setEnv} provider={provider} motion={motion} />
         <Tool label="Reset" onClick={page.reset} />
+        <SetInCode meta={meta} inputs={page.inputs} />
       </div>
       <div className="dx-play__preview">
         {examples ? <ExampleSwitch page={page} examples={examples} /> : null}

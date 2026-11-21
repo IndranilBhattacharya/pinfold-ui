@@ -42,7 +42,7 @@ const Volume = defineSlider({ size: 'sm', min: 0, max: 100 });
 const Stars = defineRating({ size: 'sm' });
 const Status = defineBadge({ variant: 'soft', size: 'sm' });
 const People = defineAvatar({ size: 'sm' });
-const Views = defineTabs({ variant: 'segmented', size: 'sm' });
+const Views = defineTabs({ variant: 'segmented', size: 'sm', tone: 'neutral' });
 const Meter = defineProgress({ size: 'sm' });
 const Install = defineButton({ variant: 'outline', tone: 'neutral', size: 'lg' });
 const More = defineAccordion({ variant: 'ghost' });
@@ -477,7 +477,7 @@ function Agents() {
       <div className="dx-band__code" data-cursor="copy">
         <React.Suspense fallback={<div className="dx-loading" aria-busy="true" />}>
           <CodeBlock code="claude mcp add pinfold -- npx -y pinfold mcp" language="bash" />
-          <CodeBlock language="json" title=".cursor/mcp.json" code={`{\n  "mcpServers": {\n    "pinfold": { "command": "npx", "args": ["-y", "pinfold", "mcp"] }\n  }\n}`} />
+          <CodeBlock language="json" title=".cursor/mcp.json" code={`{\n  "mcpServers": {\n    "pinfold": {\n      "command": "npx",\n      "args": ["-y", "pinfold", "mcp"]\n    }\n  }\n}`} />
         </React.Suspense>
       </div>
     </section>

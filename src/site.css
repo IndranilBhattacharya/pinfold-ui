@@ -350,7 +350,7 @@ a:not(.pinfold, .pinfold *) { color: inherit; }
 
 /* Playground placement inside the new layout. */
 .dx-play { gap: 1.25rem; }
-.dx-play__editor { padding: 1.1rem; background: var(--dx-panel); border: 1px solid var(--dx-line); border-radius: 16px; align-self: start; position: sticky; inset-block-start: calc(var(--dx-bar-h) + 1rem); max-block-size: calc(100dvh - var(--dx-bar-h) - 2rem); overflow: auto; scrollbar-width: thin; }
+.dx-play__editor { padding: 1.25rem 1.4rem; background: var(--dx-panel); border: 1px solid var(--dx-line); border-radius: 16px; align-self: start; position: sticky; inset-block-start: calc(var(--dx-bar-h) + 1rem); max-block-size: calc(100dvh - var(--dx-bar-h) - 2rem); overflow: auto; scrollbar-width: thin; }
 @media (max-width: 900px) { .dx-play__editor { position: static; max-block-size: none; } }
 
 /* ------------------------------------------------------------------------------- palette studio */
@@ -637,13 +637,15 @@ a:not(.pinfold, .pinfold *) { color: inherit; }
 .dx-play__editor .dx-opt > *, .dx-play__editor .dx-field > * { inline-size: 100%; max-inline-size: 100%; }
 .dx-play__editor .dx-opt--check { order: 2; align-self: center; padding: 0; }
 .dx-play__editor .dx-opts > .dx-opt--check { order: 2; }
-.dx-play__editor .dx-fieldset { display: grid; gap: 0.9rem; margin: 0.4rem 0 0; padding: 1rem 0 0; border: 0; border-block-start: 1px solid var(--dx-line); }
-.dx-play__editor .dx-fieldset > legend { float: left; inline-size: 100%; margin: 0 0 0.25rem; padding: 0; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dx-label); }
+.dx-play__editor .dx-fieldset { display: grid; gap: 1.1rem; margin: 0.5rem 0 0; padding: 1.1rem 0 0; border: 0; border-block-start: 1px solid var(--dx-line); }
+.dx-play__editor .dx-fieldset > legend { float: left; inline-size: 100%; margin: 0 0 0.5rem; padding: 0; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dx-label); }
 .dx-play__editor .dx-silent { padding-block-start: 0.85rem; border-block-start: 1px dashed var(--dx-line-strong); }
 .dx-play__editor .dx-inactive { display: grid; gap: 0.35rem; margin: 0; padding: 0.75rem 0.9rem; list-style: none; font-size: 0.75rem; line-height: 1.5; color: var(--pinfold-color-text-muted); background: color-mix(in oklab, var(--pinfold-warning-500) 7%, transparent); border: 1px solid color-mix(in oklab, var(--pinfold-warning-500) 22%, transparent); border-radius: 10px; }
 .dx-play__editor .dx-inactive b { color: var(--pinfold-color-text); font-weight: 600; }
 .dx-play__editor > .pinfold-button:last-child { justify-self: start; }
-.dx-play--wide > .dx-play__editor { grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); position: static; max-block-size: none; }
+.dx-play--wide > .dx-play__editor { order: 2; position: static; max-block-size: none; overflow: visible; padding: 1.35rem 1.6rem; grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr)); gap: 1.25rem 1.5rem; }
+.dx-play__editor .pinfold-accordion { grid-column: 1 / -1; margin-block: 0.25rem 0.5rem; }
+.dx-play__editor .dx-object-options { grid-column: 1 / -1; margin-block: 0.5rem 0.25rem; border-block-start: 1px solid var(--dx-line); padding-block-start: 0.75rem; }
 .dx-play__preview { display: grid; gap: 1rem; min-inline-size: 0; align-content: start; }
 .dx-frame__bar { display: flex !important; flex-wrap: wrap; align-items: end; gap: 0.5rem; }
 .dx-frame__bar > :first-child { margin-inline-end: auto; }
@@ -656,12 +658,11 @@ a:not(.pinfold, .pinfold *) { color: inherit; }
 .dx-play__code { min-inline-size: 0; }
 .dx-section > :not(.dx-p) + .dx-p, .dx-section > .dx-p + .pinfold-tabs, .dx-section > .dx-codeblock + .pinfold-alert, .dx-step__body > * + * { margin-block-start: 1.25rem; }
 .dx-play.dx-play--wide { grid-template-columns: minmax(0, 1fr); }
-.dx-play--wide > .dx-play__editor { order: 2; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); }
 .dx-play--wide > .dx-play__editor > :not(.dx-opt):not(.dx-field) { grid-column: 1 / -1; }
-.dx-play--wide > .dx-play__editor .dx-opts { grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); }
+.dx-play--wide > .dx-play__editor .dx-opts { grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr)); gap: 1.25rem 1.5rem; }
 .dx-hint { font-size: 0.8125rem; line-height: 1.55; opacity: 1; color: var(--pinfold-color-text-muted); }
-.dx-set-in-code { margin: 0; padding: 0.7rem 0.85rem; font-size: 0.78rem; background: color-mix(in oklab, var(--pinfold-color-text) 4%, transparent); border-radius: 10px; }
-.dx-set-in-code code { font-size: 0.75rem; }
+.dx-set-in-code { grid-column: 1 / -1; margin: 0.75rem 0 0; padding: 0.65rem 0.95rem; font-size: 0.76rem; line-height: 1.55; color: var(--pinfold-color-text-muted); background: color-mix(in oklab, var(--pinfold-color-text) 3%, transparent); border: 1px solid var(--dx-line); border-radius: var(--pinfold-radius-md, 8px); }
+.dx-set-in-code code { font-size: 0.73rem; padding: 0.1rem 0.35rem; color: var(--pinfold-color-text); background: color-mix(in oklab, var(--pinfold-color-text) 5%, transparent); border-radius: 4px; }
 /* Labels from the older stylesheet, on the same readable grey. */
 .dx-label, .dx-card figcaption, .dx-fieldset > legend, .dx-hint { color: var(--dx-label) !important; }
 .dx-ramp__name { color: var(--dx-label); }

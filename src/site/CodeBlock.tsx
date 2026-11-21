@@ -12,7 +12,7 @@ import { type CodeLang, LangProvider, useLang, copyText, CopyButton } from './co
 export { type CodeLang, LangProvider, useLang, copyText, CopyButton };
 
 const Tool = defineButton({ variant: 'ghost', tone: 'neutral', size: 'sm', iconOnly: true });
-const Lang = defineToggle({ size: 'sm', variant: 'segmented', selection: 'single' });
+const Lang = defineToggle({ size: 'sm', variant: 'segmented', selection: 'single', tone: 'neutral' });
 const More = defineButton({ variant: 'ghost', tone: 'neutral', size: 'sm', fullWidth: true });
 
 function Lines({ lines, numbers }: { lines: Line[]; numbers: boolean }) {
@@ -89,8 +89,8 @@ export function CodeBlock({ code, language = 'tsx', file, title, langToggle, sho
               value={[active]}
               onChange={(v) => Array.isArray(v) && v[0] && setLang(v[0] as CodeLang)}
               items={[
-                { value: 'ts', label: 'TypeScript', icon: <LangIcon lang="ts" size={14} /> },
-                { value: 'js', label: 'JavaScript', icon: <LangIcon lang="js" size={14} /> },
+                { value: 'ts', label: 'TypeScript', icon: <LangIcon lang="ts" size={14} />, iconOnly: true },
+                { value: 'js', label: 'JavaScript', icon: <LangIcon lang="js" size={14} />, iconOnly: true },
               ]}
             />
           ) : null}

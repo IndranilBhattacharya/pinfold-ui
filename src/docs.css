@@ -607,7 +607,8 @@ a:not(.pinfold, .pinfold *) { color: inherit; text-decoration: none; }
 
 /* In the frame: only the live preview, edge to edge. */
 .dx-preview-doc { background-image: none; }
-body.dx-preview-doc:not(.dx-preview-fixed) { overflow: hidden !important; }
+body.dx-preview-doc:not(.dx-preview-fixed):not(.dx-preview-standalone) { overflow: hidden !important; }
+body.dx-preview-standalone { overflow: auto !important; min-height: 100vh; }
 .dx-preview-doc .dx-play { display: block; }
 .dx-preview-doc .dx-play__editor,
 .dx-preview-doc .dx-play__preview > :not(.dx-stage) { display: none !important; }

@@ -87,7 +87,24 @@ function PreviewRoot() {
     window.addEventListener('message', onMessage);
     postToPage({ type: 'ready' });
     // Opened on its own (a new tab): no page to talk to, so use the site defaults.
-    if (window.parent === window) setSite({ mode: matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark', palette: DEFAULT_PALETTE });
+    if (window.parent === window) {
+      document.documentElement.classList.add('dx-preview-standalone');
+      document.body.classList.add('dx-preview-standalone');
+      if (route) document.title = `${route.charAt(0).toUpperCase() + route.slice(1)} preview · Pinfold`;
+      const params = new URLSearchParams(location.search);
+      let initialMode: 'light' | 'dark' = 'dark';
+      const paramMode = params.get('mode');
+      if (paramMode === 'light' || paramMode === 'dark') {
+        initialMode = paramMode;
+      } else {
+        try {
+          const saved = localStorage.getItem('pinfold-mode');
+          if (saved === 'light' || saved === 'dark') initialMode = saved;
+          else if (matchMedia('(prefers-color-scheme: light)').matches) initialMode = 'light';
+        } catch {}
+      }
+      setSite({ mode: initialMode, palette: DEFAULT_PALETTE });
+    }
     return () => window.removeEventListener('message', onMessage);
   }, []);
   const mode = site?.mode ?? 'dark';

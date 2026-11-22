@@ -24,7 +24,12 @@ const FIXED_PX = 600;
 const MIN_PX = 160;
 
 const routeNow = () => docsPage(readRoute()) ?? 'landing';
-const frameUrl = (route: string, name: string) => `${import.meta.env.BASE_URL}preview.html${location.search}#/${route}/${name}`;
+const frameUrl = (route: string, name: string, mode?: string) => {
+  const params = new URLSearchParams(location.search);
+  if (mode) params.set('mode', mode);
+  const search = params.toString() ? `?${params.toString()}` : '';
+  return `${import.meta.env.BASE_URL}preview.html${search}#/${route}/${name}`;
+};
 
 /**
  * The page side of a preview: an isolated document (`preview.html`) that runs the same page with the
@@ -47,6 +52,14 @@ export function PreviewFrame({ env, setEnv, name = 'main' }: { env: Env; setEnv?
   const [dragWidth, setDragWidth] = React.useState<number | null>(null);
   // The address is read once per load: later changes travel as messages, so the frame never reloads.
   const src = React.useMemo(() => frameUrl(route, name), [route, name, reloads]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [openUrl, setOpenUrl] = React.useState(() => frameUrl(route, name, mode));
+
+  React.useEffect(() => {
+    const update = () => setOpenUrl(frameUrl(route, name, mode));
+    update();
+    window.addEventListener('pinfold:state', update);
+    return () => window.removeEventListener('pinfold:state', update);
+  }, [route, name, mode]);
 
   const post = React.useCallback((message: unknown) => frame.current?.contentWindow?.postMessage(message, location.origin), []);
 
@@ -128,7 +141,19 @@ export function PreviewFrame({ env, setEnv, name = 'main' }: { env: Env; setEnv?
             setReloads((n) => n + 1);
           }}
         />
-        <Action label="Open the preview in a new tab" icon={<ExternalLink size={15} aria-hidden="true" />} href={src} target="_blank" rel="noopener" />
+        <Action
+          label="Open the preview in a new tab"
+          icon={<ExternalLink size={15} aria-hidden="true" />}
+          href={openUrl}
+          target="_blank"
+          rel="noopener"
+          onPointerDown={() => setOpenUrl(frameUrl(route, name, mode))}
+          onClick={(e) => {
+            const current = frameUrl(route, name, mode);
+            setOpenUrl(current);
+            e.currentTarget.setAttribute('href', current);
+          }}
+        />
       </div>
       <div ref={box} className="dx-frame__box" style={{ width: width ? `min(100%, ${width}px)` : '100%' }}>
         {!painted ? <Loading className="dx-frame__loading" dimensions={{ height }} /> : null}

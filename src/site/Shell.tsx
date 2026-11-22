@@ -1,21 +1,35 @@
-import * as React from 'react';
-import { ArrowUpRight, BookOpen, Bot, Boxes, FileText, Menu as MenuIcon, Moon, Package, PanelLeft, PanelLeftClose, PanelLeftOpen, Search, Sun } from 'lucide-react';
-import { defineAppShell } from '@pinfold/react/appshell';
-import { defineNavbar } from '@pinfold/react/navbar';
-import { defineNavMenu } from '@pinfold/react/navmenu';
-import { defineSidebar } from '@pinfold/react/sidebar';
-import { defineCommand } from '@pinfold/react/command';
-import { defineButton } from '@pinfold/react/button';
-import { defineKbd } from '@pinfold/react/kbd';
-import { defineBadge } from '@pinfold/react/badge';
-import { defineScrollArea } from '@pinfold/react/scrollarea';
-import { defineTooltip } from '@pinfold/react/tooltip';
-import { version } from '@pinfold/core';
-import { COMPONENT_GROUPS, COMPONENTS, GUIDES, groupOf, metaFor } from './nav';
-import { Brand, PageIcon } from './icons';
-import { Mark } from './Logo';
-import { docsHref, href } from './router';
-import { Toc } from './Toc';
+import * as React from "react";
+import {
+  ArrowUpRight,
+  BookOpen,
+  Bot,
+  Boxes,
+  FileText,
+  Menu as MenuIcon,
+  Moon,
+  Package,
+  PanelLeft,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Search,
+  Sun,
+} from "lucide-react";
+import { defineAppShell } from "@pinfold/react/appshell";
+import { defineNavbar } from "@pinfold/react/navbar";
+import { defineNavMenu } from "@pinfold/react/navmenu";
+import { defineSidebar } from "@pinfold/react/sidebar";
+import { defineCommand } from "@pinfold/react/command";
+import { defineButton } from "@pinfold/react/button";
+import { defineKbd } from "@pinfold/react/kbd";
+import { defineBadge } from "@pinfold/react/badge";
+import { defineScrollArea } from "@pinfold/react/scrollarea";
+import { defineTooltip } from "@pinfold/react/tooltip";
+import { version } from "@pinfold/core";
+import { COMPONENT_GROUPS, COMPONENTS, GUIDES, groupOf, metaFor } from "./nav";
+import { Brand, PageIcon } from "./icons";
+import { Mark } from "./Logo";
+import { docsHref, href } from "./router";
+import { Toc } from "./Toc";
 
 const REPO = "https://github.com/IndranilBhattacharya/pinfold";
 const NPM = "https://www.npmjs.com/package/@pinfold/react";
@@ -35,7 +49,11 @@ const DocsShell = defineAppShell({
   sidebarCollapsible: true,
   autoSaveId: "pinfold-docs",
   closeOnNavigate: true,
-  dimensions: { sidebarWidth: 272, sidebarCollapsedWidth: '3.5rem', asideWidth: 232 },
+  dimensions: {
+    sidebarWidth: 272,
+    sidebarCollapsedWidth: "3.5rem",
+    asideWidth: 232,
+  },
 });
 const LandingTopBar = defineNavbar({
   variant: "floating",
@@ -460,22 +478,36 @@ export function SiteShell({
         sidebar={({ collapsed, drawer }) => (
           <div className="dx-docsnav">
             {!drawer && (
-              <div className={`dx-docsnav__header${collapsed ? ' dx-docsnav__header--collapsed' : ''}`}>
-                {!collapsed && <span className="dx-docsnav__title">Documentation</span>}
+              <div
+                className={`dx-docsnav__header${collapsed ? " dx-docsnav__header--collapsed" : ""}`}
+              >
+                {!collapsed && (
+                  <span className="dx-docsnav__title">Documentation</span>
+                )}
                 <NavTooltip
-                  content={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                  content={collapsed ? "Expand sidebar" : "Collapse sidebar"}
                   placement="end"
                   trigger={
                     <button
                       type="button"
-                      className={`dx-docsnav__toggle${collapsed ? ' dx-docsnav__toggle--rail' : ''}`}
+                      className={`dx-docsnav__toggle${collapsed ? " dx-docsnav__toggle--rail" : ""}`}
                       onClick={toggleSidebar}
-                      aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                      aria-label={
+                        collapsed ? "Expand sidebar" : "Collapse sidebar"
+                      }
                     >
                       {collapsed ? (
-                        <PanelLeftOpen size={16} strokeWidth={1.8} aria-hidden="true" />
+                        <PanelLeftOpen
+                          size={16}
+                          strokeWidth={1.8}
+                          aria-hidden="true"
+                        />
                       ) : (
-                        <PanelLeftClose size={15} strokeWidth={1.8} aria-hidden="true" />
+                        <PanelLeftClose
+                          size={15}
+                          strokeWidth={1.8}
+                          aria-hidden="true"
+                        />
                       )}
                     </button>
                   }

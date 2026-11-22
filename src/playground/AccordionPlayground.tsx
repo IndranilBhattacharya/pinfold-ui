@@ -104,60 +104,7 @@ function prompt(items: unknown, options: Record<string, unknown>, env: Env) {
     .join('\n');
 }
 
-/** POST a small Vite + React project to StackBlitz (needs the packages on npm). */
-function openStackBlitz(items: unknown, options: Record<string, unknown>, env: Env) {
-  const files: Record<string, string> = {
-    'package.json': JSON.stringify(
-      {
-        name: 'pinfold-playground',
-        private: true,
-        type: 'module',
-        scripts: { dev: 'vite' },
-        dependencies: { '@pinfold/react': 'latest', '@pinfold/css': 'latest', react: '^19', 'react-dom': '^19' },
-        devDependencies: { vite: '^7', '@vitejs/plugin-react': '^5' },
-      },
-      null,
-      2,
-    ),
-    'vite.config.js': "import react from '@vitejs/plugin-react';\nexport default { plugins: [react()] };\n",
-    'index.html': '<!doctype html><html><body><div id="root" style="max-width:40rem;margin:3rem auto"></div><script type="module" src="/src/main.jsx"></script></body></html>\n',
-    'src/main.jsx': [
-      "import { createRoot } from 'react-dom/client';",
-      "import { PinfoldProvider } from '@pinfold/react';",
-      "import { useAccordion } from '@pinfold/react/accordion';",
-      "import '@pinfold/css/core.css';",
-      "import '@pinfold/css/accordion.css';",
-      "import '@pinfold/css/packs.css';",
-      '',
-      `const config = ${JSON.stringify({ items, ...Object.fromEntries(changedOptions(options)) }, null, 2)};`,
-      '',
-      'function App() {',
-      '  const Faq = useAccordion(config);',
-      '  return <Faq />;',
-      '}',
-      '',
-      `createRoot(document.getElementById('root')).render(<PinfoldProvider theme="${env.theme}" stylePack="${env.stylePack}" dir="${env.rtl ? 'rtl' : 'ltr'}"><App /></PinfoldProvider>);`,
-      '',
-    ].join('\n'),
-  };
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = 'https://stackblitz.com/run?file=src/main.jsx';
-  form.target = '_blank';
-  const field = (name: string, value: string) => {
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = name;
-    input.value = value;
-    form.appendChild(input);
-  };
-  field('project[title]', 'Pinfold accordion');
-  field('project[template]', 'node');
-  for (const [path, content] of Object.entries(files)) field(`project[files][${path}]`, content);
-  document.body.appendChild(form);
-  form.submit();
-  form.remove();
-}
+
 
 export function AccordionPlayground() {
   const [state, setState] = useUrlState('accordion', INITIAL, revive);
@@ -225,7 +172,6 @@ export function AccordionPlayground() {
           actions={[
             { label: 'Copy CLI command', copy: command(env) },
             { label: 'Copy AI prompt', copy: prompt(items, options, env) },
-            { label: 'Open in StackBlitz', title: 'Opens a Vite + React project that installs Pinfold from npm', run: () => openStackBlitz(items, options, env) },
           ]}
           note={
             <p className="dx-hint">

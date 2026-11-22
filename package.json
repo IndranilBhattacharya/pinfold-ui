@@ -1,7 +1,7 @@
 {
   "name": "pinfold-ui",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.2.0",
   "type": "module",
   "description": "Pinfold documentation, playground, palette and theme studio. Served at pinfold.indranildev.in.",
   "author": "Indranil Bhattacharya",

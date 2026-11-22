@@ -7,7 +7,7 @@ import { version } from '@pinfold/core';
 
 type Files = Record<string, string>;
 
-const range = `^${version}`;
+const range = `^1.1.0 || ^${version}`;
 
 /** Names a snippet uses without declaring them: custom components, handlers, and data. */
 function standIns(code: string, lang: 'ts' | 'js'): string[] {
@@ -28,7 +28,7 @@ function standIns(code: string, lang: 'ts' | 'js'): string[] {
   // 1. Any JSX tag used as <Component ... /> that is not declared.
   for (const m of code.matchAll(/<([A-Z][A-Za-z0-9_$]*)/g)) {
     const name = m[1];
-    if (declared.has(name) || added.has(name)) continue;
+    if (declared.has(name) || added.has(name) || /^(React|Fragment|StrictMode|Suspense)$/.test(name)) continue;
     added.add(name);
     if (/icon/i.test(name)) {
       out.push(
@@ -50,7 +50,7 @@ function standIns(code: string, lang: 'ts' | 'js'): string[] {
   // 2. Handlers and variables passed as attr={name}
   for (const m of code.matchAll(/(\w+)=\{([A-Za-z_$][\w$]*)\}/g)) {
     const [, attr, name] = m;
-    if (declared.has(name) || added.has(name) || /^(true|false|null|undefined)$/.test(name)) continue;
+    if (declared.has(name) || added.has(name) || /^(true|false|null|undefined|window|document|console|Math|Date|JSON|Object|Array|String|Number|Boolean|RegExp)$/.test(name)) continue;
     added.add(name);
     const fn = /^on[A-Z]/.test(attr) || /^(set|handle|save|remove|delete|load|fetch|run|go|close|open|submit|retry|follow)/.test(name);
     out.push(
@@ -64,7 +64,7 @@ function standIns(code: string, lang: 'ts' | 'js'): string[] {
     if (
       declared.has(name) ||
       added.has(name) ||
-      /^(true|false|null|undefined|return|typeof|instanceof|void|delete|new|in|default|case)$/.test(name) ||
+      /^(true|false|null|undefined|return|typeof|instanceof|void|delete|new|in|default|case|window|document|console|Math|Date|JSON|Object|Array|String|Number|Boolean|RegExp)$/.test(name) ||
       /^(string|number|boolean|any|unknown|never|void|object|symbol|bigint)$/.test(name)
     )
       continue;

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ArrowUpRight, BookOpen, Bot, Boxes, FileText, Moon, Package, Search, Sun } from 'lucide-react';
+import { ArrowUpRight, BookOpen, Bot, Boxes, FileText, Menu as MenuIcon, Moon, Package, PanelLeft, PanelLeftClose, PanelLeftOpen, Search, Sun } from 'lucide-react';
 import { defineAppShell } from '@pinfold/react/appshell';
 import { defineNavbar } from '@pinfold/react/navbar';
 import { defineNavMenu } from '@pinfold/react/navmenu';
@@ -8,6 +8,8 @@ import { defineCommand } from '@pinfold/react/command';
 import { defineButton } from '@pinfold/react/button';
 import { defineKbd } from '@pinfold/react/kbd';
 import { defineBadge } from '@pinfold/react/badge';
+import { defineScrollArea } from '@pinfold/react/scrollarea';
+import { defineTooltip } from '@pinfold/react/tooltip';
 import { version } from '@pinfold/core';
 import { COMPONENT_GROUPS, COMPONENTS, GUIDES, groupOf, metaFor } from './nav';
 import { Brand, PageIcon } from './icons';
@@ -15,66 +17,201 @@ import { Mark } from './Logo';
 import { docsHref, href } from './router';
 import { Toc } from './Toc';
 
-const REPO = 'https://github.com/IndranilBhattacharya/pinfold';
-const NPM = 'https://www.npmjs.com/package/@pinfold/react';
+const REPO = "https://github.com/IndranilBhattacharya/pinfold";
+const NPM = "https://www.npmjs.com/package/@pinfold/react";
 
 /** The landing page: full width; the navigation is a drawer behind the menu button on small screens. */
-const LandingShell = defineAppShell({ sidebarBehavior: 'drawer', backdrop: 'blur', closeOnNavigate: true });
+const LandingShell = defineAppShell({
+  sidebarBehavior: "drawer",
+  backdrop: "blur",
+  closeOnNavigate: true,
+});
 /** The docs: navigation beside the page (a drawer under 1024 px, foldable to icons), "On this page" on the right. */
 const DocsShell = defineAppShell({
-  layout: 'navbar-top',
-  sidebarBehavior: 'auto',
+  layout: "navbar-top",
+  sidebarBehavior: "auto",
   breakpoint: 1024,
-  backdrop: 'blur',
+  backdrop: "blur",
   sidebarCollapsible: true,
-  autoSaveId: 'pinfold-docs',
+  autoSaveId: "pinfold-docs",
   closeOnNavigate: true,
-  dimensions: { sidebarWidth: 272, asideWidth: 232 },
+  dimensions: { sidebarWidth: 272, sidebarCollapsedWidth: '3.5rem', asideWidth: 232 },
 });
-const TopBar = defineNavbar({ variant: 'glass', indicator: 'none', size: 'md', collapseAt: 0, dimensions: { paddingX: 'clamp(0.75rem, 2.5vw, 1.5rem)' } });
-const Menu = defineNavMenu({ variant: 'ghost', size: 'sm', openOn: 'hover', transition: 'slide', dimensions: { columnWidth: '15rem' } });
-const DocsNav = defineSidebar({ surface: 'transparent', variant: 'soft', size: 'sm', match: 'exact' });
-const Finder = defineCommand({ mode: 'dialog', placeholder: 'Search the docs…', hotkey: 'mod+k' });
-const SearchButton = defineButton({ variant: 'outline', tone: 'neutral', size: 'sm' });
-const Key = defineKbd({ size: 'sm' });
-const Version = defineBadge({ variant: 'soft', size: 'sm', tone: 'neutral' });
+const LandingTopBar = defineNavbar({
+  variant: "floating",
+  indicator: "none",
+  size: "md",
+  collapseAt: 0,
+  dimensions: {
+    maxWidth: "var(--dx-page, 86rem)",
+    paddingX: "clamp(0.75rem, 2vw, 1.25rem)",
+  },
+});
+const DocsTopBar = defineNavbar({
+  variant: "glass",
+  indicator: "none",
+  size: "md",
+  collapseAt: 0,
+  position: "sticky",
+  dimensions: {
+    maxWidth: "var(--dx-page, 86rem)",
+    paddingX: "clamp(0.75rem, 2vw, 1.25rem)",
+  },
+});
+const Menu = defineNavMenu({
+  variant: "ghost",
+  size: "sm",
+  openOn: "hover",
+  transition: "slide",
+  dimensions: { columnWidth: "15rem" },
+});
+const DocsNavScroll = defineScrollArea({
+  indicator: "fade",
+  indicatorSize: "3rem",
+  scrollbar: "hover",
+});
+const NavTooltip = defineTooltip({ placement: "end", delay: 120, offset: 12 });
+const DocsNav = defineSidebar({
+  surface: "transparent",
+  variant: "soft",
+  size: "sm",
+  match: "exact",
+  render: {
+    body: ({ children }) => (
+      <DocsNavScroll className="dx-docsnav__scroll" label="Navigation">
+        {children}
+      </DocsNavScroll>
+    ),
+    link: ({ props, state, item, children }) => {
+      const isAnchor = props.href !== undefined;
+      const label = item?.label ?? (props.title as string | undefined);
+      if (state.collapsed && label) {
+        const { title: _ignoredTitle, ...restProps } = props;
+        const link = isAnchor ? (
+          <a {...restProps}>{children}</a>
+        ) : (
+          <button type="button" {...restProps}>
+            {children}
+          </button>
+        );
+        return <NavTooltip content={label} trigger={link} />;
+      }
+      return isAnchor ? (
+        <a {...props}>{children}</a>
+      ) : (
+        <button type="button" {...props}>
+          {children}
+        </button>
+      );
+    },
+  },
+});
+const Finder = defineCommand({
+  mode: "dialog",
+  placeholder: "Search the docs…",
+  hotkey: "mod+k",
+});
+const SearchButton = defineButton({
+  variant: "outline",
+  tone: "neutral",
+  size: "sm",
+});
+const Key = defineKbd({ size: "sm" });
+const Version = defineBadge({ variant: "soft", size: "sm", tone: "neutral" });
 
-export type Mode = 'light' | 'dark';
+export type Mode = "light" | "dark";
 
-const ico = (Icon: React.ComponentType<{ size?: number; strokeWidth?: number; 'aria-hidden'?: boolean }>) => <Icon size={18} strokeWidth={1.75} aria-hidden />;
+const ico = (
+  Icon: React.ComponentType<{
+    size?: number;
+    strokeWidth?: number;
+    "aria-hidden"?: boolean;
+  }>,
+) => <Icon size={18} strokeWidth={1.75} aria-hidden />;
 
 function navMenuItems() {
   return [
     {
-      label: 'Docs',
-      items: GUIDES.map((g) => ({ label: g.title, href: docsHref(g.name), description: g.blurb, icon: <PageIcon name={g.name} size={18} /> })),
+      label: "Docs",
+      items: GUIDES.map((g) => ({
+        label: g.title,
+        href: docsHref(g.name),
+        description: g.blurb,
+        icon: <PageIcon name={g.name} size={18} />,
+      })),
     },
     {
-      label: 'Components',
+      label: "Components",
       // The most used, one or two per group; the featured card leads to all of them.
-      items: ['table', 'datepicker', 'select', 'combobox', 'dialog', 'command', 'appshell', 'toast'].flatMap((n) => {
+      items: [
+        "table",
+        "datepicker",
+        "select",
+        "combobox",
+        "dialog",
+        "command",
+        "appshell",
+        "toast",
+      ].flatMap((n) => {
         const m = metaFor(n);
-        return m ? [{ label: m.displayName, href: docsHref(n), icon: <PageIcon name={n} size={18} />, description: groupOf(n) }] : [];
+        return m
+          ? [
+              {
+                label: m.displayName,
+                href: docsHref(n),
+                icon: <PageIcon name={n} size={18} />,
+                description: groupOf(n),
+              },
+            ]
+          : [];
       }),
       content: (
-        <a className="dx-menu-feature" href={docsHref('table')}>
+        <a className="dx-menu-feature" href={docsHref("table")}>
           <span className="dx-menu-feature__eyebrow">Featured</span>
           <strong>A data grid that scrolls a billion rows</strong>
-          <span>Sort, filter, group, edit, resize and pin, from one config.</span>
+          <span>
+            Sort, filter, group, edit, resize and pin, from one config.
+          </span>
           <span className="dx-menu-feature__cta">
-            All {COMPONENTS.length} components <ArrowUpRight size={14} aria-hidden="true" />
+            All {COMPONENTS.length} components{" "}
+            <ArrowUpRight size={14} aria-hidden="true" />
           </span>
         </a>
       ),
     },
     {
-      label: 'Resources',
+      label: "Resources",
       items: [
-        { label: 'AI and MCP', href: docsHref('ai'), description: 'Give your coding agent the real API.', icon: ico(Bot) },
-        { label: 'shadcn registry', href: docsHref('shadcn'), description: 'npx shadcn add @pinfold/<name>.', icon: <Brand name="shadcn" size={18} /> },
-        { label: 'llms.txt', href: '/llms.txt', description: 'Every component, as text for models.', icon: ico(FileText) },
-        { label: 'npm', href: NPM, description: `@pinfold/react ${version}`, icon: <Brand name="npm" size={18} /> },
-        { label: 'GitHub', href: REPO, description: 'Source, issues and releases.', icon: <Brand name="github" size={18} /> },
+        {
+          label: "AI and MCP",
+          href: docsHref("ai"),
+          description: "Give your coding agent the real API.",
+          icon: ico(Bot),
+        },
+        {
+          label: "shadcn registry",
+          href: docsHref("shadcn"),
+          description: "npx shadcn add @pinfold/<name>.",
+          icon: <Brand name="shadcn" size={18} />,
+        },
+        {
+          label: "llms.txt",
+          href: "/llms.txt",
+          description: "Every component, as text for models.",
+          icon: ico(FileText),
+        },
+        {
+          label: "npm",
+          href: NPM,
+          description: `@pinfold/react ${version}`,
+          icon: <Brand name="npm" size={18} />,
+        },
+        {
+          label: "GitHub",
+          href: REPO,
+          description: "Source, issues and releases.",
+          icon: <Brand name="github" size={18} />,
+        },
       ],
     },
   ];
@@ -83,23 +220,76 @@ function navMenuItems() {
 /** The docs navigation: guides, then components by group, each with its icon (the collapsed rail shows them). */
 function docsNavItems() {
   return [
-    ...GUIDES.map((g) => ({ id: g.name, label: g.title, href: docsHref(g.name), icon: <PageIcon name={g.name} />, group: g.group })),
+    ...GUIDES.map((g) => ({
+      id: g.name,
+      label: g.title,
+      href: docsHref(g.name),
+      icon: <PageIcon name={g.name} />,
+      group: g.group,
+    })),
     ...COMPONENT_GROUPS.flatMap(([group, names]) =>
       names.flatMap((n) => {
         const m = metaFor(n);
-        return m ? [{ id: n, label: m.displayName, href: docsHref(n), icon: <PageIcon name={n} />, group }] : [];
+        return m
+          ? [
+              {
+                id: n,
+                label: m.displayName,
+                href: docsHref(n),
+                icon: <PageIcon name={n} />,
+                group,
+              },
+            ]
+          : [];
       }),
     ),
-    ...COMPONENTS.filter((m) => !COMPONENT_GROUPS.some(([, names]) => names.includes(m.name))).map((m) => ({ id: m.name, label: m.displayName, href: docsHref(m.name), icon: <PageIcon name={m.name} />, group: 'More' })),
+    ...COMPONENTS.filter(
+      (m) => !COMPONENT_GROUPS.some(([, names]) => names.includes(m.name)),
+    ).map((m) => ({
+      id: m.name,
+      label: m.displayName,
+      href: docsHref(m.name),
+      icon: <PageIcon name={m.name} />,
+      group: "More",
+    })),
   ];
 }
 
 function searchItems() {
   return [
-    ...GUIDES.map((g) => ({ value: g.name, label: g.title, description: g.blurb, group: 'Guides', href: docsHref(g.name), icon: <PageIcon name={g.name} />, keywords: [g.name] })),
-    ...COMPONENTS.map((m) => ({ value: m.name, label: m.displayName, description: m.description, group: 'Components', href: docsHref(m.name), icon: <PageIcon name={m.name} />, keywords: [m.name, m.displayName] })),
-    { value: 'llms', label: 'llms.txt', description: 'The docs as plain text for models', group: 'Resources', href: '/llms.txt', icon: ico(FileText) },
-    { value: 'github', label: 'GitHub repository', group: 'Resources', href: REPO, icon: <Brand name="github" /> },
+    ...GUIDES.map((g) => ({
+      value: g.name,
+      label: g.title,
+      description: g.blurb,
+      group: "Guides",
+      href: docsHref(g.name),
+      icon: <PageIcon name={g.name} />,
+      keywords: [g.name],
+    })),
+    ...COMPONENTS.map((m) => ({
+      value: m.name,
+      label: m.displayName,
+      description: m.description,
+      group: "Components",
+      href: docsHref(m.name),
+      icon: <PageIcon name={m.name} />,
+      keywords: [m.name, m.displayName],
+    })),
+    {
+      value: "llms",
+      label: "llms.txt",
+      description: "The docs as plain text for models",
+      group: "Resources",
+      href: "/llms.txt",
+      icon: ico(FileText),
+    },
+    {
+      value: "github",
+      label: "GitHub repository",
+      group: "Resources",
+      href: REPO,
+      icon: <Brand name="github" />,
+    },
   ];
 }
 
@@ -107,88 +297,275 @@ function searchItems() {
 function useCurrentInView(page: string | null) {
   React.useEffect(() => {
     const frame = requestAnimationFrame(() => {
-      const current = document.querySelector<HTMLElement>('.dx-docsnav [aria-current="page"]');
+      const current = document.querySelector<HTMLElement>(
+        '.dx-docsnav [aria-current="page"]',
+      );
       let box = current?.parentElement ?? null;
-      while (box && !(/auto|scroll/.test(getComputedStyle(box).overflowY) && box.scrollHeight > box.clientHeight)) box = box.parentElement;
+      while (
+        box &&
+        !(
+          /auto|scroll/.test(getComputedStyle(box).overflowY) &&
+          box.scrollHeight > box.clientHeight
+        )
+      )
+        box = box.parentElement;
       if (!current || !box) return;
       const r = current.getBoundingClientRect();
       const b = box.getBoundingClientRect();
       if (r.top < b.top + 8) box.scrollTop -= b.top + 8 - r.top;
-      else if (r.bottom > b.bottom - 8) box.scrollTop += r.bottom - (b.bottom - 8) + b.height / 3;
+      else if (r.bottom > b.bottom - 8)
+        box.scrollTop += r.bottom - (b.bottom - 8) + b.height / 3;
     });
     return () => cancelAnimationFrame(frame);
   }, [page]);
 }
 
-export function SiteShell({ page, mode, onMode, children }: { page: string | null; mode: Mode; onMode: (m: Mode) => void; children: React.ReactNode }) {
+export function SiteShell({
+  page,
+  mode,
+  onMode,
+  children,
+}: {
+  page: string | null;
+  mode: Mode;
+  onMode: (m: Mode) => void;
+  children: React.ReactNode;
+}) {
   const [searching, setSearching] = React.useState(false);
   const docs = page !== null;
   const menu = React.useMemo(navMenuItems, []);
   const nav = React.useMemo(docsNavItems, []);
+  const [sidebarCollapsed, setSidebarCollapsed] = React.useState<boolean>(
+    () => {
+      try {
+        return localStorage.getItem("pinfold-appshell:pinfold-docs") === "true";
+      } catch {
+        return false;
+      }
+    },
+  );
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 1024);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const toggleSidebar = React.useCallback(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      setSidebarOpen((o) => !o);
+    } else {
+      setSidebarCollapsed((c) => {
+        const next = !c;
+        try {
+          localStorage.setItem("pinfold-appshell:pinfold-docs", String(next));
+        } catch {}
+        return next;
+      });
+    }
+  }, []);
+
   const Frame = docs ? DocsShell : LandingShell;
+  const Bar = docs ? DocsTopBar : LandingTopBar;
   useCurrentInView(page);
+
+  const mobileMenuTool = isMobile
+    ? {
+        id: "mobile-menu",
+        label: sidebarOpen ? "Close navigation" : "Open navigation",
+        icon: <MenuIcon size={18} strokeWidth={1.75} aria-hidden />,
+        placement: "start" as const,
+        onClick: toggleSidebar,
+      }
+    : null;
+
   return (
     <>
       <a className="dx-skip" href="#dx-main">
         Skip to content
       </a>
       <Frame
-        className={docs ? 'dx-shell dx-shell--docs' : 'dx-shell dx-shell--landing'}
+        className={
+          docs ? "dx-shell dx-shell--docs" : "dx-shell dx-shell--landing"
+        }
+        sidebarCollapsible={docs}
+        sidebarCollapsed={sidebarCollapsed}
+        onSidebarCollapsedChange={setSidebarCollapsed}
+        sidebarOpen={sidebarOpen}
+        onSidebarOpenChange={setSidebarOpen}
+        sidebarTrigger={false}
         navbar={
-          <TopBar
+          <Bar
             label="Site"
+            layout={{
+              start: isMobile ? ["tools", "brand"] : ["brand"],
+            }}
             brand={{
               label: (
                 <span className="dx-brand">
-                  pinfold <Version label={`v${version}`} />
+                  Pinfold <Version label={`v${version}`} />
                 </span>
               ),
               logo: <Mark size={28} />,
-              href: href(''),
+              href: href(""),
             }}
-            center={<Menu label="Main" className="dx-topmenu" items={menu} value={page ? docsHref(page) : undefined} />}
+            center={
+              <Menu
+                label="Main"
+                className="dx-topmenu"
+                items={menu}
+                value={page ? docsHref(page) : undefined}
+              />
+            }
             end={
               <span className="dx-bar-end">
-                <SearchButton className="dx-search" label="Search" icon={<Search size={15} aria-hidden="true" />} endIcon={<Key keys={['mod', 'k']} />} onClick={() => setSearching(true)} />
+                <SearchButton
+                  className="dx-search"
+                  label="Search"
+                  icon={<Search size={15} aria-hidden="true" />}
+                  endIcon={<Key keys={["mod", "k"]} />}
+                  onClick={() => setSearching(true)}
+                />
               </span>
             }
             tools={[
-              { id: 'github', label: 'GitHub', icon: <Brand name="github" size={18} />, href: REPO, target: '_blank' },
-              { id: 'theme', label: mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode', icon: mode === 'dark' ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />, onClick: () => onMode(mode === 'dark' ? 'light' : 'dark') },
+              ...(mobileMenuTool ? [mobileMenuTool] : []),
+              {
+                id: "github",
+                label: "GitHub",
+                icon: <Brand name="github" size={18} />,
+                href: REPO,
+                target: "_blank",
+              },
+              {
+                id: "theme",
+                label:
+                  mode === "dark"
+                    ? "Switch to light mode"
+                    : "Switch to dark mode",
+                icon:
+                  mode === "dark" ? (
+                    <Sun size={18} aria-hidden="true" />
+                  ) : (
+                    <Moon size={18} aria-hidden="true" />
+                  ),
+                onClick: () => onMode(mode === "dark" ? "light" : "dark"),
+              },
             ]}
           />
         }
         sidebar={({ collapsed, drawer }) => (
           <div className="dx-docsnav">
-            <DocsNav label="Documentation" items={nav} value={page ?? undefined} collapsed={collapsed && !drawer} />
+            {!drawer && (
+              <div className={`dx-docsnav__header${collapsed ? ' dx-docsnav__header--collapsed' : ''}`}>
+                {!collapsed && <span className="dx-docsnav__title">Documentation</span>}
+                <NavTooltip
+                  content={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                  placement="end"
+                  trigger={
+                    <button
+                      type="button"
+                      className={`dx-docsnav__toggle${collapsed ? ' dx-docsnav__toggle--rail' : ''}`}
+                      onClick={toggleSidebar}
+                      aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    >
+                      {collapsed ? (
+                        <PanelLeftOpen size={16} strokeWidth={1.8} aria-hidden="true" />
+                      ) : (
+                        <PanelLeftClose size={15} strokeWidth={1.8} aria-hidden="true" />
+                      )}
+                    </button>
+                  }
+                />
+              </div>
+            )}
+            <DocsNav
+              label="Documentation"
+              items={nav}
+              value={page ?? undefined}
+              collapsed={collapsed && !drawer}
+            />
           </div>
         )}
         aside={docs ? <Toc page={page!} /> : undefined}
         footer={<SiteFooter />}
       >
-        <div id="dx-main" className={docs ? 'dx-docs-main' : 'dx-landing-main'} tabIndex={-1}>
+        <div
+          id="dx-main"
+          className={docs ? "dx-docs-main" : "dx-landing-main"}
+          tabIndex={-1}
+        >
           {children}
         </div>
       </Frame>
-      <Finder label="Search the docs" open={searching} onOpenChange={setSearching} items={searchItems()} onSelect={() => setSearching(false)} />
+      <Finder
+        label="Search the docs"
+        open={searching}
+        onOpenChange={setSearching}
+        items={searchItems()}
+        onSelect={() => setSearching(false)}
+      />
     </>
   );
 }
 
 function SiteFooter() {
   const cols: Array<[string, Array<[string, string]>]> = [
-    ['Get started', GUIDES.filter((g) => g.group === 'Get started').map((g) => [g.title, docsHref(g.name)])],
-    ['Customise', [...GUIDES.filter((g) => g.group === 'Customise').map((g): [string, string] => [g.title, docsHref(g.name)]), ['Accessibility', docsHref('accessibility')]]],
-    ['Components', [['Data grid', docsHref('table')], ['Date picker', docsHref('datepicker')], ['Command palette', docsHref('command')], ['App shell', docsHref('appshell')], [`All ${COMPONENTS.length}`, docsHref('accordion')]]],
-    ['For agents', [['AI and MCP', docsHref('ai')], ['shadcn registry', docsHref('shadcn')], ['llms.txt', '/llms.txt'], ['llms-full.txt', '/llms-full.txt'], ['Registry index', '/r/registry.json']]],
-    ['Project', [['GitHub', REPO], ['npm', NPM], ['Releases', `${REPO}/releases`], ['License (MIT)', `${REPO}/blob/main/LICENSE`]]],
+    [
+      "Get started",
+      GUIDES.filter((g) => g.group === "Get started").map((g) => [
+        g.title,
+        docsHref(g.name),
+      ]),
+    ],
+    [
+      "Customise",
+      [
+        ...GUIDES.filter((g) => g.group === "Customise").map(
+          (g): [string, string] => [g.title, docsHref(g.name)],
+        ),
+        ["Accessibility", docsHref("accessibility")],
+      ],
+    ],
+    [
+      "Components",
+      [
+        ["Data grid", docsHref("table")],
+        ["Date picker", docsHref("datepicker")],
+        ["Command palette", docsHref("command")],
+        ["App shell", docsHref("appshell")],
+        [`All ${COMPONENTS.length}`, docsHref("accordion")],
+      ],
+    ],
+    [
+      "For agents",
+      [
+        ["AI and MCP", docsHref("ai")],
+        ["shadcn registry", docsHref("shadcn")],
+        ["llms.txt", "/llms.txt"],
+        ["llms-full.txt", "/llms-full.txt"],
+        ["Registry index", "/r/registry.json"],
+      ],
+    ],
+    [
+      "Project",
+      [
+        ["GitHub", REPO],
+        ["npm", NPM],
+        ["Releases", `${REPO}/releases`],
+        ["License (MIT)", `${REPO}/blob/main/LICENSE`],
+      ],
+    ],
   ];
   return (
     <footer className="dx-footer">
       <div className="dx-footer__top">
         <div className="dx-footer__brand">
           <span className="dx-brand dx-brand--lg">
-            <Mark size={32} /> pinfold
+            <Mark size={32} /> Pinfold
           </span>
           <p>Accessible React components, configured, not composed.</p>
           <span className="dx-footer__icons">
@@ -198,13 +575,13 @@ function SiteFooter() {
             <a href={NPM} aria-label="npm" target="_blank" rel="noreferrer">
               <Brand name="npm" size={18} mono />
             </a>
-            <a href={docsHref('introduction')} aria-label="Documentation">
+            <a href={docsHref("introduction")} aria-label="Documentation">
               <BookOpen size={18} aria-hidden="true" />
             </a>
-            <a href={docsHref('accordion')} aria-label="Components">
+            <a href={docsHref("accordion")} aria-label="Components">
               <Boxes size={18} aria-hidden="true" />
             </a>
-            <a href={docsHref('installation')} aria-label="Install">
+            <a href={docsHref("installation")} aria-label="Install">
               <Package size={18} aria-hidden="true" />
             </a>
           </span>
@@ -215,7 +592,12 @@ function SiteFooter() {
             <ul>
               {links.map(([label, to]) => (
                 <li key={label}>
-                  <a href={to} {...(/^https?:/.test(to) ? { target: '_blank', rel: 'noreferrer' } : {})}>
+                  <a
+                    href={to}
+                    {...(/^https?:/.test(to)
+                      ? { target: "_blank", rel: "noreferrer" }
+                      : {})}
+                  >
                     {label}
                   </a>
                 </li>

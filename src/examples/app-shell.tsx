@@ -29,10 +29,9 @@ export const MARK = (
 const AppBar = defineNavbar({ variant: 'plain', indicator: 'none', size: 'sm' });
 const AppNav = defineSidebar({ surface: 'transparent', variant: 'soft', size: 'sm' });
 const ORDER_COLUMNS = [
-  { key: 'id', header: 'Order', width: 95, cell: ({ row }: { row: Order }) => <b>{row.id}</b> },
+  { key: 'id', header: 'Order', width: 85, cell: ({ row }: { row: Order }) => <b>{row.id}</b> },
   { key: 'customer', header: 'Customer', cell: ({ row }: { row: Order }) => row.customer.name },
-  { key: 'lane', header: 'Lane' },
-  { key: 'status', header: 'Status', cell: ({ row }: { row: Order }) => <Badge label={row.status} tone={STATUS_TONE[row.status]} size="sm" /> },
+  { key: 'status', header: 'Status', width: 85, cell: ({ row }: { row: Order }) => <Badge label={row.status} tone={STATUS_TONE[row.status]} size="sm" /> },
 ];
 
 const OrderTable = defineTable<Order>({
@@ -90,40 +89,78 @@ function ConsoleDemo({ Preset, props }: { Preset: React.ElementType; props: Reco
           />
         }
         sidebar={({ collapsed, drawer }: { collapsed: boolean; drawer: boolean }) => (
-          <AppNav label="Main" items={NAV_ITEMS} value={path} collapsed={collapsed && !drawer} onNavigate={(next: string) => (setPath(next), setSaid(`Navigated to ${next}.`))} />
+          <AppNav
+            label="Main"
+            items={NAV_ITEMS}
+            value={path}
+            collapsed={collapsed && !drawer}
+            onNavigate={(next: string) => (setPath(next), setSaid(`Navigated to ${next}.`))}
+            footer={
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.25rem', fontSize: '0.78rem' }}>
+                <Avatar name={ME.name} size="sm" />
+                {!collapsed && (
+                  <div style={{ minWidth: 0, overflow: 'hidden' }}>
+                    <strong style={{ display: 'block', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{ME.name}</strong>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--dx-label)' }}>Dispatcher</span>
+                  </div>
+                )}
+              </div>
+            }
+          />
         )}
         aside={
           <div className="dx-aside">
-            <strong>Order {selectedOrder.id}</strong>
-            <p className="dx-hint dx-shell-demo-aside-lead">{selectedOrder.customer.name} · {selectedOrder.customer.city}</p>
-            <div className="dx-shell-demo-aside">
-              <div><span className="dx-hint">Lane:</span> {selectedOrder.lane}</div>
-              <div><span className="dx-hint">Carrier:</span> {selectedOrder.carrier}</div>
-              <div><span className="dx-hint">Weight:</span> {selectedOrder.weight.toLocaleString()} kg</div>
-              <div><span className="dx-hint">Value:</span> ${selectedOrder.value.toLocaleString()}</div>
-              <div><span className="dx-hint">ETA:</span> {selectedOrder.eta}</div>
-              <div className="dx-shell-demo-aside-badge"><Badge label={selectedOrder.status} tone={STATUS_TONE[selectedOrder.status]} size="sm" /></div>
+            <div className="dx-aside__header">
+              <div>
+                <h4 className="dx-aside__title">Order {selectedOrder.id}</h4>
+                <p className="dx-aside__lead">{selectedOrder.customer.name}</p>
+              </div>
+              <Badge label={selectedOrder.status} tone={STATUS_TONE[selectedOrder.status]} size="sm" />
             </div>
-            <div style={{ borderTop: '1px solid var(--pinfold-color-border)', margin: '0.75rem 0' }} />
-            <strong>Recent activity</strong>
-            <ul>
-              {ACTIVITY.map((a) => (
+            <div className="dx-aside__grid">
+              <div className="dx-aside__cell">
+                <span>Lane</span>
+                <strong>{selectedOrder.lane}</strong>
+              </div>
+              <div className="dx-aside__cell">
+                <span>Carrier</span>
+                <strong>{selectedOrder.carrier}</strong>
+              </div>
+              <div className="dx-aside__cell">
+                <span>Weight</span>
+                <strong>{selectedOrder.weight.toLocaleString()} kg</strong>
+              </div>
+              <div className="dx-aside__cell">
+                <span>Value</span>
+                <strong>${selectedOrder.value.toLocaleString()}</strong>
+              </div>
+            </div>
+            <div style={{ borderTop: '1px solid var(--dx-line)', margin: '0.15rem 0' }} />
+            <h5 className="dx-aside__section-title">Recent activity</h5>
+            <ul className="dx-aside__activity">
+              {ACTIVITY.slice(0, 3).map((a) => (
                 <li key={a}>{a}</li>
               ))}
             </ul>
           </div>
         }
         footer={
-          <span className="dx-hint" role="status">
-            © 2026 {PRODUCT} · {said}
-          </span>
+          <div className="dx-shell-demo-footer">
+            <span className="dx-shell-demo-footer__status">
+              <span className="dx-shell-demo-footer__dot" aria-hidden="true" />
+              <span>{said}</span>
+            </span>
+            <span className="dx-shell-demo-footer__legal">
+              © 2026 Harbor Logistics B.V.
+            </span>
+          </div>
         }
       >
         <div className="dx-appbody">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.75rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
             <div>
-              <h3 style={{ margin: 0 }}>Operations console</h3>
-              <p className="dx-panel__lead" style={{ margin: '0.25rem 0 0' }}>8 orders awaiting dispatch or customs clearance</p>
+              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 650 }}>Operations console</h3>
+              <p className="dx-panel__lead" style={{ margin: '0.15rem 0 0', fontSize: '0.8rem' }}>8 active shipments in transit</p>
             </div>
             <Badge label="8 active" tone="info" size="sm" />
           </div>
@@ -137,7 +174,7 @@ function ConsoleDemo({ Preset, props }: { Preset: React.ElementType; props: Reco
               if (keys[0]) {
                 setSelectedId(keys[0]);
                 const found = ORDERS.find((o) => o.id === keys[0]);
-                if (found) setSaid(`Selected order ${found.id}: ${found.customer.name}`);
+                if (found) setSaid(`Selected ${found.id} (${found.customer.name})`);
               }
             }}
             columns={ORDER_COLUMNS}
@@ -179,9 +216,15 @@ function RailDemo({ Preset, props }: { Preset: React.ElementType; props: Record<
           </div>
         }
         footer={
-          <span className="dx-hint" role="status">
-            © 2026 {PRODUCT} · {said}
-          </span>
+          <div className="dx-shell-demo-footer">
+            <span className="dx-shell-demo-footer__status">
+              <span className="dx-shell-demo-footer__dot" aria-hidden="true" />
+              <span>{said}</span>
+            </span>
+            <span className="dx-shell-demo-footer__legal">
+              © 2026 {PRODUCT}
+            </span>
+          </div>
         }
       >
         <div className="dx-appbody">
@@ -222,9 +265,15 @@ function PhoneDemo({ Preset, props }: { Preset: React.ElementType; props: Record
         }
         sidebar={<AppNav label="Main" items={NAV_ITEMS} value={path} onNavigate={(next: string) => (setPath(next), setSaid(`Navigated to ${next}.`))} />}
         footer={
-          <span className="dx-hint" role="status">
-            © 2026 {PRODUCT} · {said}
-          </span>
+          <div className="dx-shell-demo-footer">
+            <span className="dx-shell-demo-footer__status">
+              <span className="dx-shell-demo-footer__dot" aria-hidden="true" />
+              <span>{said}</span>
+            </span>
+            <span className="dx-shell-demo-footer__legal">
+              © 2026 {PRODUCT}
+            </span>
+          </div>
         }
       >
         <div className="dx-appbody">
@@ -283,9 +332,15 @@ function DocsDemo({ Preset, props }: { Preset: React.ElementType; props: Record<
           </div>
         }
         footer={
-          <span className="dx-hint" role="status">
-            © 2026 {PRODUCT} Docs · {said}
-          </span>
+          <div className="dx-shell-demo-footer">
+            <span className="dx-shell-demo-footer__status">
+              <span className="dx-shell-demo-footer__dot" aria-hidden="true" />
+              <span>{said}</span>
+            </span>
+            <span className="dx-shell-demo-footer__legal">
+              © 2026 {PRODUCT} Docs
+            </span>
+          </div>
         }
       >
         <article className="dx-appbody" style={{ maxWidth: 720, lineHeight: 1.6 }}>
@@ -341,7 +396,7 @@ export function AppShellPlayground() {
         ? { sidebarBehavior: 'drawer' as const }
         : demo === 'docs'
           ? { scroll: 'page' as const, navbarPosition: 'sticky' as const }
-          : {};
+          : { dimensions: { sidebarWidth: '13rem', asideWidth: '14.5rem' } };
 
   const behavior = ((demoDefaults as Record<string, unknown>).sidebarBehavior as string | undefined) ?? (page.options.sidebarBehavior as string | undefined) ?? 'auto';
   const drawer = behavior === 'drawer' || (behavior === 'auto' && shellWidth < 768);
@@ -379,6 +434,7 @@ export function AppShellPlayground() {
     ...changedOpts,
     dimensions: {
       height: (demo === 'docs' || page.options.scroll === 'page') ? undefined : 560,
+      ...((demoDefaults as { dimensions?: object }).dimensions),
       ...(page.options.dimensions as object | undefined),
     },
   };
@@ -428,7 +484,7 @@ export function AppShellPlayground() {
       'navbar={<TopBar brand={{ label: "Harbor", logo: <Logo /> }} tools={tools} end={<UserMenu />} />}',
       'sidebar={({ collapsed, drawer }) => <AppNav label="Main" items={nav} value={pathname} collapsed={collapsed && !drawer} onNavigate={router.push} />}',
       'aside={<OrderDetail order={orders.find((o) => o.id === selectedId)} />}',
-      'footer={<Legal status={status} />}',
+      'footer={<StatusBar status={status} />}',
     ];
     spec = {
       name: 'ConsoleShell',
@@ -439,10 +495,9 @@ export function AppShellPlayground() {
       ],
       body: [
         'const columns = [' +
-          "{ key: 'id', header: 'Order', width: 95 }," +
+          "{ key: 'id', header: 'Order', width: 85 }," +
           "{ key: 'customer', header: 'Customer' }," +
-          "{ key: 'lane', header: 'Lane' }," +
-          "{ key: 'status', header: 'Status' }" +
+          "{ key: 'status', header: 'Status', width: 85 }" +
         '];',
         'const OrderTable = defineTable({ columns, stickyHeader: true });',
         'const [selectedId, setSelectedId] = useState("HB-4100");',

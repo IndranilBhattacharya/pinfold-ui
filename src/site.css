@@ -77,16 +77,45 @@ a:not(.pinfold, .pinfold *) { color: inherit; }
 /* ------------------------------------------------------------------------------------- the shell */
 .dx-shell { background: transparent; }
 .dx-shell .pinfold-appshell__navbar {
-  position: sticky;
-  inset-block-start: 0;
-  z-index: 40;
-  background: color-mix(in oklab, var(--dx-ink) 72%, transparent);
-  backdrop-filter: blur(18px) saturate(1.5);
-  -webkit-backdrop-filter: blur(18px) saturate(1.5);
-  border-block-end: 1px solid var(--dx-line);
+  grid-column: 1 / -1;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
 }
-.dx-shell .pinfold-navbar { background: transparent; border: 0; box-shadow: none; backdrop-filter: none; }
-.dx-shell .pinfold-navbar__inner { min-block-size: var(--dx-bar-h); max-inline-size: var(--dx-page); margin-inline: auto; }
+.dx-shell .pinfold-navbar {
+  inline-size: 100%;
+}
+.dx-shell .pinfold-appshell__trigger {
+  display: none !important;
+}
+.dx-shell .pinfold-navbar__tool[data-tool='mobile-menu'] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.125rem;
+  block-size: 2.125rem;
+  padding: 0;
+  margin-inline-end: 0.35rem;
+  color: var(--pinfold-color-text-muted);
+  background: color-mix(in oklab, var(--pinfold-color-text) 5%, transparent);
+  border: 1px solid color-mix(in oklab, var(--pinfold-color-text) 9%, transparent);
+  border-radius: var(--pinfold-radius-md, 8px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.dx-shell .pinfold-navbar__tool[data-tool='mobile-menu']:hover {
+  color: var(--pinfold-color-text);
+  background: color-mix(in oklab, var(--pinfold-color-text) 10%, transparent);
+  border-color: color-mix(in oklab, var(--pinfold-color-text) 18%, transparent);
+}
+.dx-shell .pinfold-navbar__tool[data-tool='mobile-menu']:focus-visible {
+  outline: none;
+  box-shadow: var(--pinfold-focus-ring);
+}
+@media (max-width: 960px) {
+  .dx-sidebar-trigger--landing { display: inline-flex; }
+}
 .dx-brand { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 1.0625rem; font-weight: 640; letter-spacing: -0.025em; color: var(--pinfold-color-text); }
 .dx-brand--lg { font-size: 1.25rem; gap: 0.65rem; }
 .dx-mark { flex-shrink: 0; filter: drop-shadow(0 4px 14px color-mix(in oklab, #7c3aed 45%, transparent)); }
@@ -100,6 +129,10 @@ a:not(.pinfold, .pinfold *) { color: inherit; }
   .dx-search { min-inline-size: 0; }
   .dx-search .pinfold-kbd { display: none; }
   .dx-shell--landing .pinfold-appshell__trigger { display: inline-flex; }
+}
+@media (max-width: 640px) {
+  .dx-brand .pinfold-badge { display: none; }
+  .pinfold-navbar__tool[data-tool='github'] { display: none; }
 }
 
 /* The navigation menu panels: an opaque surface, so the page never shows through. */
@@ -124,18 +157,145 @@ a:not(.pinfold, .pinfold *) { color: inherit; }
 
 /* Docs: navigation | page | on this page. */
 .dx-shell--docs:not([data-drawer]) > .pinfold-appshell__sidebar {
-  position: sticky;
-  inset-block-start: var(--dx-bar-h);
-  block-size: calc(100dvh - var(--dx-bar-h));
-  overflow: auto;
-  scrollbar-width: thin;
-  border-inline-end: 1px solid var(--dx-line);
+  overflow: hidden !important;
   background: transparent;
+  padding: 0 !important;
 }
-.dx-docsnav { padding: 1.25rem 0.75rem 3rem; }
-.dx-docsnav .pinfold-sidebar__groupLabel { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--pinfold-color-text-muted); }
+.dx-docsnav {
+  display: flex;
+  flex-direction: column;
+  block-size: 100%;
+  min-block-size: 0;
+  inline-size: 100%;
+  padding: 0;
+  overflow: hidden;
+}
+.dx-docsnav__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.65rem 0.35rem;
+  min-block-size: 2.375rem;
+  flex-shrink: 0;
+}
+.dx-docsnav__title {
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dx-label);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-inline-start: 0.25rem;
+}
+.dx-docsnav__toggle {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 1.875rem;
+  block-size: 1.875rem;
+  padding: 0;
+  color: var(--pinfold-color-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--pinfold-radius-md, 6px);
+  cursor: pointer;
+  transition: background-color var(--pinfold-duration-fast) var(--pinfold-ease-out),
+              color var(--pinfold-duration-fast) var(--pinfold-ease-out),
+              border-color var(--pinfold-duration-fast) var(--pinfold-ease-out);
+}
+.dx-docsnav__toggle:hover {
+  color: var(--pinfold-color-text);
+  background: color-mix(in oklab, var(--pinfold-color-text) 7%, transparent);
+  border-color: color-mix(in oklab, var(--pinfold-color-text) 10%, transparent);
+}
+.dx-docsnav__toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--pinfold-focus-ring);
+}
+.dx-docsnav .pinfold-sidebar,
+.dx-docsnav .pinfold-sidebar[data-collapsed] {
+  inline-size: 100% !important;
+  max-inline-size: 100%;
+  block-size: 100%;
+  min-block-size: 0;
+  border-inline-end: none;
+  padding: 0.25rem 0.5rem 0.5rem 0.65rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  transition: padding var(--pinfold-duration-slow) var(--pinfold-ease-out);
+}
+.dx-docsnav__scroll {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  inline-size: 100%;
+  block-size: 100%;
+}
+.dx-docsnav__scroll > .pinfold-scrollarea__viewport {
+  padding-block: 0.25rem 2.5rem;
+  padding-inline: 0.15rem 0.35rem;
+}
+.dx-docsnav__scroll .pinfold-scrollarea__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pinfold-sidebar-group-gap, 0.75rem);
+}
+.dx-docsnav .pinfold-sidebar__link {
+  font-size: 0.8125rem;
+  min-block-size: 1.875rem;
+  padding-block: 0.25rem;
+  padding-inline: 0.5rem;
+  border-radius: var(--pinfold-radius-md, 6px);
+  transition: all var(--pinfold-duration-fast) var(--pinfold-ease-out);
+}
+.dx-docsnav .pinfold-sidebar__groupLabel {
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pinfold-color-text-muted);
+  padding: 0.35rem 0.5rem 0.15rem;
+}
 .dx-docsnav .pinfold-sidebar__icon { color: var(--dx-label); }
 .dx-docsnav [aria-current='page'] .pinfold-sidebar__icon { color: var(--pinfold-color-accent); }
+
+/* Collapsed rail adjustments: perfectly centered icons, no cropping, zero horizontal clipping, clean single-track scroll */
+.dx-shell--docs[data-sidebar-collapsed] .dx-docsnav .pinfold-sidebar {
+  padding: 0.25rem 0.25rem 1rem;
+}
+.dx-shell--docs[data-sidebar-collapsed] .dx-docsnav__header {
+  padding: 0.65rem 0.25rem 0.25rem;
+  justify-content: center;
+}
+.dx-shell--docs[data-sidebar-collapsed] .dx-docsnav__toggle--rail {
+  inline-size: 2.375rem;
+  min-inline-size: 2.375rem;
+  block-size: 2.375rem;
+  margin-inline: auto;
+  border-radius: var(--pinfold-radius-md, 8px);
+}
+.dx-shell--docs[data-sidebar-collapsed] .dx-docsnav__scroll > .pinfold-scrollarea__viewport {
+  padding-inline: 0;
+  scrollbar-width: none;
+}
+.dx-shell--docs[data-sidebar-collapsed] .dx-docsnav__scroll > .pinfold-scrollarea__viewport::-webkit-scrollbar {
+  display: none;
+}
+.dx-shell--docs[data-sidebar-collapsed] .pinfold-sidebar__link {
+  inline-size: 2.375rem;
+  min-inline-size: 2.375rem;
+  block-size: 2.375rem;
+  margin-inline: auto;
+  justify-content: center;
+  padding: 0;
+}
+.dx-shell--docs[data-sidebar-collapsed] .pinfold-sidebar__icon {
+  display: grid;
+  place-items: center;
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+  margin: 0;
+}
 .dx-shell--docs .pinfold-appshell__main { min-inline-size: 0; }
 .dx-shell--docs .pinfold-appshell__aside {
   position: sticky;
@@ -150,24 +310,65 @@ a:not(.pinfold, .pinfold *) { color: inherit; }
 .dx-docs-main { padding: 2.25rem clamp(1rem, 3.5vw, 3.25rem) 4rem; outline: none; }
 .dx-article { max-inline-size: 64rem; margin-inline: auto; }
 
-/* On this page. */
-.dx-toc { padding: 2.25rem 1.25rem 2rem 0.5rem; }
-.dx-toc__title { display: flex; align-items: center; gap: 0.45rem; margin: 0 0 0.75rem; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--dx-label); }
-.dx-toc__list { margin: 0; padding: 0; list-style: none; border-inline-start: 1px solid var(--dx-line); }
+/* On this page: clean, immersive scrollspy navigation without disconnected vertical lines. */
+.dx-toc { padding: 2.25rem 1rem 2rem 0.75rem; }
+.dx-toc__title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 0.85rem 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--dx-label);
+}
+.dx-toc__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-inline-start: none;
+}
 .dx-toc__list a {
-  display: block;
-  margin-inline-start: -1px;
-  padding: 0.3rem 0 0.3rem 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.65rem;
   font-size: 0.8125rem;
   line-height: 1.4;
   color: var(--pinfold-color-text-muted);
   text-decoration: none;
-  border-inline-start: 2px solid transparent;
-  transition: color 0.15s, border-color 0.15s;
+  border-radius: var(--pinfold-radius-md, 6px);
+  border-inline-start: none;
+  transition: color 0.15s ease, background-color 0.15s ease;
 }
-.dx-toc__list li[data-level='3'] a { padding-inline-start: 1.65rem; font-size: 0.78rem; }
-.dx-toc__list a:hover { color: var(--pinfold-color-text); }
-.dx-toc__list a[aria-current] { color: var(--pinfold-color-accent); border-inline-start-color: var(--pinfold-color-accent); font-weight: 550; }
+.dx-toc__list li[data-level='3'] a {
+  padding-inline-start: 1.35rem;
+  font-size: 0.78rem;
+  opacity: 0.9;
+}
+.dx-toc__list a:hover {
+  color: var(--pinfold-color-text);
+  background-color: color-mix(in oklab, var(--pinfold-color-text) 5%, transparent);
+}
+.dx-toc__list a[aria-current] {
+  color: var(--pinfold-color-accent);
+  background-color: color-mix(in oklab, var(--pinfold-primary-500) 12%, transparent);
+  font-weight: 600;
+}
+.dx-toc__list a[aria-current]::before {
+  content: '';
+  display: inline-block;
+  inline-size: 5px;
+  block-size: 5px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: var(--pinfold-color-accent);
+  box-shadow: 0 0 8px var(--pinfold-color-accent);
+}
 
 /* ------------------------------------------------------------------------------------ page head */
 .dx-head { padding-block-end: 1.75rem; margin-block-end: 0.5rem; border-block-end: 1px solid var(--dx-line); }
@@ -415,6 +616,9 @@ a:not(.pinfold, .pinfold *) { color: inherit; }
 .dx-footer__legal { max-inline-size: var(--dx-page); margin: 3rem auto 0; padding-block-start: 1.5rem; font-size: 0.8125rem; color: var(--dx-label); border-block-start: 1px solid var(--dx-line); }
 
 /* ======================================================================================== landing */
+.dx-shell--landing .pinfold-appshell__main {
+  grid-row: 1 / -1;
+}
 .dx-landing { position: relative; isolation: isolate; overflow: clip; padding-inline: clamp(1rem, 4vw, 2.5rem); }
 .dx-aurora {
   position: absolute;
@@ -439,7 +643,15 @@ a:not(.pinfold, .pinfold *) { color: inherit; }
 }
 :root[data-pinfold-theme='light'] .dx-aurora { opacity: 0.55; }
 
-.dx-hero2 { display: flex; flex-direction: column; align-items: center; max-inline-size: 72rem; margin-inline: auto; padding: clamp(3.5rem, 8vw, 6.5rem) 0 3rem; text-align: center; }
+.dx-hero2 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-inline-size: 72rem;
+  margin-inline: auto;
+  padding: calc(var(--dx-bar-h, 3.5rem) + 0.9rem + clamp(2rem, 5vw, 4rem)) 0 3rem;
+  text-align: center;
+}
 .dx-pill {
   display: inline-flex;
   align-items: center;
@@ -696,3 +908,126 @@ a:not(.pinfold, .pinfold *) { color: inherit; }
 .dx-hero2__works ul { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem 2rem; margin: 0; padding: 0; list-style: none; }
 .dx-hero2__works li { display: inline-flex; align-items: center; gap: 0.55rem; font-size: 0.9rem; font-weight: 500; color: var(--pinfold-color-text-muted); }
 .dx-hero2__works li svg { color: var(--pinfold-color-text); opacity: 0.8; }
+
+/* App Shell & Demo inspector polish */
+.dx-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.15rem 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+.dx-aside__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.dx-aside__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--pinfold-color-text);
+}
+.dx-aside__lead {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  color: var(--pinfold-color-text-muted);
+}
+.dx-aside__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  padding: 0.65rem;
+  background: color-mix(in oklab, var(--pinfold-color-text) 3.5%, transparent);
+  border: 1px solid var(--dx-line);
+  border-radius: 10px;
+}
+.dx-aside__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.dx-aside__cell span {
+  font-size: 0.7rem;
+  font-weight: 550;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--dx-label);
+}
+.dx-aside__cell strong {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--pinfold-color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dx-aside__section-title {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--dx-label);
+}
+.dx-aside__activity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dx-aside__activity li {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--pinfold-color-text-muted);
+}
+.dx-aside__activity li::before {
+  content: '';
+  display: inline-block;
+  inline-size: 5px;
+  block-size: 5px;
+  margin-block-start: 0.4rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--pinfold-color-accent);
+}
+.dx-shell-demo-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  inline-size: 100%;
+  padding: 0.5rem 1rem;
+  font-size: 0.78rem;
+  color: var(--pinfold-color-text-muted);
+}
+.dx-shell-demo-footer__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dx-shell-demo-footer__dot {
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 50%;
+  background-color: var(--pinfold-success-500);
+  box-shadow: 0 0 6px var(--pinfold-success-500);
+  flex-shrink: 0;
+}
+.dx-shell-demo-footer__legal {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--dx-label);
+}

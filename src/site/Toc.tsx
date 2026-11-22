@@ -52,12 +52,15 @@ function useActive(ids: string[]): string {
 export function Toc({ page }: { page: string }) {
   const [headings, setHeadings] = React.useState<Heading[]>([]);
   React.useEffect(() => {
-    const root = document.getElementById('dx-article');
-    const read = () => setHeadings(collect(root));
+    const read = () => {
+      const root = document.getElementById('dx-article');
+      setHeadings(collect(root));
+    };
     read();
     // Lazy pages and examples add headings after the first paint.
+    const container = document.getElementById('dx-main') ?? document.body;
     const observer = new MutationObserver(() => read());
-    if (root) observer.observe(root, { childList: true, subtree: true });
+    observer.observe(container, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, [page]);
   const active = useActive(headings.map((h) => h.id));

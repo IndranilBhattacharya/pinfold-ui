@@ -7,7 +7,7 @@ import { version } from '@pinfold/core';
 
 type Files = Record<string, string>;
 
-const range = `^${version}`;
+const range = `^1.2.0 || ^${version}`;
 
 /** Names a snippet uses without declaring them: custom components, handlers, and data. */
 function standIns(code: string, lang: 'ts' | 'js'): string[] {

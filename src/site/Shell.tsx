@@ -394,11 +394,22 @@ export function SiteShell({
     ? {
         id: "mobile-menu",
         label: sidebarOpen ? "Close navigation" : "Open navigation",
-        icon: <MenuIcon size={18} strokeWidth={1.75} aria-hidden />,
+        icon: sidebarOpen ? (
+          <PanelLeftClose size={18} strokeWidth={1.75} aria-hidden="true" />
+        ) : (
+          <PanelLeft size={18} strokeWidth={1.75} aria-hidden="true" />
+        ),
         placement: "start" as const,
         onClick: toggleSidebar,
       }
     : null;
+
+  const searchTool = {
+    id: "search",
+    label: "Search documentation",
+    icon: <Search size={18} strokeWidth={1.75} aria-hidden="true" />,
+    onClick: () => setSearching(true),
+  };
 
   return (
     <>
@@ -442,6 +453,8 @@ export function SiteShell({
               <span className="dx-bar-end">
                 <SearchButton
                   className="dx-search"
+                  shape={!docs ? "pill" : undefined}
+                  radius={!docs ? "full" : undefined}
                   label="Search"
                   icon={<Search size={15} aria-hidden="true" />}
                   endIcon={<Key keys={["mod", "k"]} />}
@@ -451,6 +464,7 @@ export function SiteShell({
             }
             tools={[
               ...(mobileMenuTool ? [mobileMenuTool] : []),
+              searchTool,
               {
                 id: "github",
                 label: "GitHub",
